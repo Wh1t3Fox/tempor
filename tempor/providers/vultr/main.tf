@@ -10,11 +10,11 @@ resource "vultr_ssh_key" "default" {
 }
 
 resource "vultr_server" "vps" {
-    count = 1
+    count = var.num
     plan_id = "201"
     region_id = "6"
     os_id = "167"
-    label = data.external.vps_name.result.name
+    label = "${data.external.vps_name.result.name}${count.index}"
     ssh_key_ids = [vultr_ssh_key.default.id]
 }
 

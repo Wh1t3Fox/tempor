@@ -8,9 +8,9 @@ resource "digitalocean_ssh_key" "default" {
 }
 
 resource "digitalocean_droplet" "vps" {
-    count = 1
+    count = var.num
     image = "ubuntu-18-04-x64"
-    name = data.external.vps_name.result.name
+    name = "${data.external.vps_name.result.name}${count.index}"
     region = "nyc1"
     size = "s-1vcpu-1gb"
     ssh_keys = [

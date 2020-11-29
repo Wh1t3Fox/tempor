@@ -8,9 +8,9 @@ resource "linode_sshkey" "default" {
 }
 
 resource "linode_instance" "vps" {
-    count = 1
+    count = var.num
     image = "linode/ubuntu18.04"
-    label = data.external.vps_name.result.name
+    label = "${data.external.vps_name.result.name}${count.index}"
     region = "us-east"
     type = "g6-standard-1"
     root_pass = data.external.root_pass.result.value
