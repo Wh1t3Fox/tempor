@@ -7,7 +7,7 @@ import logging
 import logging.config
 import os
 
-ROOT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 try:
     CONFIG_DIR = f'{os.environ["XDG_CONFIG_HOME"]}/tempor'

@@ -6,7 +6,7 @@ import shutil
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '0.0.1'
+version = '0.0.2'
 
 with open("README.md", 'r', encoding='utf-8') as f:
     long_description = f.read()
@@ -29,6 +29,9 @@ setup(
     ],
     keywords='ssh',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    package_data={
+        'tempor':['config','providers']
+    },
     install_requires=[
         'colorama==0.4.3',
         'coloredlogs==14.0',
