@@ -16,6 +16,16 @@ else
 $(error No API Tokens! Define them in $(PWD)/api_tokens.mk)
 endif
 
+GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
+
+ifeq ($(MAKECMDGOALS),release)
+
+ifneq (x$(GIT_NOT_CLEAN_CHECK), x)
+$(error echo You are trying to release a build based on a dirty repo)
+endif
+
+endif
+
 all: help
 
 .PHONY: help
@@ -42,6 +52,7 @@ clean: destroy					## Cleanup VPS and Files
 	@find -name '*.pyc' -type f -exec rm -f {} \; 2>/dev/null || true
 	@find -name '*.egg-info' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@find -name '__pycache__' -type d -exec rm -fr {} \; 2>/dev/null || true
+	@rm -fr dist || true
 	@docker rmi terraform-deploy >/dev/null 2>&1 || true
 
 .PHONY: run
@@ -62,3 +73,7 @@ test: build					## Live Testing with Terraform
 .PHONY: destory
 destroy: build						## Destroy VPS'
 	@docker run -it --rm --init -v "$(PWD)/providers/$(PROVIDER):/work" terraform-deploy terraform destroy -var "api_token=$(TOKEN)" || true
+
+release:	## Publish version to pypi
+	python setup.py sdist
+	twine upload dist/*
