@@ -31,8 +31,12 @@ build-nc:						## Build Docker Containers w/out Cache
 .PHONY: clean
 clean: 					## Cleanup VPS and Files
 	@find -name '*.pyc' -type f -exec rm -f {} \; 2>/dev/null || true
+	@find -name 'plan' -type f -exec rm -f {} \; 2>/dev/null || true
+	@find -name 'terraform.tfstate*' -type f -exec rm -f {} \; 2>/dev/null || true
 	@find -name '*.egg-info' -type d -exec rm -fr {} \; 2>/dev/null || true
+	@find -name '.ssh' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@find -name '__pycache__' -type d -exec rm -fr {} \; 2>/dev/null || true
+	@find -name '.terraform' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@rm -fr dist || true
 	@docker rmi tempor-test >/dev/null 2>&1 || true
 
