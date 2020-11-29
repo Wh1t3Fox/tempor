@@ -46,9 +46,9 @@ optional arguments:
   - [x] Create Single VPS
   - [x] Delete VPS
   - [x] Auto Add SSH Keys
-  - [ ] List Available
-  - [ ] Cleanup SSH keys on delete
-  - [ ] Create arbitrary number
+  - [x] List Available
+  - [x] Cleanup SSH keys on delete
+  - [x] Create arbitrary number
 - [ ] Machine Setup via Ansible Playbooks
 - [ ] Custom Wrapper for Trivial Interaction
 - [ ] TBD
