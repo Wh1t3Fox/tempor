@@ -60,8 +60,8 @@ def get_args():
 
 
 def main():
-    terr_path = terraform_installed()
     provider, api_token, args = get_args()
+    terr_path = terraform_installed()
 
     if check_sshkeys(provider) is False:
         return
