@@ -4,6 +4,7 @@
 from python_terraform import *
 import argparse
 import logging
+import json
 import sys
 
 from tempor import ROOT_DIR
@@ -13,6 +14,9 @@ from tempor.ssh import (
 )
 from tempor.utils import (
     get_config,
+    get_hosts,
+    rm_hosts,
+    save_hosts,
     terraform_installed
 )
 
@@ -33,6 +37,28 @@ def get_args():
         '--provider',
         default=provider,
         help='Specify the Provider Name'
+    )
+    parser.add_argument(
+        '-c',
+        '--count',
+        default=1,
+        type=int,
+        help='Number of Images to Create'
+    )
+    parser.add_argument(
+        '--setup',
+        action='store_true',
+        help='Setup Image(s)'
+    )
+    parser.add_argument(
+        '--list',
+        action='store_true',
+        help='List Available Images'
+    )
+    parser.add_argument(
+        '--no-config',
+        action='store_true',
+        help='Leave as a Bare Install'
     )
     parser.add_argument(
         '--teardown',
@@ -88,8 +114,20 @@ def main():
         if ret != 0 and stderr:
             logger.error('Failed during Teardown')
             logger.error(stderr)
+        rm_hosts(provider)
         sys.stdout.write('Done.\n')
         sys.stdout.flush()
+        return
+
+    elif args.list:
+        all_hosts = get_hosts()
+        if provider in all_hosts:
+            for host, ip in all_hosts[provider].items():
+                logger.info(f'{host}\t{ip}')
+        return
+
+    # prevent accidental creations
+    if not args.setup:
         return
 
     if check_sshkeys(provider) is False:
@@ -99,7 +137,7 @@ def main():
     sys.stdout.write('[i] Preparing Configuration...')
     sys.stdout.flush()
     plan_path = f'{ROOT_DIR}/providers/{provider}/files/plan'
-    ret, stdout, stderr = t.cmd('plan', f'-out={plan_path}', var={'api_token':api_token})
+    ret, stdout, stderr = t.cmd('plan', f'-out={plan_path}', var={'api_token':api_token, 'num':args.count})
     logger.debug(f'{ret}\n{stdout}\n{stderr}')
     if ret != 0 and stderr:
         logger.error('Failed during Planning')
@@ -124,20 +162,31 @@ def main():
     sys.stdout.flush()
     # Get Hostname and IP Adress
     output = t.output()
+    
+    new_hosts = dict()
     if 'droplet_ip_address' in output:
-        hostname, ip_address = tuple(output['droplet_ip_address']['value'].items())[0]
+        for hostname,ip_address in output['droplet_ip_address']['value'].items():
+            new_hosts[hostname] = ip_address
+            install_ssh_keys(provider, hostname, ip_address)
+            
     elif 'instance_ip_address' in output:
-        hostname, ip_address = tuple(output['instance_ip_address']['value'].items())[0]
-    elif 'server_ip_address' in output:
-        hostname, ip_address = tuple(output['server_ip_address']['value'].items())[0]
+        for hostname,ip_address in output['instance_ip_address']['value'].items():
+            new_hosts[hostname] = ip_address
+            install_ssh_keys(provider, hostname, ip_address)
 
-    install_ssh_keys(provider, hostname, ip_address)
+    elif 'server_ip_address' in output:
+        for hostname,ip_address in output['server_ip_address']['value'].items():
+            new_hosts[hostname] = ip_address
+            install_ssh_keys(provider, hostname, ip_address)
+
     sys.stdout.write('Done.\n')
     sys.stdout.flush()
 
-    logger.info('Access to VPS now available:')
-    logger.info(f'ssh {hostname}')
+    logger.info('SSH Access to VPS now available for:')
+    for host in new_hosts:
+        logger.info(f'ssh {host}')
 
+    save_hosts(provider, new_hosts)
 
 if __name__ == '__main__':
     main()

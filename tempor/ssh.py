@@ -29,11 +29,11 @@ def add_config_entry(hostname, attr):
             os.makedirs(os.path.dirname(SSH_CONFIG_PATH))
         # create ~/.ssh/config
         cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
-        cfg.append(new_host)
-        cfg.write()
     else:
         cfg = SSHConfig.load(expanduser(SSH_CONFIG_PATH))
-        cfg.append(new_host)
+
+    cfg.append(new_host)
+    cfg.write()
 
 def remove_config_entry(hostname):
     # Nothing to remove if config doesn't exist
@@ -44,7 +44,14 @@ def remove_config_entry(hostname):
 
     try:
         cfg.remove(hostname)
+        cfg.write()
     except KeyError:
+        pass
+
+    dir_path = Path(f'{DATA_DIR}/{hostname}')
+    try:
+        dir_path.rmdir()
+    except OSError as e:
         pass
 
 def check_sshkeys(provider):
@@ -76,7 +83,7 @@ def install_ssh_keys(provider, hostname, ip_address):
         'Hostname': ip_address,
         'User': 'root',
         'Port': 22,
-        'Compression': True,
+        'Compression': 'yes',
         'StrictHostKeyChecking': 'no',
         'IdentityFile': f'{out_dir}/id_ed25519'
     }
