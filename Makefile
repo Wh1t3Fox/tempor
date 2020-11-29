@@ -39,6 +39,9 @@ clean: destroy					## Cleanup VPS and Files
 	@sudo find -name '.terraform' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@find -name 'terraform.tfstate*' -type f -exec rm -f {} \; 2>/dev/null || true
 	@find -name 'plan' -type f -exec rm -f {} \; 2>/dev/null || true
+	@find -name '*.pyc' -type f -exec rm -f {} \; 2>/dev/null || true
+	@find -name '*.egg-info' -type d -exec rm -fr {} \; 2>/dev/null || true
+	@find -name '__pycache__' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@docker rmi terraform-deploy >/dev/null 2>&1 || true
 
 .PHONY: run
@@ -58,4 +61,4 @@ test: build					## Live Testing with Terraform
 
 .PHONY: destory
 destroy: build						## Destroy VPS'
-	@docker run -it --rm --init -v "$(PWD)/providers/$(PROVIDER):/work" terraform-deploy terraform destroy -var "api_token=$(TOKEN)"
+	@docker run -it --rm --init -v "$(PWD)/providers/$(PROVIDER):/work" terraform-deploy terraform destroy -var "api_token=$(TOKEN)" || true
