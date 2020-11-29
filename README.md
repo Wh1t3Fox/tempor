@@ -42,7 +42,13 @@ optional arguments:
 
 ### TODO:
 
-- [x] Terraform for Machine Creation
+- Terraform
+  - [x] Create Single VPS
+  - [x] Delete VPS
+  - [x] Auto Add SSH Keys
+  - [ ] List Available
+  - [ ] Cleanup SSH keys on delete
+  - [ ] Create arbitrary number
 - [ ] Machine Setup via Ansible Playbooks
 - [ ] Custom Wrapper for Trivial Interaction
 - [ ] TBD
