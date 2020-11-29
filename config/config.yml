@@ -1,0 +1,12 @@
+providers:
+  -
+    name: digitalocean
+    api_token:
+  -
+    name: linode
+    api_token:
+  -
+    name: vultr
+    api_token:
+
+default: digitalocean

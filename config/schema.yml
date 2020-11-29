@@ -1,0 +1,24 @@
+type: object
+properties:
+  providers:
+    type: array
+    items:
+      $ref: '#/definitions/provider'
+  default:
+    type: string
+    enum:
+      - digitalocean
+      - linode
+      - vultr
+definitions:
+  provider:
+    type: object
+    required:
+      - name
+      - api_token
+    properties:
+      name: 
+        type: string
+      api_token:
+        type: string
+

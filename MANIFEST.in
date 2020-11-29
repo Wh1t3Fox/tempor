@@ -1,0 +1,3 @@
+include config/*
+recursive-include providers *
+global-exclude *.py[cod] __pycache__ *.so
