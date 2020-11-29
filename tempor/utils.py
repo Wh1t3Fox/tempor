@@ -5,12 +5,10 @@ from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 import jsonschema
-import subprocess
 import platform
 import logging
 import hashlib
 import shutil
-import shlex
 import yaml
 import stat
 import os
@@ -72,17 +70,3 @@ def terraform_installed():
             os.chmod(out_file, st.st_mode | stat.S_IXUSR)
     return out_file
 
-def check_sshkeys(provider):
-    prog = shutil.which('ssh-keygen')
-    if not prog:
-        logger.errror('ssh-keygen not available. Is OpenSSH installed?')
-        return False
-
-    out_dir = f'{ROOT_DIR}/providers/{provider}/files/.ssh'
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
-    out_file = f'{out_dir}/id_ed25519'
-    if not os.path.exists(out_file):
-        logger.info(f'Generating new key pair {out_file}')
-        subprocess.call(f'yes | ssh-keygen -t ed25519 -N "" -C "" -f {out_file}', stdout=subprocess.DEVNULL, shell=True)
