@@ -17,14 +17,15 @@ import stat
 import os
 
 from tempor import ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
-from tempor.ssh import remove_config_entry
 
 logger = logging.getLogger(__name__)
 
 TER_VER='0.13.5'
 TER_HASH= {
     'amd64':'f7b7a7b1bfbf5d78151cfe3d1d463140b5fd6a354e71a7de2b5644e652ca5147',
-    '386': 'e497be04adfd5f03737ef0da5f705c5bac91a7178ba8786eef7e182c4883908b'
+    '386': 'e497be04adfd5f03737ef0da5f705c5bac91a7178ba8786eef7e182c4883908b',
+    'arm': '602e055078fa6be51983a58c6685fd48ee4dca9150c657da65604e9b8bfceced',
+    'arm64': 'e00d6140d3c92d337835ec968bf47233606943b9ce51467c5119ce8cfd97cc62'
 }
 
 HOSTS_FILE = f'{DATA_DIR}/hosts'
@@ -59,10 +60,14 @@ def terraform_installed():
         logger.error(f'Terraform not in Path. Installing to {out_file} ...')
         uname = platform.uname()
         if 'linux' in uname.system.lower():
-            if '64' in uname.machine:
+            if 'aarch64' in uname.machine():
+                arch = 'arm64'
+            elif '64' in uname.machine():
                 arch = 'amd64'
-            else:
+            elif '386' in uname.machine():
                 arch = '386'
+            else:
+                arch = 'arm'
             url = f'https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_linux_{arch}.zip'
         else:
             return None
