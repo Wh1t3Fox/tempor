@@ -6,6 +6,7 @@ import argparse
 import logging
 import json
 import sys
+import os
 
 from tempor import ROOT_DIR
 from tempor.ssh import (
@@ -36,6 +37,7 @@ def get_args():
         '-p',
         '--provider',
         default=provider,
+        choices=os.listdir(f'{ROOT_DIR}/providers'),
         help='Specify the Provider Name'
     )
     parser.add_argument(
@@ -43,17 +45,17 @@ def get_args():
         '--count',
         default=1,
         type=int,
-        help='Number of Images to Create'
+        help='Number of VPS\' to Create'
     )
     parser.add_argument(
         '--setup',
         action='store_true',
-        help='Setup Image(s)'
+        help='Create VPS\''
     )
     parser.add_argument(
         '--list',
         action='store_true',
-        help='List Available Images'
+        help='List Available VPS\''
     )
     parser.add_argument(
         '--no-config',
@@ -63,7 +65,7 @@ def get_args():
     parser.add_argument(
         '--teardown',
         action='store_true',
-        help='Tear down VPS'
+        help='Tear down VPS\''
     )
 
     args = parser.parse_args()
