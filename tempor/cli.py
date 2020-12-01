@@ -93,6 +93,9 @@ def get_args():
 def main():
     provider, api_token, args = get_args()
     terr_path = terraform_installed()
+    if terr_path is None:
+        logger.error('Platform not Supported')
+        return
 
     t = Terraform(
         working_dir=f'{ROOT_DIR}/providers/{provider}',

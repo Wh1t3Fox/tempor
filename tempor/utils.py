@@ -25,7 +25,8 @@ TER_HASH= {
     'amd64':'f7b7a7b1bfbf5d78151cfe3d1d463140b5fd6a354e71a7de2b5644e652ca5147',
     '386': 'e497be04adfd5f03737ef0da5f705c5bac91a7178ba8786eef7e182c4883908b',
     'arm': '602e055078fa6be51983a58c6685fd48ee4dca9150c657da65604e9b8bfceced',
-    'arm64': 'e00d6140d3c92d337835ec968bf47233606943b9ce51467c5119ce8cfd97cc62'
+    'arm64': 'e00d6140d3c92d337835ec968bf47233606943b9ce51467c5119ce8cfd97cc62',
+    'darwin': '03f7b636638c587c3b03a4b3d1d4cab77c872ad5f7e55405ddaf38dfb94e0e89'
 }
 
 HOSTS_FILE = f'{DATA_DIR}/hosts'
@@ -69,6 +70,9 @@ def terraform_installed():
             else:
                 arch = 'arm'
             url = f'https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_linux_{arch}.zip'
+        elif 'darwin' in uname.system.lower():
+            arch = 'darwin'
+            url = f'https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_darwin_amd64.zip'
         else:
             return None
 
