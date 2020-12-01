@@ -60,11 +60,11 @@ def terraform_installed():
         logger.error(f'Terraform not in Path. Installing to {out_file} ...')
         uname = platform.uname()
         if 'linux' in uname.system.lower():
-            if 'aarch64' in uname.machine():
+            if 'aarch64' in uname.machine:
                 arch = 'arm64'
-            elif '64' in uname.machine():
+            elif '64' in uname.machine:
                 arch = 'amd64'
-            elif '386' in uname.machine():
+            elif '386' in uname.machine:
                 arch = '386'
             else:
                 arch = 'arm'
