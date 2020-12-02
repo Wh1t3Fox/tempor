@@ -64,9 +64,9 @@ def check_sshkeys(provider):
 
     out_file = f'{out_dir}/id_ed25519'
     if not os.path.exists(out_file):
-        sys.stdout.write('[i] Generating new key pair...')
+        console.print('Generating new key pair...', end='', style='bold italic')
         subprocess.call(f'yes | ssh-keygen -t ed25519 -N "" -C "" -f {out_file}', stdout=subprocess.DEVNULL, shell=True)
-        sys.stdout.write('Done.\n')
+        console.print('Done.')
 
 def install_ssh_keys(provider, hostname, ip_address):
     old_dir = f'{ROOT_DIR}/providers/{provider}/files/.ssh'

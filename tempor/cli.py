@@ -111,7 +111,7 @@ def main():
     
     # now what do we want to do?
     if args.teardown:
-        console.print('[i] Tearing down...', end='')
+        console.print('Tearing down...', end='', style='bold italic')
         ret, stdout, stderr = t.destroy()
         if ret != 0 and stderr:
             console.print('[red bold]Failed during Teardown')
@@ -141,7 +141,7 @@ def main():
         return
 
     # lets plan the config
-    console.print('[i] Preparing Configuration...', end='')
+    console.print('Preparing Configuration...', end='', style='bold italic')
     plan_path = f'{ROOT_DIR}/providers/{provider}/files/plan'
     ret, stdout, stderr = t.cmd('plan', f'-out={plan_path}', var={'api_token':api_token, 'num':args.count})
     if ret != 0 and stderr:
@@ -151,7 +151,7 @@ def main():
     console.print('Done.')
 
     # now apply the config
-    console.print('[i] Creating VPS...', end='')
+    console.print('Creating VPS...', end='', style='bold italic')
     ret, stdout, stderr = t.cmd('apply', plan_path)
     if ret != 0 and stderr:
         console.print('[red bold]Failed during Applying')
@@ -159,7 +159,7 @@ def main():
         return
     console.print('Done.')
 
-    console.print('[i] Configuring SSH Keys...')
+    console.print('Configuring SSH Keys...', end='', style='bold italic')
     # Get Hostname and IP Adress
     output = t.output()
     
@@ -178,11 +178,12 @@ def main():
         for hostname,ip_address in output['server_ip_address']['value'].items():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
+    console.print('Done.')
 
-
-    console.print('SSH Access to VPS now available for:')
+    
+    console.print('\nVPS\' now available!\n', style='bold italic green')
     for host in new_hosts:
-        console.print(f'ssh {host}')
+        console.print(f'ssh {host}', style='magenta')
 
     save_hosts(provider, new_hosts)
 
