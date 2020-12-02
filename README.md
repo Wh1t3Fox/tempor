@@ -43,6 +43,27 @@ optional arguments:
   --list                List Available Images
   --no-config           Leave as a Bare Install
   --teardown            Tear down VPS
+
+➜ tempor --setup
+Preparing Configuration...Done.
+Creating VPS...Done.
+Configuring SSH Keys...Done.
+
+VPS' now available!
+
+ssh nnvnv620
+
+➜ tempor --list
+         Active VPS'
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ VPS Name ┃ IP Address     ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ nnvnv620 │ 178.128.144.45 │
+└──────────┴────────────────┘
+
+➜ tempor --teardown
+Tearing down...Done.
+
 ```
 
 ### TODO:
