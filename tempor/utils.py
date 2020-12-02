@@ -6,7 +6,6 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 import jsonschema
 import platform
-import logging
 import hashlib
 import random
 import string
@@ -17,8 +16,9 @@ import stat
 import os
 
 from tempor import ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
+from tempor.console import console
+from tempor.ssh import remove_config_entry
 
-logger = logging.getLogger(__name__)
 
 TER_VER='0.13.5'
 TER_HASH= {
@@ -35,7 +35,7 @@ def get_config():
     fpath = f'{CONFIG_DIR}/config.yml'
 
     if not os.path.exists(fpath):
-        logger.info(f'Creating New Config File: {fpath}')
+        console.print(f'Creating New Config File: {fpath}')
         shutil.copy(f'{ROOT_DIR}/config/config.yml', fpath)
         return None
     
@@ -45,11 +45,11 @@ def get_config():
             schema = yaml.safe_load(fr2)
             jsonschema.validate(cfg, schema)
         except jsonschema.exceptions.ValidationError as e:
-            logger.error('Invalid Config File')
+            console.print('[red bold]Invalid Config File')
             if 'api_token' in str(e):
-                logger.error('All Values are required. Remove Providers without an API Token')
+                console.print('[red bold]All Values are required. Remove Providers without an API Token')
             else:
-                logger.error(e)
+                console.print(f'[red bold]{e}')
             return None
         return cfg
 
@@ -58,7 +58,7 @@ def terraform_installed():
     out_file = shutil.which('terraform')
     if not out_file:
         out_file = f'{BIN_DIR}/terraform'
-        logger.error(f'Terraform not in Path. Installing to {out_file} ...')
+        console.print(f'Terraform not in Path. Installing to {out_file} ...')
         uname = platform.uname()
         if 'linux' in uname.system.lower():
             if 'aarch64' in uname.machine:
@@ -80,9 +80,9 @@ def terraform_installed():
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
 
-            logger.info(f'Validating Hash: {TER_HASH[arch]}')
+            console.print(f'Validating Hash: {TER_HASH[arch]}')
             assert TER_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest(), "Invalid SHA256 Hash of Zip File!"
-            logger.info('Passed!')
+            console.print('Passed!')
             with ZipFile(zipfile) as zfile:
                 zfile.extractall(f'{BIN_DIR}')
             st = os.stat(out_file)
@@ -117,7 +117,7 @@ def save_hosts(provider, new_hosts):
     hosts = dict()
 
     if not isinstance(new_hosts, dict):
-        logger.error('Cannot save new hosts')
+        console.print('[red bold]Cannot save new hosts')
         return
     
     # load in what's there
@@ -147,7 +147,7 @@ def random_number(min_val=0, max_val=100):
     return str(random.randint(min_val, max_val))
 
 def random_str(min_val=5, max_val=10):
-    return ''.join([random.choice(string.ascii_lowercase) for _ in xrange(random.randint(min_val,max_val))])
+    return ''.join([random.choice(string.ascii_lowercase) for _ in range(random.randint(min_val,max_val))])
 
 def random_name():
     try:

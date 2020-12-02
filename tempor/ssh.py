@@ -7,15 +7,13 @@ from os.path import expanduser
 from pathlib import Path
 from os import path
 import subprocess
-import logging
 import shutil
 import shlex
 import sys
 import os
 
 from tempor import ROOT_DIR, DATA_DIR
-
-logger = logging.getLogger(__name__)
+from tempor.console import console
 
 SSH_CONFIG_PATH = expanduser('~/.ssh/config')
 
@@ -57,7 +55,7 @@ def remove_config_entry(hostname):
 def check_sshkeys(provider):
     prog = shutil.which('ssh-keygen')
     if not prog:
-        logger.errror('ssh-keygen not available. Is OpenSSH installed?')
+        console.print('[red bold]ssh-keygen not available. Is OpenSSH installed?')
         return False
 
     out_dir = f'{ROOT_DIR}/providers/{provider}/files/.ssh'

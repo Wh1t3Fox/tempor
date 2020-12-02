@@ -6,7 +6,7 @@ import shutil
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '0.0.7'
+version = '0.0.8'
 
 with open("README.md", 'r', encoding='utf-8') as f:
     long_description = f.read()
@@ -33,11 +33,9 @@ setup(
         'tempor':['config','providers']
     },
     install_requires=[
-        'colorama==0.4.3',
-        'coloredlogs==14.0',
         'jsonschema==3.2.0',
-        'prompt_toolkit==3.0.8', 
         'python-terraform==0.10.1', 
+        'rich==9.3.0',
         'ssh-config==0.0.22',
         'PyYAML==5.3.1'
     ],
