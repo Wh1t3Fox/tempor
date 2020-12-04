@@ -13,18 +13,16 @@ import os
 
 from tempor import ROOT_DIR
 from tempor.console import console
-from tempor.ssh import (
-        check_sshkeys,
-        install_ssh_keys
-)
+from tempor.ssh import check_sshkeys, install_ssh_keys
 from tempor.utils import (
     get_config,
     get_hosts,
     rm_hosts,
     save_hosts,
-    terraform_installed
+    terraform_installed,
 )
 from tempor.playbook import run_playbook
+
 
 def get_args():
     cfg = get_config()
@@ -32,62 +30,46 @@ def get_args():
     if not cfg:
         sys.exit(1)
 
-    if 'default' in cfg:
-        provider = cfg['default']
-    
+    if "default" in cfg:
+        provider = cfg["default"]
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-p',
-        '--provider',
+        "-p",
+        "--provider",
         default=provider,
-        choices=os.listdir(f'{ROOT_DIR}/providers'),
-        help='Specify the Provider Name'
+        choices=os.listdir(f"{ROOT_DIR}/providers"),
+        help="Specify the Provider Name",
     )
     parser.add_argument(
-        '-c',
-        '--count',
-        default=1,
-        type=int,
-        help='Number of VPS\' to Create'
+        "-c", "--count", default=1, type=int, help="Number of VPS' to Create"
     )
+    parser.add_argument("--setup", action="store_true", help="Create VPS'")
+    parser.add_argument("--list", action="store_true", help="List Available VPS'")
     parser.add_argument(
-        '--setup',
-        action='store_true',
-        help='Create VPS\''
+        "--no-config", action="store_true", help="Leave as a Bare Install"
     )
-    parser.add_argument(
-        '--list',
-        action='store_true',
-        help='List Available VPS\''
-    )
-    parser.add_argument(
-        '--no-config',
-        action='store_true',
-        help='Leave as a Bare Install'
-    )
-    parser.add_argument(
-        '--teardown',
-        action='store_true',
-        help='Tear down VPS\''
-    )
+    parser.add_argument("--teardown", action="store_true", help="Tear down VPS'")
 
     args = parser.parse_args()
 
     # Check if provider is set
     if not args.provider:
-        console.print('[red bold]Must Specify a Provider')
+        console.print("[red bold]Must Specify a Provider")
         sys.exit(1)
 
     provider = args.provider
-    if 'providers' in cfg:
+    if "providers" in cfg:
         # lets check for the API token
         try:
-            api_token = [i['api_token'] for i in cfg['providers'] if i['name'] == provider][0]
+            api_token = [
+                i["api_token"] for i in cfg["providers"] if i["name"] == provider
+            ][0]
         except IndexError:
-            console.print('[red bold]API Tokns are required')
+            console.print("[red bold]API Tokns are required")
             sys.exit(1)
     else:
-        console.print('[red bold]Providers are required')
+        console.print("[red bold]Providers are required")
         sys.exit(1)
 
     return (provider, api_token, args)
@@ -97,30 +79,30 @@ def main():
     provider, api_token, args = get_args()
     terr_path = terraform_installed()
     if terr_path is None:
-        console.print('[red bold]Platform not Supported')
+        console.print("[red bold]Platform not Supported")
         return
 
     t = Terraform(
-        working_dir=f'{ROOT_DIR}/providers/{provider}',
-        variables={'api_token':api_token},
-        terraform_bin_path=terr_path
+        working_dir=f"{ROOT_DIR}/providers/{provider}",
+        variables={"api_token": api_token},
+        terraform_bin_path=terr_path,
     )
     # make sure terraform is initialized
     ret, stdout, stderr = t.init()
     if ret != 0 and stderr:
-        console.print('[red bold]Failed during initialization')
-        console.print(f'[red bold]{stderr}')
+        console.print("[red bold]Failed during initialization")
+        console.print(f"[red bold]{stderr}")
         return
-    
+
     # now what do we want to do?
     if args.teardown:
-        console.print('Tearing down...', end='', style='bold italic')
+        console.print("Tearing down...", end="", style="bold italic")
         ret, stdout, stderr = t.destroy()
         if ret != 0 and stderr:
-            console.print('[red bold]Failed during Teardown')
-            console.print(f'[red bold]{stderr}')
+            console.print("[red bold]Failed during Teardown")
+            console.print(f"[red bold]{stderr}")
         rm_hosts(provider)
-        console.print('Done.')
+        console.print("Done.")
         return
 
     elif args.list:
@@ -144,57 +126,59 @@ def main():
         return
 
     # lets plan the config
-    console.print('Preparing Configuration...', end='', style='bold italic')
-    plan_path = f'{ROOT_DIR}/providers/{provider}/files/plan'
-    ret, stdout, stderr = t.cmd('plan', f'-out={plan_path}', var={'api_token':api_token, 'num':args.count})
+    console.print("Preparing Configuration...", end="", style="bold italic")
+    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plan"
+    ret, stdout, stderr = t.cmd(
+        "plan", f"-out={plan_path}", var={"api_token": api_token, "num": args.count}
+    )
     if ret != 0 and stderr:
-        console.print('[red bold]Failed during Planning')
-        console.print(f'[red bold]{stderr}')
+        console.print("[red bold]Failed during Planning")
+        console.print(f"[red bold]{stderr}")
         return
-    console.print('Done.')
+    console.print("Done.")
 
     # now apply the config
-    console.print('Creating VPS...', end='', style='bold italic')
-    ret, stdout, stderr = t.cmd('apply', plan_path)
+    console.print("Creating VPS...", end="", style="bold italic")
+    ret, stdout, stderr = t.cmd("apply", plan_path)
     if ret != 0 and stderr:
-        console.print('[red bold]Failed during Applying')
-        console.print(f'[red bold]{stderr}')
+        console.print("[red bold]Failed during Applying")
+        console.print(f"[red bold]{stderr}")
         return
-    console.print('Done.')
+    console.print("Done.")
 
-    console.print('Configuring SSH Keys...', end='', style='bold italic')
+    console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Get Hostname and IP Adress
     output = t.output()
-    
+
     new_hosts = dict()
-    if 'droplet_ip_address' in output:
-        for hostname,ip_address in output['droplet_ip_address']['value'].items():
-            new_hosts[hostname] = ip_address
-            install_ssh_keys(provider, hostname, ip_address)
-            
-    elif 'instance_ip_address' in output:
-        for hostname,ip_address in output['instance_ip_address']['value'].items():
+    if "droplet_ip_address" in output:
+        for hostname, ip_address in output["droplet_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
 
-    elif 'server_ip_address' in output:
-        for hostname,ip_address in output['server_ip_address']['value'].items():
+    elif "instance_ip_address" in output:
+        for hostname, ip_address in output["instance_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
-    console.print('Done.')
+
+    elif "server_ip_address" in output:
+        for hostname, ip_address in output["server_ip_address"]["value"].items():
+            new_hosts[hostname] = ip_address
+            install_ssh_keys(provider, hostname, ip_address)
+    console.print("Done.")
 
     save_hosts(provider, new_hosts)
 
     if not args.no_config:
-        console.print('Configuring Hosts...', style='bold italic')
-        for n in track(range(100), description='Finalizing VPS'):
-            time.sleep(0.1) # just need to wait a few secs for VPS'
+        console.print("Configuring Hosts...", style="bold italic")
+        for n in track(range(100), description="Finalizing VPS"):
+            time.sleep(0.1)  # just need to wait a few secs for VPS'
         run_playbook()
 
-    console.print('\nVPS\' now available!\n', style='bold italic green')
+    console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:
-        console.print(f'ssh {host}', style='magenta')
+        console.print(f"ssh {host}", style="magenta")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
