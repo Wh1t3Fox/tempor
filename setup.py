@@ -6,7 +6,9 @@ import shutil
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = "0.0.11"
+
+with open(os.path.join("tempor", "VERSION"), "r", encoding="utf-8") as f:
+    version = f.read()
 
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
@@ -45,7 +47,13 @@ setup(
         "PyYAML==5.3.1",
     ],
     extras_require={
-        "dev": ["black==20.8b1", "twine==3.2.0", "pytest==6.1.2", "codecov==2.1.10"],
+        "dev": [
+            "black==20.8b1",
+            "twine==3.2.0",
+            "pytest==6.1.2",
+            "pytest_cov==2.10.1",
+            "flit==3.0.0",
+        ],
     },
     entry_points={
         "console_scripts": [
