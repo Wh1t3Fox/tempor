@@ -6,7 +6,7 @@ import shutil
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = "0.0.10"
+version = "0.0.11"
 
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
