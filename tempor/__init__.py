@@ -16,7 +16,7 @@ APP_NAME = "tempor"
 APP_AUTHOR = "wh1t3fox"
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as fr:
-    VERSION = fr.read().strip()
+    __version__ = fr.read().strip()
 
 CONFIG_DIR = user_config_dir(APP_NAME)
 DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)

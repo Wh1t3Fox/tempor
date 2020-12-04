@@ -7,6 +7,27 @@ module = "tempor"
 author = "Wh1t3Fox"
 author-email = "dev@exploit.design"
 home-page = "https://github.com/Wh1t3Fox/tempor"
-classifiers = ["License :: OSI Approved :: Apache Software License"]
+requires = [
+    "appdirs==1.4.4",
+    "ansible_runner==1.4.6",
+    "jsonschema==3.2.0",
+    "python-terraform==0.10.1",
+    "rich==9.3.0",
+    "ssh-config==0.0.22",
+    "PyYAML==5.3.1",
+]
+requires-python = ">=3.6"
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Operating System :: Android",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+]
 description-file = "README.md"
-
