@@ -40,7 +40,7 @@ setup(
         "PyYAML==5.3.1",
     ],
     extras_require={
-        "dev": ["black==20.8b1", "twine==3.2.0", "pytest==6.1.2"],
+        "dev": ["black==20.8b1", "twine==3.2.0", "pytest==6.1.2", "codecov==2.1.10"],
     },
     entry_points={
         "console_scripts": [

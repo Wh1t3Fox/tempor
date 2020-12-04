@@ -11,4 +11,4 @@ install:
   - python3 -m pip install -e .
 script: pytest
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
