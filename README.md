@@ -1,4 +1,7 @@
-# tempor
+<h1 align="center">
+  <img src="imgs/tempor_med-sm.png" alt="tempor" width="250px" height="250px"></a>
+  <br>
+</h1>
 
 [![Build Status](https://img.shields.io/travis/com/Wh1t3Fox/tempor?style=for-the-badge)](https://travis-ci.com/Wh1t3Fox/tempor)
 [![Python Version](https://img.shields.io/pypi/pyversions/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
