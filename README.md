@@ -1,8 +1,13 @@
 # tempor
 
-## Work In Progress...
+[![Build Status](https://img.shields.io/travis/com/Wh1t3Fox/tempor?style=for-the-badge)](https://travis-ci.com/Wh1t3Fox/tempor)
+[![Python Version](https://img.shields.io/pypi/pyversions/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
+[![Pypi Version](https://img.shields.io/pypi/v/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
+[![Pypi Downloads](https://img.shields.io/pypi/dm/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 
-Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom). Currently supports creating bare machines on Digital Ocean, Linode, and Vultr.
+
+
+Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom). Currently supports creating machines on Digital Ocean, Linode, and Vultr.
 
 ### Install
 ```
@@ -65,16 +70,3 @@ ssh nnvnv620
 Tearing down...Done.
 
 ```
-
-### TODO:
-
-- Terraform
-  - [x] Create Single VPS
-  - [x] Delete VPS
-  - [x] Auto Add SSH Keys
-  - [x] List Available
-  - [x] Cleanup SSH keys on delete
-  - [x] Create arbitrary number
-- [ ] Machine Setup via Ansible Playbooks
-- [ ] Custom Wrapper for Trivial Interaction
-- [ ] TBD
