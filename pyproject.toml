@@ -1,0 +1,12 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "tempor"
+author = "Wh1t3Fox"
+author-email = "dev@exploit.design"
+home-page = "https://github.com/Wh1t3Fox/tempor"
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+description-file = "README.md"
+
