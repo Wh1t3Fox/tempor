@@ -9,6 +9,6 @@ before_install:
   - python3 -m pip install --upgrade pip
 install:
   - python3 -m pip install -e .
-script: pytest
+script: pytest --cov=./
 after_success:
-  - codecov
+  - bash <(curl -s https://codecov.io/bash) 
