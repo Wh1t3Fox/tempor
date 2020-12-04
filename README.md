@@ -4,6 +4,7 @@
 </h1>
 
 [![Build Status](https://img.shields.io/travis/com/Wh1t3Fox/tempor?style=for-the-badge)](https://travis-ci.com/Wh1t3Fox/tempor)
+[![Coverage](https://img.shields.io/codecov/c/github/wh1t3fox/tempor?style=for-the-badge)](https://codecov.io/gh/Wh1t3Fox/tempor)
 [![Python Version](https://img.shields.io/pypi/pyversions/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 [![Pypi Version](https://img.shields.io/pypi/v/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 [![Pypi Downloads](https://img.shields.io/pypi/dm/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
