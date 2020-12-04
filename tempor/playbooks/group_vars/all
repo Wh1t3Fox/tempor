@@ -1,0 +1,5 @@
+---
+
+ssh_gateway_ports: true
+ssh_permit_root_login: without-password
+

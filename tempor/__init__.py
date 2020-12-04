@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+from appdirs import *
 from pathlib import Path
 import logging
 import logging.config
@@ -8,15 +9,13 @@ import os
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
-try:
-    CONFIG_DIR = f'{os.environ["XDG_CONFIG_HOME"]}/tempor'
-except KeyError:
-    CONFIG_DIR = f'{os.environ["HOME"]}/.config/tempor'
+APP_NAME = "tempor"
+APP_AUTHOR = "wh1t3fox"
 
-try:
-    DATA_DIR = f"{os.environ['XDG_DATA_HOME']}/tempor"
-except KeyError:
-    DATA_DIR = f"{os.environ['HOME']}/.local/share/tempor"
+
+CONFIG_DIR = user_config_dir(APP_NAME)
+DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)
+
 
 BIN_DIR = f'{os.environ["HOME"]}/.local/bin'
 

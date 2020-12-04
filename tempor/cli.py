@@ -4,7 +4,9 @@
 from python_terraform import *
 from rich.console import Console
 from rich.table import Table
+from rich.progress import track
 import argparse
+import time
 import json
 import sys
 import os
@@ -22,6 +24,7 @@ from tempor.utils import (
     save_hosts,
     terraform_installed
 )
+from tempor.playbook import run_playbook
 
 def get_args():
     cfg = get_config()
@@ -180,12 +183,18 @@ def main():
             install_ssh_keys(provider, hostname, ip_address)
     console.print('Done.')
 
-    
+    save_hosts(provider, new_hosts)
+
+    if not args.no_config:
+        console.print('Configuring Hosts...', style='bold italic')
+        for n in track(range(100), description='Finalizing VPS'):
+            time.sleep(0.1) # just need to wait a few secs for VPS'
+        run_playbook()
+
     console.print('\nVPS\' now available!\n', style='bold italic green')
     for host in new_hosts:
         console.print(f'ssh {host}', style='magenta')
 
-    save_hosts(provider, new_hosts)
 
 if __name__ == '__main__':
     main()

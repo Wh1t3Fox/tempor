@@ -1,0 +1,13 @@
+[0;34mUsing /home/craig/git/tempor/tempor/playbooks/ansible.cfg as config file[0m
+
+PLAY [VPS Hardening] ***********************************************************
+
+TASK [Gathering Facts] *********************************************************
+[1;35m[WARNING]: Unhandled error in Python interpreter discovery for host[0m
+[1;35memydinfi110: Failed to connect to the host via ssh: ssh: connect to host[0m
+[1;35m206.189.197.112 port 22: Connection refused[0m
+[1;31mfatal: [emydinfi110]: UNREACHABLE! => {"changed": false, "msg": "Data could not be sent to remote host \"emydinfi110\". Make sure this host can be reached over ssh: ssh: connect to host 206.189.197.112 port 22: Connection refused\r\n", "unreachable": true}[0m
+
+PLAY RECAP *********************************************************************
+[0;31memydinfi110[0m                : ok=0    changed=0    [1;31munreachable=1   [0m failed=0    skipped=0    rescued=0    ignored=0   
+

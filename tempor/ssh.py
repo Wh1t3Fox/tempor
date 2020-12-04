@@ -46,9 +46,13 @@ def remove_config_entry(hostname):
     except KeyError:
         pass
 
-    dir_path = Path(f'{DATA_DIR}/{hostname}')
     try:
-        dir_path.rmdir()
+        shutil.rmtree(f'{DATA_DIR}/{hostname}')
+    except OSError as e:
+        pass
+
+    try:
+        shutil.rmtree(f'{ROOT_DIR}/playbooks/artifacts')
     except OSError as e:
         pass
 
@@ -83,6 +87,7 @@ def install_ssh_keys(provider, hostname, ip_address):
         'Port': 22,
         'Compression': 'yes',
         'StrictHostKeyChecking': 'no',
+        'UserKnownHostsFile': '/dev/null',
         'IdentityFile': f'{out_dir}/id_ed25519'
     }
     add_config_entry(hostname, attr)

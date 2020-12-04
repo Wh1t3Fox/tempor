@@ -1,0 +1,7 @@
+---
+- name: VPS Hardening
+  hosts: all
+  user: root
+  roles:
+    - dev-sec.os-hardening 
+    - dev-sec.ssh-hardening 

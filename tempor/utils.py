@@ -30,6 +30,7 @@ TER_HASH= {
 }
 
 HOSTS_FILE = f'{DATA_DIR}/hosts'
+ANSIBLE_HOSTS = f'{ROOT_DIR}/playbooks/inventory'
 
 def get_config():
     fpath = f'{CONFIG_DIR}/config.yml'
@@ -103,6 +104,10 @@ def rm_hosts(provider):
     with open(HOSTS_FILE, 'w') as fw:
         json.dump(hosts, fw)
 
+    if os.path.exists(ANSIBLE_HOSTS):
+        with open(ANSIBLE_HOSTS, 'w+') as fw:
+            fw.write('')
+
 def get_hosts():
     hosts = dict()
     try:
@@ -136,6 +141,10 @@ def save_hosts(provider, new_hosts):
 
     with open(HOSTS_FILE, 'w') as fw:
         json.dump(hosts, fw)
+
+    with open(ANSIBLE_HOSTS, 'a+') as fw:
+        for host, ip in hosts[provider].items():
+            fw.write(f'{host}\n')
 
 
 def random_line(f):

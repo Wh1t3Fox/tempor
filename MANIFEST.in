@@ -1,3 +1,4 @@
 include tempor/config/*
 recursive-include tempor/providers *
+recursive-include tempor/playbooks *
 global-exclude *.py[cod] __pycache__ *.so
