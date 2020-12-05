@@ -8,10 +8,19 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 [![Pypi Version](https://img.shields.io/pypi/v/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 [![Pypi Downloads](https://img.shields.io/pypi/dm/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
+[![Twitter](https://img.shields.io/twitter/follow/_wh1t3fox_?style=for-the-badge)](https://twitter.com/_wh1t3fox_)
 
+**tempor** is a tool used for creating ephemeral infrastructure in the cloud. tempor has the ability to create an arbitrary number of servers via Terraform, ideal for penetration testers and bug hunters.
 
-Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom). Currently supports creating machines on Digital Ocean, Linode, and Vultr.
+VPS configuration is performed via Ansible roles after creation. Currently the following roles are executed:
+ - dev-sec.os-hardening
+ - dev-sec.ssh-hardening
+ - More to come...
 
+<p>
+Currently supporting Digital Ocean, Linode, and Vultr. More to come!
+</>
+  
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
 
 [<img alt="Digital Ocean" src="https://camo.githubusercontent.com/400ad3149c13b05a823e670798697f51ac12f2f5b4a9868dd23dab4f1e21be26/68747470733a2f2f696d616765732e707269736d69632e696f2f7777772d7374617469632f34396161306130392d303664322d346262612d616432302d3462636265353661633530375f6c6f676f2e706e67" height="25px"/>](https://www.digitalocean.com/?refcode=e1c9af803a83)  
@@ -80,3 +89,7 @@ ssh nnvnv620
 Tearing down...Done.
 
 ```
+
+
+
+Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom).
