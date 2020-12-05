@@ -37,6 +37,7 @@ clean: 					## Cleanup VPS and Files
 	@find -name '.ssh' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@find -name '__pycache__' -type d -exec rm -fr {} \; 2>/dev/null || true
 	@find -name '.terraform' -type d -exec rm -fr {} \; 2>/dev/null || true
+	@find -name '.terraform*' -type f -exec rm -fr {} \; 2>/dev/null || true
 	@rm -fr dist || true
 	@docker rmi tempor-test >/dev/null 2>&1 || true
 
