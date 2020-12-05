@@ -10,15 +10,21 @@
 [![Pypi Downloads](https://img.shields.io/pypi/dm/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 
 
-
 Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom). Currently supports creating machines on Digital Ocean, Linode, and Vultr.
 
-### Install
+### :moneybag: Referrals - Get Free Credit! :moneybag:
+
+[<img alt="Digital Ocean" src="https://camo.githubusercontent.com/400ad3149c13b05a823e670798697f51ac12f2f5b4a9868dd23dab4f1e21be26/68747470733a2f2f696d616765732e707269736d69632e696f2f7777772d7374617469632f34396161306130392d303664322d346262612d616432302d3462636265353661633530375f6c6f676f2e706e67" height="25px"/>](https://www.digitalocean.com/?refcode=e1c9af803a83)  
+[<img alt="Vultr" src="https://www.vultr.com/media/logo_onwhite.svg" height="25px"/>](https://www.vultr.com/?ref=8742641)  
+[<img alt="Linode" src="https://www.linode.com/wp-content/uploads/2018/10/linode-logo-blk-rgb-minified.svg" height="31px"/>](https://www.linode.com/?r=94d58b46cdd9ef8ee607abb44a87eb204fa05940)  
+
+
+###  :heavy_plus_sign: Install :heavy_plus_sign:
 ```
 python3 -m pip install --user tempor
 ```
 
-### Configuration
+### :gear: Configuration :gear:
 ```
 # ~/.config/tempor/config.yml
 
@@ -36,7 +42,7 @@ providers:
 default: digitalocean
 ```
 
-### Usage
+### :interrobang: Usage :interrobang:
 ```
 ➜ tempor -h
 usage: tempor [-h] [-p PROVIDER] [-c COUNT] [--setup] [--list]
