@@ -13,9 +13,12 @@
 **tempor** is a tool used for creating ephemeral infrastructure in the cloud. tempor has the ability to create an arbitrary number of servers via Terraform, ideal for penetration testers and bug hunters.
 
 VPS configuration is performed via Ansible roles after creation. Currently the following roles are executed:
- - dev-sec.os-hardening
- - dev-sec.ssh-hardening
- - More to come...
+ * [dev-sec.os-hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * [dev-sec.ssh-hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * IPv4 and IPv6 iptables lockdown
+   * INPUT only allow SSH
+   * OUTUT only allow DNS, HTTP/S, DoT
+ * More to come...
 
 <p>
 Currently supporting Digital Ocean, Linode, and Vultr. More to come!
