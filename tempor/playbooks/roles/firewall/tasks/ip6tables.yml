@@ -1,0 +1,115 @@
+---
+
+- name: IPv6 INPUT allow lookback
+  iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 INPUT allow RELATED, ESTABLISHED
+  iptables:
+    chain: INPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 Allow New SSH
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 22
+    ctstate: NEW
+    syn: match
+    jump: ACCEPT
+    comment: Accept new SSH connections
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow lookback
+  iptables:
+    chain: OUTPUT
+    out_interface: lo
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow RELATED, ESTABLISHED
+  iptables:
+    chain: OUTPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow DNS / UDP
+  iptables:
+    chain: OUTPUT
+    protocol: udp
+    destination_port: 53
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow DNS / TCP
+  iptables:
+    chain: OUTPUT
+    protocol: tcp
+    destination_port: 53
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow DNS / TLS
+  iptables:
+    chain: OUTPUT
+    protocol: tcp
+    ctstate: NEW
+    destination_port: 853
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow Tcp 80
+  iptables:
+    chain: OUTPUT
+    protocol: tcp
+    ctstate: NEW
+    destination_port: 80
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 OUTPUT allow Tcp 443
+  iptables:
+    chain: OUTPUT
+    protocol: tcp
+    ctstate: NEW
+    destination_port: 443
+    jump: ACCEPT
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 Set Default INPUT Drop
+  iptables:
+    chain: INPUT
+    policy: DROP
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 Set Default Forward Drop
+  iptables:
+    chain: FORWARD
+    policy: DROP
+    ip_version: ipv6
+  become: yes
+
+- name: IPv6 Set Default OUTPUT Drop
+  iptables:
+    chain: OUTPUT
+    policy: DROP
+    ip_version: ipv6
+  become: yes
+

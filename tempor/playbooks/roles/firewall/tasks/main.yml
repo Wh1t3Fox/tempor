@@ -1,0 +1,7 @@
+---
+
+- name: IPv4 Rules
+  include_tasks: ip4tables.yml
+
+- name: IPv6 Rules
+  include_tasks: ip6tables.yml
