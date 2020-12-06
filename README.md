@@ -41,6 +41,9 @@ tempor --setup  43.06s user 6.64s system 27% cpu 3:03.99 total
 python3 -m pip install --user tempor
 ```
 
+#### :wrench: Dependencies :wrench:
+- Windows - [Microsoft Visual C++ 14.0](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
 ### :gear: Configuration :gear:
 ```
 # ~/.config/tempor/config.yml
