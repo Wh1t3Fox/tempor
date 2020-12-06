@@ -4,3 +4,34 @@
   community.general.pacman:
     update_cache: yes
     upgrade: yes
+
+- name: Installing dependencies
+  become: true
+  pacman:
+    name: base-devel
+
+- name: Setting aur_user globally
+  set_fact:
+    aur_user: aur_builder
+
+- name: Creating aur_builder
+  become: true
+  user:
+    name: "{{ aur_user }}"
+    group: wheel
+
+- name: Giving passwordless access to pacman
+  become: true
+  lineinfile:
+    path: /etc/sudoers.d/11-install-{{ aur_user }}
+    line: '{{ aur_user }} ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+    create: true
+    validate: 'visudo -cf %s'
+
+- name: Installing yay
+  become: true
+  become_user: "{{ aur_user }}"
+  aur:
+    name: yay
+    use: makepkg
+    skip_installed: true
