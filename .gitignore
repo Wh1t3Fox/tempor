@@ -140,5 +140,7 @@ cython_debug/
 api_tokens.mk
 
 .ssh/*
-
-artifacts/
+plan
+.terraform/*
+terraform*
+artifacts/*
