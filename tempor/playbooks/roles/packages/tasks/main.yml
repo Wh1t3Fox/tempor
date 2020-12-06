@@ -4,6 +4,9 @@
   include_vars: '{{ ansible_facts.os_family }}.yml'
   tags: always
 
+- name: Install Common Packages
+  package: name={{ common_pkgs }}  state=latest
+
 - import_tasks: yum.yml
   when: ansible_facts.os_family == 'RedHat'
   tags: yum
@@ -12,6 +15,6 @@
   when: ansible_facts.distribution in ['Debian', 'Ubuntu']
   tags: apt
 
-- name: Install Common Packages
-  package: name={{ common_pkgs }}  state=latest
-
+- import_tasks: pacman.yml
+  when: ansible_facts.distribution in ['Archlinux']
+  tags: pacman
