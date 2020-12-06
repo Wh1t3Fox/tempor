@@ -170,9 +170,6 @@ def main():
     save_hosts(provider, new_hosts)
 
     if not args.no_config:
-        console.print("Configuring Hosts...", style="bold italic")
-        for n in track(range(100), description="Finalizing VPS"):
-            time.sleep(0.1)  # just need to wait a few secs for VPS'
         run_playbook()
 
     console.print("\nVPS' now available!\n", style="bold italic green")
