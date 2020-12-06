@@ -1,0 +1,17 @@
+---
+
+- name: Set OS family dependent variables
+  include_vars: '{{ ansible_facts.os_family }}.yml'
+  tags: always
+
+- import_tasks: yum.yml
+  when: ansible_facts.os_family == 'RedHat'
+  tags: yum
+
+- import_tasks: apt.yml
+  when: ansible_facts.distribution in ['Debian', 'Ubuntu']
+  tags: apt
+
+- name: Install Common Packages
+  package: name={{ common_pkgs }}  state=latest
+

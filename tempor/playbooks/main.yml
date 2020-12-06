@@ -4,5 +4,8 @@
   user: root
   roles:
     - firewall
-    - dev-sec.os-hardening 
     - dev-sec.ssh-hardening 
+    - dev-sec.os-hardening 
+    - geerlingguy.docker
+    - packages
+    - configurations

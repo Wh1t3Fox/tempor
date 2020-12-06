@@ -1,0 +1,5 @@
+---
+
+- name: Upgrade all (Non-Debian)
+  package: name=* state=latest
+

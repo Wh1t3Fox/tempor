@@ -3,3 +3,6 @@
 ssh_gateway_ports: true
 ssh_permit_root_login: without-password
 
+config_system_locale: 'en_US.UTF-8'
+config_system_language: 'en_US.UTF-8'
+

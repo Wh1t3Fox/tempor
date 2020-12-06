@@ -1,0 +1,9 @@
+---
+
+- name: Update apt for Debian
+  apt:
+    update_cache: True
+
+- name: Ugrade All (Debian)
+  apt:
+    only_upgrade: True
