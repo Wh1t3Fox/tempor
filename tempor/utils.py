@@ -47,7 +47,7 @@ def get_config():
             schema = yaml.safe_load(fr2)
             jsonschema.validate(cfg, schema)
         except jsonschema.exceptions.ValidationError as e:
-            console.print("[red bold]Invalid Config File")
+            console.print(f"[red bold]Invalid Config File: {fpath}")
             if "api_token" in str(e):
                 console.print(
                     "[red bold]All Values are required. Remove Providers without an API Token"
