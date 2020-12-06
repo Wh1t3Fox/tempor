@@ -1,0 +1,16 @@
+---
+
+common_pkgs:
+  - curl
+  - git
+  - jq
+  - python3-devel
+  - ncurses-term
+  - nmap
+  - rsync
+  - tcpdump
+  - tmux
+  - unzip
+  - vim
+  - wget
+  - zsh
