@@ -60,7 +60,12 @@ def get_config():
 
 def terraform_installed():
     out_file = shutil.which("terraform")
+
+    # Check if we've already installed
     if not out_file:
+        out_file = f"{BIN_DIR}/terraform"
+
+    if not os.path.exists(out_file):
         out_file = f"{BIN_DIR}/terraform"
         console.print(f"Terraform not in Path. Installing to {out_file} ...")
         uname = platform.uname()
