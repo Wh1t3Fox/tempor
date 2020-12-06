@@ -8,7 +8,7 @@ from appdirs import *
 from pathlib import Path
 import logging
 import logging.config
-import shutil
+import sys
 import os
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -23,7 +23,7 @@ CONFIG_DIR = user_config_dir(APP_NAME)
 DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)
 
 # this should drop bins in the same path as tempor
-BIN_DIR = os.path.dirname(shutil.which(APP_NAME))
+BIN_DIR = os.path.dirname(sys.executable)
 
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
