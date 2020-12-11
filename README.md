@@ -26,7 +26,7 @@ Currently supporting Digital Ocean, Linode, and Vultr. More to come!
   
 #### Total Setup Time
 ```
-tempor --setup  43.06s user 6.64s system 27% cpu 3:03.99 total
+tempor --setup  39.49s user 8.29s system 16% cpu 4:58.62 total
 ```
   
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
