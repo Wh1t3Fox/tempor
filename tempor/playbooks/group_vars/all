@@ -6,3 +6,7 @@ ssh_permit_root_login: without-password
 config_system_locale: 'en_US.UTF-8'
 config_system_language: 'en_US.UTF-8'
 
+pip_install_packages:
+  - docker
+  - hashcrack-jtr
+  - impacket

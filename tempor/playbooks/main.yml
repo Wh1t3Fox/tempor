@@ -7,5 +7,6 @@
     - dev-sec.ssh-hardening 
     - dev-sec.os-hardening 
     - geerlingguy.docker
+    - geerlingguy.pip
     - packages
     - configurations

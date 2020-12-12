@@ -1,21 +1,31 @@
 ---
 
 common_pkgs:
+  - binwalk
   - curl
   - git
+  - gnupg
   - htop
+  - iproute2
   - jq
   - locales-all
+  - p7zip-full
+  - patchelf
   - proxychains
   - python3-dev
   - python3-pip
+  - nasm
   - ncurses-term
   - nmap
   - rsync
+  - screen
+  - smbclient
   - sshpass
   - tcpdump
+  - thefuck
   - tmux
   - unzip
   - vim
   - wget
   - zsh
+  - zsh-syntax-highlighting
