@@ -15,6 +15,11 @@
 VPS configuration is performed via Ansible roles after creation. Currently the following roles are executed:
  * [dev-sec.os-hardening](https://github.com/dev-sec/ansible-collection-hardening)
  * [dev-sec.ssh-hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)
+ * [geerlingguy.pip](https://github.com/geerlingguy/ansible-role-pip)
+   * docker
+   * hashcrack-jtr
+   * impacket
  * IPv4 and IPv6 iptables lockdown
    * INPUT only allow SSH
    * OUTUT only allow DNS, HTTP/S, DoT
