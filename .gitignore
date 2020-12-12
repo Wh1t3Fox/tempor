@@ -141,7 +141,8 @@ api_tokens.mk
 
 .ssh/
 plan
+inventory
 .terraform/
 .terraform.*
 terraform*
-artifacts/*
+artifacts/
