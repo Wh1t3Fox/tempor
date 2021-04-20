@@ -44,7 +44,7 @@ setup(
         "python-terraform==0.10.1",
         "rich==9.3.0",
         "ssh-config==0.0.22",
-        "PyYAML==5.3.1",
+        "PyYAML==5.4.1",
     ],
     extras_require={
         "dev": [
