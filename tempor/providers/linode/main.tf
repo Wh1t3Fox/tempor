@@ -9,7 +9,7 @@ resource "linode_sshkey" "default" {
 
 resource "linode_instance" "vps" {
     count = var.num
-    image = "linode/ubuntu18.04"
+    image = "linode/ubuntu21.04"
     label = "${data.external.vps_name.result.name}${count.index}"
     region = "us-east"
     type = "g6-standard-1"
