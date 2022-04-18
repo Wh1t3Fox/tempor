@@ -66,7 +66,7 @@ def get_args():
                 i["api_token"] for i in cfg["providers"] if i["name"] == provider
             ][0]
         except IndexError:
-            console.print("[red bold]API Tokns are required")
+            console.print("[red bold]API Tokens are required")
             sys.exit(1)
     else:
         console.print("[red bold]Providers are required")
