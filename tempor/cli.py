@@ -77,6 +77,7 @@ def get_args():
 
 def main():
     provider, api_token, args = get_args()
+    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plan"
     terr_path = terraform_installed()
     if terr_path is None:
         console.print("[red bold]Platform not Supported")
@@ -97,7 +98,7 @@ def main():
     # now what do we want to do?
     if args.teardown:
         console.print("Tearing down...", end="", style="bold italic")
-        ret, stdout, stderr = t.destroy()
+        ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", var={"api_token": api_token})
         if ret != 0 and stderr:
             console.print("[red bold]Failed during Teardown")
             console.print(f"[red bold]{stderr}")
@@ -127,7 +128,6 @@ def main():
 
     # lets plan the config
     console.print("Preparing Configuration...", end="", style="bold italic")
-    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plan"
     ret, stdout, stderr = t.cmd(
         "plan", f"-out={plan_path}", var={"api_token": api_token, "num": args.count}
     )
@@ -151,16 +151,19 @@ def main():
     output = t.output()
 
     new_hosts = dict()
+    # digitalocean
     if "droplet_ip_address" in output:
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
 
+    # linode
     elif "instance_ip_address" in output:
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
 
+    # vultr
     elif "server_ip_address" in output:
         for hostname, ip_address in output["server_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
