@@ -29,7 +29,11 @@ def add_config_entry(hostname, attr):
         # create ~/.ssh/config
         cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
     else:
-        cfg = SSHConfig.load(expanduser(SSH_CONFIG_PATH))
+        try:
+            cfg = SSHConfig.load(expanduser(SSH_CONFIG_PATH))
+        except ssh_config.client.EmptySSHConfig:
+            cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
+
 
     cfg.append(new_host)
     cfg.write()
