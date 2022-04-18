@@ -8,6 +8,7 @@ from appdirs import *
 from pathlib import Path
 import logging
 import logging.config
+import site
 import sys
 import os
 
@@ -23,7 +24,8 @@ CONFIG_DIR = user_config_dir(APP_NAME)
 DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)
 
 # this should drop bins in the same path as tempor
-BIN_DIR = os.path.dirname(sys.executable)
+#BIN_DIR = os.path.dirname(sys.executable)
+BIN_DIR = site.getusersitepackages().split('lib')[0] + 'bin'
 
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
