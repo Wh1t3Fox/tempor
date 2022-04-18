@@ -20,13 +20,13 @@ from tempor.console import console
 from tempor.ssh import remove_config_entry
 
 
-TER_VER = "0.14.0"
+TER_VER = "1.1.8"
 TER_HASH = {
-    "amd64": "07fd7173f7a360ad5e4d5ea5035670cf426cf7a08d0486bc0fe7c9d76b447722",
-    "386": "40c78d378bfabb3f3905440ab3d49d4bd718634fbaea3ab58772af89905569a9",
-    "arm": "57e5b3e312b7f75c04b0071c1d39ed4de58c71e1e47e7bdf7ef9ad5be7041246",
-    "arm64": "290c437ab37a1f54717daaef359f4935a1fdcdf036bc43fca25e8565c00262d7",
-    "darwin": "e728f9c5f64b9a7507f7038ad243743b4bcad0057fe7cc83021eb825cc2b6b9c",
+    "amd64": "fbd37c1ec3d163f493075aa0fa85147e7e3f88dd98760ee7af7499783454f4c5",
+    "386": "6523d11f849d09f2822d0dbaaecc820f3536834c8597ed4d0c9e1749aefba795",
+    "arm": "c2dac55b0ba4e625d0afe77eb4eb3f65ea4e3b5ed930de6217ceeb46c19d55e8",
+    "arm64": "10b2c063dcff91329ee44bce9d71872825566b713308b3da1e5768c6998fb84f",
+    "darwin": "29ad0af72d498a76bbc51cc5cb09a6d6d0e5673cbbab6ef7aca57e3c3e780f46",
 }
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"
