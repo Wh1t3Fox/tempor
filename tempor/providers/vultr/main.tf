@@ -9,11 +9,11 @@ resource "vultr_ssh_key" "default" {
     ssh_key = chomp(file("${path.module}/files/.ssh/id_ed25519.pub"))
 }
 
-resource "vultr_server" "vps" {
+resource "vultr_instance" "vps" {
     count = var.num
-    plan_id = "201"
-    region_id = "6"
-    os_id = "167"
+    plan = "vc2-1c-2gb"
+    region = "ewr"
+    os_id = "387"
     label = "${data.external.vps_name.result.name}${count.index}"
     ssh_key_ids = [vultr_ssh_key.default.id]
 }
