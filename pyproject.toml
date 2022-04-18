@@ -8,6 +8,7 @@ author = "Wh1t3Fox"
 author-email = "dev@exploit.design"
 home-page = "https://github.com/Wh1t3Fox/tempor"
 requires = [
+    "ansible==5.6.0",
     "appdirs==1.4.4",
     "ansible_runner==1.4.6",
     "jsonschema==3.2.0",

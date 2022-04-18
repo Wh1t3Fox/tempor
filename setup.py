@@ -38,6 +38,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={"tempor": ["config", "providers", "playbooks"]},
     install_requires=[
+        "ansible==5.6.0",
         "appdirs==1.4.4",
         "ansible_runner==1.4.6",
         "jsonschema==3.2.0",
