@@ -1,4 +1,4 @@
-FROM python:3-stretch
+FROM python:3-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN \
@@ -7,15 +7,15 @@ RUN \
     jq \
     wamerican \
     --no-install-recommends && \
-  useradd -m -s /bin/bash user
+  useradd --create-home --shell /bin/bash user
 
 USER user
 WORKDIR /home/user/
 
 COPY . /tmp/tempor
 
-RUN python -m pip install --user /tmp/tempor
+ENV PATH="/home/user/.local/bin:${PATH}"
+RUN python3 -m pip install --user /tmp/tempor
 
-ENV PATH=$PATH:/home/user/.local/bin/
 ENTRYPOINT ["tempor"]
 CMD ["--help"]
