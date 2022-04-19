@@ -14,5 +14,12 @@ providers:
       region:
       access_key:
       secret_key:
+  -
+    name: gcp
+    api_token:
+      auth_file:
+      project:
+      region:
+      zone:
 
 default: digitalocean
