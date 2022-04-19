@@ -8,5 +8,11 @@ providers:
   -
     name: vultr
     api_token:
+  -
+    name: aws
+    api_token:
+      region:
+      access_key:
+      secret_key:
 
 default: digitalocean

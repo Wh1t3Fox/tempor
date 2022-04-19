@@ -10,6 +10,7 @@ properties:
       - digitalocean
       - linode
       - vultr
+      - aws
 definitions:
   provider:
     type: object
@@ -18,7 +19,5 @@ definitions:
       - api_token
     properties:
       name: 
-        type: string
-      api_token:
         type: string
 

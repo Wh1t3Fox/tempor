@@ -93,9 +93,14 @@ def install_ssh_keys(provider, hostname, ip_address):
     for fname in os.listdir(old_dir):
         shutil.copy(os.path.join(old_dir, fname), out_dir)
 
+    if provider == 'aws':
+        user = 'ubuntu'
+    else:
+        user = 'root'
+
     attr = {
         "Hostname": ip_address,
-        "User": "root",
+        "User": user,
         "Port": 22,
         "Compression": "yes",
         "StrictHostKeyChecking": "no",

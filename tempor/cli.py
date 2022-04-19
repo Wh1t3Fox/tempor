@@ -62,9 +62,18 @@ def get_args():
     if "providers" in cfg:
         # lets check for the API token
         try:
-            api_token = [
-                i["api_token"] for i in cfg["providers"] if i["name"] == provider
-            ][0]
+            for p in cfg["providers"]:
+                if p['name'] != provider:
+                    continue
+
+                if p['name'] == 'aws':
+                    api_token = {
+                        'access_key': p['api_token']['access_key'],
+                        'secret_key': p['api_token']['secret_key'],
+                        'region': p['api_token']['region'],
+                    }
+                else:
+                    api_token = p['api_token']
         except IndexError:
             console.print("[red bold]API Tokens are required")
             sys.exit(1)
@@ -149,6 +158,7 @@ def main():
     console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Get Hostname and IP Adress
     output = t.output()
+    print(output)
 
     new_hosts = dict()
     # digitalocean
@@ -157,7 +167,7 @@ def main():
             new_hosts[hostname] = ip_address
             install_ssh_keys(provider, hostname, ip_address)
 
-    # linode
+    # linode, aws
     elif "instance_ip_address" in output:
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
