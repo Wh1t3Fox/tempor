@@ -63,17 +63,9 @@ def get_args():
         # lets check for the API token
         try:
             for p in cfg["providers"]:
-                if p['name'] != provider:
-                    continue
-
-                if p['name'] == 'aws':
-                    api_token = {
-                        'access_key': p['api_token']['access_key'],
-                        'secret_key': p['api_token']['secret_key'],
-                        'region': p['api_token']['region'],
-                    }
-                else:
+                if p['name'] == provider:
                     api_token = p['api_token']
+                    break
         except IndexError:
             console.print("[red bold]API Tokens are required")
             sys.exit(1)

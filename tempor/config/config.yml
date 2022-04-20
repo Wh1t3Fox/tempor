@@ -21,5 +21,12 @@ providers:
       project:
       region:
       zone:
+  -
+    name: azure
+    api_token:
+      subscription_id:
+      client_id:
+      client_secret:
+      tenant_id:
 
 default: digitalocean

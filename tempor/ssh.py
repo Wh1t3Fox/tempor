@@ -64,6 +64,11 @@ def remove_config_entry(hostname):
 
 
 def check_sshkeys(provider):
+    if provider == "azure":
+        key_type = "rsa"
+    else:
+        key_type = "ed25519"
+
     prog = shutil.which("ssh-keygen")
     if not prog:
         console.print("[red bold]ssh-keygen not available. Is OpenSSH installed?")
@@ -73,11 +78,11 @@ def check_sshkeys(provider):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    out_file = f"{out_dir}/id_ed25519"
+    out_file = f"{out_dir}/id_{key_type}"
     if not os.path.exists(out_file):
         console.print("Generating new key pair...", end="", style="bold italic")
         subprocess.call(
-            f'yes | ssh-keygen -t ed25519 -N "" -C "" -f {out_file}',
+            f'yes | ssh-keygen -t {key_type} -N "" -C "" -f {out_file}',
             stdout=subprocess.DEVNULL,
             shell=True,
         )
