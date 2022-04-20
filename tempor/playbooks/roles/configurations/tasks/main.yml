@@ -27,6 +27,11 @@
   command: localectl set-locale LANG={{ config_system_locale }} LANGUAGE={{ config_system_language }}
   changed_when: locale_lang != config_system_locale or locale_language != config_system_language
 
+- name: Install .vimrc
+  copy:
+    src: vimrc
+    dest: /root/.vimrc
+
 - name: Install .zshrc
   copy:
     src: zshrc
