@@ -66,6 +66,26 @@ providers:
   -
     name: vultr
     api_token: API_TOKEN_HERE
+  -
+    name: aws
+    api_token:
+      region: REGION
+      access_key: ACCESS_KEY
+      secret_key: SECRET_KEY
+  -
+    name: gcp
+    api_token:
+      auth_file: PATH_TO_JSON_AUTH_FILE
+      project: PROJECT_NAME
+      region: REGION
+      zone: ZONE
+  -
+    name: azure
+    api_token:
+      subscription_id: SUBSCRIPTION_ID
+      client_id: APP_ID
+      client_secret: PASSWORD
+      tenant_id: TENANT_ID
 
 default: digitalocean
 ```
