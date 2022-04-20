@@ -26,7 +26,7 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
  * More to come...
 
 <p>
-Currently supporting Digital Ocean, Linode, and Vultr. More to come!
+Currently supporting Digital Ocean, Linode, Vultr, AWS, GCP, and Azure. More to come!
 </>
   
 #### Total Setup Time
