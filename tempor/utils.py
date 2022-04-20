@@ -20,13 +20,20 @@ from tempor.console import console
 from tempor.ssh import remove_config_entry
 
 
-TER_VER = "1.1.8"
-TER_HASH = {
-    "amd64": "fbd37c1ec3d163f493075aa0fa85147e7e3f88dd98760ee7af7499783454f4c5",
-    "386": "6523d11f849d09f2822d0dbaaecc820f3536834c8597ed4d0c9e1749aefba795",
-    "arm": "c2dac55b0ba4e625d0afe77eb4eb3f65ea4e3b5ed930de6217ceeb46c19d55e8",
-    "arm64": "10b2c063dcff91329ee44bce9d71872825566b713308b3da1e5768c6998fb84f",
-    "darwin": "29ad0af72d498a76bbc51cc5cb09a6d6d0e5673cbbab6ef7aca57e3c3e780f46",
+TER_VER = "1.1.9"
+TER_ZIP_HASH = {
+    "amd64": "9d2d8a89f5cc8bc1c06cb6f34ce76ec4b99184b07eb776f8b39183b513d7798a",
+    "386": "a29a5c069e1712753ed553f7c6e63f1cd35caefee73496210461c05158b836b4",
+    "arm": "800eee18651b5e552772c60fc1b5eb00cdcefddf11969412203c6de6189aa10a",
+    "arm64": "e8a09d1fe5a68ed75e5fabe26c609ad12a7e459002dea6543f1084993b87a266",
+    "darwin": "c902b3c12042ac1d950637c2dd72ff19139519658f69290b310f1a5924586286",
+}
+TER_FILE_HASH = {
+    "amd64": "8d5b3b0a164e95de9cafbdd6ca16a1ec439927b9bb6ec146b9566473ca796cc0",
+    "386": "db94691af978caa67b2c6a527d46cf8c7ea738c42a3750a121ddf4eb993bab25",
+    "arm": "4c797f48f7614706e35ecd60e16f0c776404515119d37eed44c0417194a0426b",
+    "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
+    "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
 }
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"
@@ -59,39 +66,49 @@ def get_config():
 
 
 def terraform_installed():
+    updated = True
     out_file = shutil.which("terraform")
+
+    uname = platform.uname()
+    if "linux" in uname.system.lower():
+        if "aarch64" in uname.machine:
+            arch = "arm64"
+        elif "64" in uname.machine:
+            arch = "amd64"
+        elif "386" in uname.machine:
+            arch = "386"
+        else:
+            arch = "arm"
+        url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_linux_{arch}.zip"
+    elif "darwin" in uname.system.lower():
+        arch = "darwin"
+        url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_darwin_amd64.zip"
+    else:
+        return None
 
     # Check if we've already installed
     if not out_file:
         out_file = f"{BIN_DIR}/terraform"
+    else:  # check version
+        h = hashlib.sha256()
+        with open(out_file, 'rb') as fr:
+            tf = BytesIO(fr.read())
 
-    if not os.path.exists(out_file):
+            if TER_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
+                updated = False
+
+
+    if not os.path.exists(out_file) or not updated:
         out_file = f"{BIN_DIR}/terraform"
-        console.print(f"Terraform not in Path. Installing to {out_file} ...")
-        uname = platform.uname()
-        if "linux" in uname.system.lower():
-            if "aarch64" in uname.machine:
-                arch = "arm64"
-            elif "64" in uname.machine:
-                arch = "amd64"
-            elif "386" in uname.machine:
-                arch = "386"
-            else:
-                arch = "arm"
-            url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_linux_{arch}.zip"
-        elif "darwin" in uname.system.lower():
-            arch = "darwin"
-            url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_darwin_amd64.zip"
-        else:
-            return None
+        console.print(f"Terraform not in Path or Out-of-Date. Installing v{TER_VER} to {out_file} ...")
 
         h = hashlib.sha256()
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
 
-            console.print(f"Validating Hash: {TER_HASH[arch]}")
+            console.print(f"Validating Hash: {TER_ZIP_HASH[arch]}")
             assert (
-                TER_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
+                TER_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
             ), "Invalid SHA256 Hash of Zip File!"
             console.print("Passed!")
             with ZipFile(zipfile) as zfile:
