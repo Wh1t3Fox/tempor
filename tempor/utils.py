@@ -20,20 +20,70 @@ from tempor.console import console
 from tempor.ssh import remove_config_entry
 
 
-TER_VER = "1.1.9"
-TER_ZIP_HASH = {
+
+
+TF_VER = "1.1.9"
+TF_ZIP_HASH = {
     "amd64": "9d2d8a89f5cc8bc1c06cb6f34ce76ec4b99184b07eb776f8b39183b513d7798a",
     "386": "a29a5c069e1712753ed553f7c6e63f1cd35caefee73496210461c05158b836b4",
     "arm": "800eee18651b5e552772c60fc1b5eb00cdcefddf11969412203c6de6189aa10a",
     "arm64": "e8a09d1fe5a68ed75e5fabe26c609ad12a7e459002dea6543f1084993b87a266",
     "darwin": "c902b3c12042ac1d950637c2dd72ff19139519658f69290b310f1a5924586286",
 }
-TER_FILE_HASH = {
+TF_FILE_HASH = {
     "amd64": "8d5b3b0a164e95de9cafbdd6ca16a1ec439927b9bb6ec146b9566473ca796cc0",
     "386": "db94691af978caa67b2c6a527d46cf8c7ea738c42a3750a121ddf4eb993bab25",
     "arm": "4c797f48f7614706e35ecd60e16f0c776404515119d37eed44c0417194a0426b",
     "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
     "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
+}
+
+TF_IMAGES = {
+    'digitalocean': {
+        # 'archlinux': ''  # not a default image
+        'centos_9': 'centos-stream-9-x64',
+        'centos_8': 'centos-stream-8-x64',
+        'centos_7': 'centos-7-x64',
+        'debian_11': 'debian-11-x64',
+        'debian_10': 'debian-10-x64',
+        'debian_9': 'debian-9-x64',
+        'fedora_35': 'fedora-35-x64',
+        'fedora_34': 'fedora-34-x64',
+        'ubuntu_21-10': 'ubuntu-21-10-x64',
+        'ubuntu_20-04': 'ubuntu-20-04-x64',
+        'ubuntu_18-04': 'ubuntu-18-04-x64'
+    },
+    'linode': {
+        'archlinux': 'linode/arch',
+        'centos_9': 'linode/centos-stream9',
+        'centos_8': 'linode/centos-stream8',
+        'centos_7': 'linode/centos7',
+        'debian_11': 'linode/debian11',
+        'debian_10': 'linode/debian10',
+        'debian_9': 'linode/debian9',
+        'fedora_35': 'linode/fedora35',
+        'fedora_34': 'linode/fedora34',
+        'ubuntu_21-10': 'linode/ubuntu21.10',
+        'ubuntu_20-04': 'linode/ubuntu20.04',
+        'ubuntu_18-04': 'linode/ubuntu18.04'
+    },
+    'vultr': {
+        'archlinux': '535',
+        'centos_9': '542',
+        'centos_8': '401',
+        'centos_7': '381',
+        'debian_11': '477',
+        'debian_10': '352',
+        'debian_9': '244',
+        'fedora_35': '516',
+        'fedora_34': '446',
+        'ubuntu_21-10': '517',
+        'ubuntu_20-04': '387',
+        'ubuntu_18-04': '270'
+    },
+    'aws': {},
+    'gcp': {},
+    'azure': {}
 }
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"
@@ -79,10 +129,10 @@ def terraform_installed():
             arch = "386"
         else:
             arch = "arm"
-        url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_linux_{arch}.zip"
+        url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_linux_{arch}.zip"
     elif "darwin" in uname.system.lower():
         arch = "darwin"
-        url = f"https://releases.hashicorp.com/terraform/{TER_VER}/terraform_{TER_VER}_darwin_amd64.zip"
+        url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
     else:
         return None
 
@@ -94,21 +144,21 @@ def terraform_installed():
         with open(out_file, 'rb') as fr:
             tf = BytesIO(fr.read())
 
-            if TER_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
+            if TF_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
                 updated = False
 
 
     if not os.path.exists(out_file) or not updated:
         out_file = f"{BIN_DIR}/terraform"
-        console.print(f"Terraform not in Path or Out-of-Date. Installing v{TER_VER} to {out_file} ...")
+        console.print(f"Terraform not in Path or Out-of-Date. Installing v{TF_VER} to {out_file} ...")
 
         h = hashlib.sha256()
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
 
-            console.print(f"Validating Hash: {TER_ZIP_HASH[arch]}")
+            console.print(f"Validating Hash: {TF_ZIP_HASH[arch]}")
             assert (
-                TER_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
+                TF_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
             ), "Invalid SHA256 Hash of Zip File!"
             console.print("Passed!")
             with ZipFile(zipfile) as zfile:

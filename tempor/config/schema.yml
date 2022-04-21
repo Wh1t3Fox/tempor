@@ -4,6 +4,22 @@ properties:
     type: array
     items:
       $ref: '#/definitions/provider'
+  image:
+    type: string
+    enum:
+      - archlinux
+      - centos_9
+      - centos_8
+      - centos_7
+      - debian_11
+      - debian_10
+      - debian_9
+      - fedora_36
+      - fedora_35
+      - fedora_34
+      - ubuntu_21-10
+      - ubuntu_20-04
+      - ubuntu_18-04
   default:
     type: string
     enum:

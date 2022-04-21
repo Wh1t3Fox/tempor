@@ -20,6 +20,7 @@ from tempor.utils import (
     rm_hosts,
     save_hosts,
     terraform_installed,
+    TF_IMAGES
 )
 from tempor.playbook import run_playbook
 
@@ -76,6 +77,16 @@ def get_args():
         console.print("[red bold]Providers are required")
         sys.exit(1)
 
+    if 'image' in cfg:
+        try:
+            args.image = TF_IMAGES[provider][cfg['image']]
+        except KeyError as e:
+            console.print(f"[red bold]Unsupported Image ({cfg['image']}) for provider ({provider})")
+            sys.exit(1)
+    else:
+        args.image = None
+
+
     return (provider, api_token, args)
 
 
@@ -102,7 +113,11 @@ def main():
     # now what do we want to do?
     if args.teardown:
         console.print("Tearing down...", end="", style="bold italic")
-        ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", var={"api_token": api_token})
+        ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", 
+                                var={
+                                    "api_token": api_token,
+                                    "image": args.image
+                                })
         if ret != 0 and stderr:
             console.print("[red bold]Failed during Teardown")
             console.print(f"[red bold]{stderr}")
@@ -133,7 +148,7 @@ def main():
     # lets plan the config
     console.print("Preparing Configuration...", end="", style="bold italic")
     ret, stdout, stderr = t.cmd(
-        "plan", f"-out={plan_path}", var={"api_token": api_token, "num": args.count}
+            "plan", f"-out={plan_path}", var={"api_token": api_token, "num": args.count, "image": args.image}
     )
     if ret != 0 and stderr:
         console.print("[red bold]Failed during Planning")
