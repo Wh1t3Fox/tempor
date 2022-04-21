@@ -44,10 +44,13 @@ def get_args():
     parser.add_argument(
         "-c", "--count", default=1, type=int, help="Number of VPS' to Create"
     )
-    parser.add_argument("--setup", action="store_true", help="Create VPS'")
-    parser.add_argument("--list", action="store_true", help="List Available VPS'")
+    parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
+    parser.add_argument("-l", "--list", action="store_true", help="List Available VPS'")
     parser.add_argument(
-        "--no-config", action="store_true", help="Leave as a Bare Install"
+        "-b", "--bare", action="store_true", help="Leave as a Bare Install"
+    )
+    parser.add_argument(
+        "-m", "--minimal", action="store_true", help="Minimal Configuration"
     )
     parser.add_argument("--teardown", action="store_true", help="Tear down VPS'")
 
@@ -150,7 +153,6 @@ def main():
     console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Get Hostname and IP Adress
     output = t.output()
-    print(output)
 
     new_hosts = dict()
     # digitalocean
@@ -174,8 +176,9 @@ def main():
 
     save_hosts(provider, new_hosts)
 
-    if not args.no_config:
-        run_playbook()
+    if not args.bare:
+        playbook = 'minimal.yml' if args.minimal else 'main.yml'
+        run_playbook(playbook)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:

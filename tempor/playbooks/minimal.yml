@@ -1,0 +1,7 @@
+---
+- name: Minimal Configuration
+  hosts: all
+  user: root
+  roles:
+    - packages
+    - configurations
