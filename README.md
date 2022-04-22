@@ -25,9 +25,25 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
    * OUTUT only allow DNS, HTTP/S, DoT
  * More to come...
 
-<p>
-Currently supporting Digital Ocean, Linode, Vultr, AWS, GCP, and Azure. More to come!
-</>
+
+Currently supported Providers and Images:
+
+| Image | Providers |
+| --- | ----------- |
+| ArchLinux | Linode, Vultr |
+| Centos Stream 9 | DigitalOcean, Linode, Vultr |
+| Centos Stream 8 | AWS, DigitalOcean, Linode, Vultr |
+| Centos 7 | AWS, DigitalOcean, Linode, Vultr |
+| Debian 11 | AWS, DigitalOcean, Linode, Vultr |
+| Debian 10 | AWS, DigitalOcean, Linode, Vultr |
+| Debian 9 | AWS, DigitalOcean, Linode, Vultr |
+| Fedora 35 | DigitalOcean, Linode, Vultr |
+| Fedora 34 | DigitalOcean, Linode, Vultr |
+| Kali | AWS |
+| Ubuntu 21.10 | AWS, DigitalOcean, Linode, Vultr |
+| Ubuntu 20.04 | AWS, Azure, DigitalOcean, GCP, Linode, Vultr |
+| Ubuntu 18.04 | AWS, DigitalOcean, Linode, Vultr |
+
   
 #### Total Setup Time
 ```
