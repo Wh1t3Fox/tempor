@@ -20,7 +20,8 @@ from tempor.utils import (
     rm_hosts,
     save_hosts,
     terraform_installed,
-    TF_IMAGES
+    TF_IMAGES,
+    ALL_IMAGES
 )
 from tempor.playbook import run_playbook
 
@@ -31,8 +32,29 @@ def get_args():
     if not cfg:
         sys.exit(1)
 
-    if "default" in cfg:
+    # If we have a default provider and image set
+    if "default" in cfg and "image" in cfg:
         provider = cfg["default"]
+
+        try:
+            p = TF_IMAGES[provider][cfg['image']]
+            
+            if 'image' in p:
+                image = p['image']
+            else:
+                image = p
+
+            user = p['user'] if 'user' in p else 'root'
+
+        except KeyError as e:
+            console.print(f"[red bold]Unsupported Image ({cfg['image']}) for provider ({provider})")
+            sys.exit(1)
+        images = TF_IMAGES[provider]
+    else:
+        provider = None
+        image = None
+        images = ALL_IMAGES
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -41,6 +63,13 @@ def get_args():
         default=provider,
         choices=os.listdir(f"{ROOT_DIR}/providers"),
         help="Specify the Provider Name",
+    )
+    parser.add_argument(
+        "-i",
+        "--image",
+        default=image,
+        choices=images,
+        help="Specify the OS Image",
     )
     parser.add_argument(
         "-c", "--count", default=1, type=int, help="Number of VPS' to Create"
@@ -62,6 +91,10 @@ def get_args():
         console.print("[red bold]Must Specify a Provider")
         sys.exit(1)
 
+    if not args.image:
+        console.print("[red bold]Must Specify an Image")
+        sys.exit(1)
+
     provider = args.provider
     if "providers" in cfg:
         # lets check for the API token
@@ -77,14 +110,19 @@ def get_args():
         console.print("[red bold]Providers are required")
         sys.exit(1)
 
-    if 'image' in cfg:
-        try:
-            args.image = TF_IMAGES[provider][cfg['image']]
-        except KeyError as e:
-            console.print(f"[red bold]Unsupported Image ({cfg['image']}) for provider ({provider})")
-            sys.exit(1)
-    else:
-        args.image = None
+    try:
+        p = TF_IMAGES[provider][args.image]
+        
+        if 'image' in p:
+            args.image = p['image']
+        else:
+            args.image = p
+
+        args.user = p['user'] if 'user' in p else 'root'
+
+    except KeyError as e:
+        console.print(f"[red bold]Unsupported Image ({args.image}) for provider ({provider})")
+        sys.exit(1)
 
 
     return (provider, api_token, args)
@@ -174,19 +212,19 @@ def main():
     if "droplet_ip_address" in output:
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
-            install_ssh_keys(provider, hostname, ip_address)
+            install_ssh_keys(provider, hostname, ip_address, args.user)
 
     # linode, aws
     elif "instance_ip_address" in output:
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
-            install_ssh_keys(provider, hostname, ip_address)
+            install_ssh_keys(provider, hostname, ip_address, args.user)
 
     # vultr
     elif "server_ip_address" in output:
         for hostname, ip_address in output["server_ip_address"]["value"].items():
             new_hosts[hostname] = ip_address
-            install_ssh_keys(provider, hostname, ip_address)
+            install_ssh_keys(provider, hostname, ip_address, args.user)
     console.print("Done.")
 
     save_hosts(provider, new_hosts)

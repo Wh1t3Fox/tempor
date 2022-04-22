@@ -37,10 +37,24 @@ TF_FILE_HASH = {
     "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
     "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
 }
+ALL_IMAGES = [
+    'archlinux',
+    'centos_9',
+    'centos_8',
+    'centos_7',
+    'debian_11',
+    'debian_10',
+    'debian_9',
+    'fedora_35',
+    'fedora_34',
+    'kali',
+    'ubuntu_21-10',
+    'ubuntu_20-04',
+    'ubuntu_18-04',
 
+]
 TF_IMAGES = {
     'digitalocean': {
-        # 'archlinux': ''  # not a default image
         'centos_9': 'centos-stream-9-x64',
         'centos_8': 'centos-stream-8-x64',
         'centos_7': 'centos-7-x64',
@@ -81,7 +95,26 @@ TF_IMAGES = {
         'ubuntu_20-04': '387',
         'ubuntu_18-04': '270'
     },
-    'aws': {},
+    'aws': {
+        'centos_8': 'ami-0d6e9a57f6259ba3a',
+        'centos_7': 'ami-02358d9f5245918a3',
+        'debian_11': 'ami-0d35afd5d19280755',
+        'debian_10': 'ami-059e59467656af55e',
+        'debian_9': 'ami-03f9e5587a7d588f8',
+        'kali': {
+            'image': 'ami-01691107cfcbce68c',
+            'user': 'kali'
+        },
+        'debian_10': 'ami-07d02ee1eeb0c996c',
+        'ubuntu_20-04': {
+            'image': 'ami-04505e74c0741db8d',
+            'user': 'ubuntu'
+        },
+        'ubuntu_18-04': {
+            'image': 'ami-0e472ba40eb589f49',
+            'user': 'ubuntu'
+        }
+    },
     'gcp': {},
     'azure': {}
 }

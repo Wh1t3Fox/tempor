@@ -89,7 +89,7 @@ def check_sshkeys(provider):
         console.print("Done.")
 
 
-def install_ssh_keys(provider, hostname, ip_address):
+def install_ssh_keys(provider, hostname, ip_address, user):
     old_dir = f"{ROOT_DIR}/providers/{provider}/files/.ssh"
     out_dir = f"{DATA_DIR}/{hostname}/ssh"
     if not os.path.exists(out_dir):
@@ -97,11 +97,6 @@ def install_ssh_keys(provider, hostname, ip_address):
 
     for fname in os.listdir(old_dir):
         shutil.copy(os.path.join(old_dir, fname), out_dir)
-
-    if provider == 'aws':
-        user = 'ubuntu'
-    else:
-        user = 'root'
 
     attr = {
         "Hostname": ip_address,

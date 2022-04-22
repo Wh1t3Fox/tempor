@@ -17,6 +17,7 @@ properties:
       - fedora_36
       - fedora_35
       - fedora_34
+      - kali
       - ubuntu_21-10
       - ubuntu_20-04
       - ubuntu_18-04
