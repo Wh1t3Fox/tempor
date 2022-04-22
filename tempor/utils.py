@@ -96,16 +96,30 @@ TF_IMAGES = {
         'ubuntu_18-04': '270'
     },
     'aws': {
-        'centos_8': 'ami-0d6e9a57f6259ba3a',
-        'centos_7': 'ami-02358d9f5245918a3',
-        'debian_11': 'ami-0d35afd5d19280755',
-        'debian_10': 'ami-059e59467656af55e',
-        'debian_9': 'ami-03f9e5587a7d588f8',
+        'centos_8': {
+            'image': 'ami-0d6e9a57f6259ba3a',
+            'user': 'centos'
+        },
+        'centos_7': {
+            'image': 'ami-02358d9f5245918a3',
+            'user': 'centos'
+        },
+        'debian_11': {
+            'image': 'ami-0d35afd5d19280755',
+            'user': 'admin'
+        },
+        'debian_10': {
+            'image': 'ami-059e59467656af55e',
+            'user': 'admin'
+        },
+        'debian_9': {
+            'image': 'ami-03f9e5587a7d588f8',
+            'user': 'admin'
+        },
         'kali': {
             'image': 'ami-01691107cfcbce68c',
             'user': 'kali'
         },
-        'debian_10': 'ami-07d02ee1eeb0c996c',
         'ubuntu_20-04': {
             'image': 'ami-04505e74c0741db8d',
             'user': 'ubuntu'
