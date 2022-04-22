@@ -45,9 +45,20 @@ Currently supported Providers and Images:
 | Ubuntu 18.04 | AWS, DigitalOcean, Linode, Vultr |
 
   
-#### Total Setup Time
+#### Total Setup Times
 ```
-tempor --setup  39.49s user 8.29s system 16% cpu 4:58.62 total
+# bare setup
+tempor -p aws -i ubuntu_20-04 -s -b  10.54s user 1.15s system 26% cpu 44.542 total
+
+# minimal  setup
+tempor -p aws -i ubuntu_20-04 -s -m  37.36s user 4.22s system 18% cpu 3:42.71 total
+  
+# full setup
+tempor -p aws -i ubuntu_20-04 -s  96.83s user 15.69s system 22% cpu 8:20.32 total
+
+# teardown
+tempor -p aws -i ubuntu_20-04 --teardown  8.25s user 1.15s system 23% cpu 39.431 total
+
 ```
   
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
