@@ -231,7 +231,7 @@ def main():
 
     if not args.bare:
         playbook = 'minimal.yml' if args.minimal else 'main.yml'
-        run_playbook(playbook)
+        run_playbook(playbook, args.user)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:

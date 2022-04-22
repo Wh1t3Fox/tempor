@@ -1,7 +1,7 @@
 ---
 - name: Minimal Configuration
   hosts: all
-  user: root
+  become: true
   roles:
     - packages
     - configurations

@@ -1,7 +1,7 @@
 ---
 - name: VPS Hardening
   hosts: all
-  user: root
+  become: true
   roles:
     - packages
     - configurations

@@ -8,7 +8,8 @@ from tempor import ROOT_DIR
 from tempor.console import console
 
 
-def run_playbook(playbook="main.yml"):
+def run_playbook(playbook="main.yml", user="root"):
     ansible_runner.run(
-        private_data_dir=f"{ROOT_DIR}/playbooks", playbook=playbook, verbosity=1
+        private_data_dir=f"{ROOT_DIR}/playbooks", playbook=playbook, verbosity=1, 
+        extravars = {"ansible_user": user}
     )
