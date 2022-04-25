@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
+# TODO: Call the provider APIs instead of this stupid hard coding
 
 from io import BytesIO
 from urllib.request import urlopen
@@ -37,100 +38,15 @@ TF_FILE_HASH = {
     "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
     "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
 }
-ALL_IMAGES = [
-    'archlinux',
-    'centos_9',
-    'centos_8',
-    'centos_7',
-    'debian_11',
-    'debian_10',
-    'debian_9',
-    'fedora_35',
-    'fedora_34',
-    'kali',
-    'ubuntu_21-10',
-    'ubuntu_20-04',
-    'ubuntu_18-04',
-
-]
-TF_IMAGES = {
-    'digitalocean': {
-        'centos_9': 'centos-stream-9-x64',
-        'centos_8': 'centos-stream-8-x64',
-        'centos_7': 'centos-7-x64',
-        'debian_11': 'debian-11-x64',
-        'debian_10': 'debian-10-x64',
-        'debian_9': 'debian-9-x64',
-        'fedora_35': 'fedora-35-x64',
-        'fedora_34': 'fedora-34-x64',
-        'ubuntu_21-10': 'ubuntu-21-10-x64',
-        'ubuntu_20-04': 'ubuntu-20-04-x64',
-        'ubuntu_18-04': 'ubuntu-18-04-x64'
-    },
-    'linode': {
-        'archlinux': 'linode/arch',
-        'centos_9': 'linode/centos-stream9',
-        'centos_8': 'linode/centos-stream8',
-        'centos_7': 'linode/centos7',
-        'debian_11': 'linode/debian11',
-        'debian_10': 'linode/debian10',
-        'debian_9': 'linode/debian9',
-        'fedora_35': 'linode/fedora35',
-        'fedora_34': 'linode/fedora34',
-        'ubuntu_21-10': 'linode/ubuntu21.10',
-        'ubuntu_20-04': 'linode/ubuntu20.04',
-        'ubuntu_18-04': 'linode/ubuntu18.04'
-    },
-    'vultr': {
-        'archlinux': '535',
-        'centos_9': '542',
-        'centos_8': '401',
-        'centos_7': '381',
-        'debian_11': '477',
-        'debian_10': '352',
-        'debian_9': '244',
-        'fedora_35': '516',
-        'fedora_34': '446',
-        'ubuntu_21-10': '517',
-        'ubuntu_20-04': '387',
-        'ubuntu_18-04': '270'
-    },
-    'aws': {
-        'centos_8': {
-            'image': 'ami-0d6e9a57f6259ba3a',
-            'user': 'centos'
-        },
-        'centos_7': {
-            'image': 'ami-02358d9f5245918a3',
-            'user': 'centos'
-        },
-        'debian_11': {
-            'image': 'ami-0d35afd5d19280755',
-            'user': 'admin'
-        },
-        'debian_10': {
-            'image': 'ami-059e59467656af55e',
-            'user': 'admin'
-        },
-        'debian_9': {
-            'image': 'ami-03f9e5587a7d588f8',
-            'user': 'admin'
-        },
-        'kali': {
-            'image': 'ami-01691107cfcbce68c',
-            'user': 'kali'
-        },
-        'ubuntu_20-04': {
-            'image': 'ami-04505e74c0741db8d',
-            'user': 'ubuntu'
-        },
-        'ubuntu_18-04': {
-            'image': 'ami-0e472ba40eb589f49',
-            'user': 'ubuntu'
-        }
-    },
-    'gcp': {},
-    'azure': {}
+TF_IMAGE_USERS = {
+    'ami-0d6e9a57f6259ba3a': 'centos', # centos 8
+    'ami-02358d9f5245918a3': 'centos', # centos 7
+    'ami-0d35afd5d19280755': 'admin',  # debian 11
+    'ami-059e59467656af55e': 'admin',  # debian 10
+    'ami-03f9e5587a7d588f8': 'admin',  # debian 9
+    'ami-01691107cfcbce68c': 'kali',   # kali
+    'ami-04505e74c0741db8d': 'ubuntu',  # ubuntu 20.04
+    'ami-0e472ba40eb589f49': 'ubuntu',  # ubuntu 18.04
 }
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"

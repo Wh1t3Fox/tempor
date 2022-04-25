@@ -9,7 +9,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "main" {
     name = "${data.external.vps_name.result.name}-resource"
-    location = var.api_token.region
+    location = var.region
 }
 
 resource "azurerm_virtual_network" "main" {

@@ -1,28 +1,38 @@
 providers:
   -
     name: digitalocean
+    region: nyc1
+    image: ubuntu-20-04-x64
     api_token:
   -
     name: linode
+    region: us-east
+    image: linode/ubuntu20.04
     api_token:
   -
     name: vultr
+    region: ewr
+    image: 387
     api_token:
   -
     name: aws
+    region: us-east-1
+    image: ami-04505e74c0741db8d
     api_token:
-      region:
       access_key:
       secret_key:
   -
     name: gcp
+    region: us-east1
+    zone: us-east1b
+    image: ubuntu-os-cloud/ubuntu-2004-lts
     api_token:
       auth_file:
       project:
-      region:
-      zone:
   -
     name: azure
+    region: East US
+    image: TODO
     api_token:
       subscription_id:
       client_id:

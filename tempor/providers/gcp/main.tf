@@ -1,7 +1,7 @@
 provider "google" {
   credentials = file(var.api_token.auth_file)
   project     = var.api_token.project
-  region      = var.api_token.region
+  region      = var.region
 }
 
 # allow ssh
@@ -22,7 +22,7 @@ resource "google_compute_instance" "vps" {
     count = var.num
     name = "${data.external.vps_name.result.name}${count.index}"
     machine_type = "f1-micro"
-    zone = var.api_token.zone
+    zone = var.zone
     tags = ["ssh"]
 
     boot_disk {

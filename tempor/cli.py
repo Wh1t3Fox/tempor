@@ -5,6 +5,7 @@ from python_terraform import *
 from rich.console import Console
 from rich.table import Table
 from rich.progress import track
+from pathlib import Path
 import argparse
 import time
 import json
@@ -12,19 +13,55 @@ import sys
 import os
 
 from tempor import ROOT_DIR
+from tempor.apis import *
 from tempor.console import console
-from tempor.ssh import check_sshkeys, install_ssh_keys
 from tempor.utils import (
     get_config,
     get_hosts,
     rm_hosts,
     save_hosts,
     terraform_installed,
-    TF_IMAGES,
-    ALL_IMAGES
+    TF_IMAGE_USERS
 )
 from tempor.playbook import run_playbook
+from tempor.ssh import check_sshkeys, install_ssh_keys
 
+
+provider_info = dict()
+
+def image_region_choices(provider):
+    if provider is None:
+        print(''' ''')
+        return
+
+    reg_table = Table(title="Regions")
+    reg_table.add_column("ID", style="cyan")
+    reg_table.add_column("Location", style="magenta")
+
+    for _id,name in provider_info[provider]['regions'].items():
+        reg_table.add_row(str(_id), str(name))
+
+    img_table = Table(title="Images")
+    img_table.add_column("ID", style="cyan")
+    img_table.add_column("Name", style="magenta")
+    for _id,name in provider_info[provider]['images'].items():
+        img_table.add_row(str(_id), str(name))
+
+    print(f'''
+usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
+
+options:
+  -h, --help       show this help message and exit
+  --image image    Specify the OS Image
+  --region region  Specify the Region to Host the Image
+  -s, --setup      Create VPS'
+  -l, --list       List Available VPS'
+  -b, --bare       Leave as a Bare Install
+  -m, --minimal    Minimal Configuration
+  --teardown       Tear down VPS'
+''')
+    console.print(reg_table)
+    console.print(img_table)
 
 def get_args():
     cfg = get_config()
@@ -32,105 +69,111 @@ def get_args():
     if not cfg:
         sys.exit(1)
 
-    # If we have a default provider and image set
-    if "default" in cfg and "image" in cfg:
-        provider = cfg["default"]
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
-        try:
-            p = TF_IMAGES[provider][cfg['image']]
-            
-            if 'image' in p:
-                image = p['image']
-            else:
-                image = p
+    # build args for each provider
+    subparsers = parser.add_subparsers(dest='provider')
+    for entry in cfg['providers']:
+        provider = entry['name']
+        api_token = entry['api_token']
 
-            user = p['user'] if 'user' in p else 'root'
+        # validate API creds
+        # only call the APIs once
+        assert getattr(globals()[provider], 'authorized')(api_token), f"Invalid Token for {provider}"
+        provider_info[provider] = dict()
+        provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
+        provider_info[provider]['regions'] =  getattr(globals()[provider], 'get_regions')(api_token)
 
-        except KeyError as e:
-            console.print(f"[red bold]Unsupported Image ({cfg['image']}) for provider ({provider})")
-            sys.exit(1)
-        images = TF_IMAGES[provider]
-    else:
-        provider = None
-        image = None
-        images = ALL_IMAGES
+        prov_parser = subparsers.add_parser(provider, epilog='', add_help=False)
+        prov_parser.add_argument(
+            "--image",
+            metavar = "image",
+            choices = provider_info[provider]['images'].keys(),
+            help="Specify the OS Image",
+        )
+        prov_parser.add_argument(
+            "--region",
+            metavar = "region",
+            choices = provider_info[provider]['regions'].keys(),
+            help="Specify the Region to Host the Image",
+        )
+        prov_parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
+        prov_parser.add_argument("-l", "--list", action="store_true", help="List Available VPS'")
+        prov_parser.add_argument(
+            "-b", "--bare", action="store_true", help="Leave as a Bare Install"
+        )
+        prov_parser.add_argument(
+            "-m", "--minimal", action="store_true", help="Minimal Configuration"
+        )
+        prov_parser.add_argument("--teardown", action="store_true", help="Tear down VPS'")
+        prov_parser.add_argument('-h', '--help', action='store_true')
 
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-p",
-        "--provider",
-        default=provider,
-        choices=os.listdir(f"{ROOT_DIR}/providers"),
-        help="Specify the Provider Name",
-    )
-    parser.add_argument(
-        "-i",
-        "--image",
-        default=image,
-        choices=images,
-        help="Specify the OS Image",
-    )
-    parser.add_argument(
-        "-c", "--count", default=1, type=int, help="Number of VPS' to Create"
-    )
-    parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
-    parser.add_argument("-l", "--list", action="store_true", help="List Available VPS'")
-    parser.add_argument(
-        "-b", "--bare", action="store_true", help="Leave as a Bare Install"
-    )
-    parser.add_argument(
-        "-m", "--minimal", action="store_true", help="Minimal Configuration"
-    )
-    parser.add_argument("--teardown", action="store_true", help="Tear down VPS'")
-
+    
     args = parser.parse_args()
 
-    # Check if provider is set
-    if not args.provider:
-        console.print("[red bold]Must Specify a Provider")
-        sys.exit(1)
-
-    if not args.image:
-        console.print("[red bold]Must Specify an Image")
-        sys.exit(1)
-
-    provider = args.provider
-    if "providers" in cfg:
-        # lets check for the API token
-        try:
-            for p in cfg["providers"]:
-                if p['name'] == provider:
-                    api_token = p['api_token']
-                    break
-        except IndexError:
-            console.print("[red bold]API Tokens are required")
-            sys.exit(1)
+    # Check for a default provider
+    if 'default' in cfg and cfg['default']:
+        default_provider = cfg['default']
     else:
-        console.print("[red bold]Providers are required")
+        default_provider = None
+
+    # if default_provider is not chosen, update settings
+    if default_provider != args.provider:
+        default_provider = args.provider
+
+    # check options for this provider
+    for p in cfg['providers']:
+        if p['name'] == default_provider:
+
+            if 'image' in p:
+                default_image = p['image']
+                if not args.image:
+                    args.image = default_image
+
+            if 'region' in p:
+                default_region = p['region']
+                if not args.region:
+                    args.region = default_region
+
+            if 'api_token' in p:
+                api_token = p['api_token']
+            break
+    else:
+        console.print(f"[red bold]{default_provider} is not a supported provider")
+        parser.print_help()
+        parser.exit(0)
         sys.exit(1)
+    
+    valid_image = getattr(globals()[args.provider], 'valid_image_in_region')(args.image, args.region, api_token)
+    assert valid_image, f"{args.image} is not available in {args.region}"
 
     try:
-        p = TF_IMAGES[provider][args.image]
-        
-        if 'image' in p:
-            args.image = p['image']
-        else:
-            args.image = p
+        if args.help:
+            image_region_choices(args.provider)
+            parser.exit(0)
 
-        args.user = p['user'] if 'user' in p else 'root'
+        # configure some easier options
+        if not args.setup and (args.bare or args.minimal):
+            args.setup = True
 
-    except KeyError as e:
-        console.print(f"[red bold]Unsupported Image ({args.image}) for provider ({provider})")
-        sys.exit(1)
+        args.user = TF_IMAGE_USERS.get(args.image, 'root')
+    except AttributeError as e:  # typically thrown at the args.help
+        parser.print_help()
+        parser.exit(0)
 
 
-    return (provider, api_token, args)
+    return (args.provider, api_token, args)
 
 
 def main():
     provider, api_token, args = get_args()
-    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plan"
+
+    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plans/{args.region}/{args.image}/plan"
+    
+    plan_parent_path = Path(plan_path).parent.absolute()
+    if not os.path.exists(plan_parent_path):
+        os.makedirs(plan_parent_path)
+
     terr_path = terraform_installed()
     if terr_path is None:
         console.print("[red bold]Platform not Supported")
@@ -154,7 +197,8 @@ def main():
         ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", 
                                 var={
                                     "api_token": api_token,
-                                    "image": args.image
+                                    "image": args.image,
+                                    "region": args.region
                                 })
         if ret != 0 and stderr:
             console.print("[red bold]Failed during Teardown")
@@ -186,7 +230,11 @@ def main():
     # lets plan the config
     console.print("Preparing Configuration...", end="", style="bold italic")
     ret, stdout, stderr = t.cmd(
-            "plan", f"-out={plan_path}", var={"api_token": api_token, "num": args.count, "image": args.image}
+            "plan", f"-out={plan_path}", var={
+                            "api_token": api_token, 
+                            "image": args.image,
+                            "region": args.region
+                        }
     )
     if ret != 0 and stderr:
         console.print("[red bold]Failed during Planning")
