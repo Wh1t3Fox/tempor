@@ -25,25 +25,6 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
    * OUTUT only allow DNS, HTTP/S, DoT
  * More to come...
 
-
-Currently supported Providers and Images:
-
-| Image | Providers |
-| --- | ----------- |
-| ArchLinux | Linode, Vultr |
-| Centos Stream 9 | DigitalOcean, Linode, Vultr |
-| Centos Stream 8 | AWS, DigitalOcean, Linode, Vultr |
-| Centos 7 | AWS, DigitalOcean, Linode, Vultr |
-| Debian 11 | AWS, DigitalOcean, Linode, Vultr |
-| Debian 10 | AWS, DigitalOcean, Linode, Vultr |
-| Debian 9 | AWS, DigitalOcean, Linode, Vultr |
-| Fedora 35 | DigitalOcean, Linode, Vultr |
-| Fedora 34 | DigitalOcean, Linode, Vultr |
-| Kali | AWS |
-| Ubuntu 21.10 | AWS, DigitalOcean, Linode, Vultr |
-| Ubuntu 20.04 | AWS, Azure, DigitalOcean, GCP, Linode, Vultr |
-| Ubuntu 18.04 | AWS, DigitalOcean, Linode, Vultr |
-
   
 #### Total Setup Times
 ```
@@ -86,53 +67,104 @@ tempor runs on *arm*, *aarch64*, *386*, *amd64*, (Linux, Android), and *Darwin* 
 providers:
   -
     name: digitalocean
-    api_token: API_TOKEN_HERE
+    region: nyc1
+    image: ubuntu-20-04-x64
+    api_token:
   -
     name: linode
-    api_token: API_TOKEN_HERE
+    region: us-east
+    image: linode/ubuntu20.04
+    api_token:
   -
     name: vultr
-    api_token: API_TOKEN_HERE
+    region: ewr
+    image: 387
+    api_token:
   -
     name: aws
+    region: us-east-1
+    image: ami-04505e74c0741db8d
     api_token:
-      region: REGION
-      access_key: ACCESS_KEY
-      secret_key: SECRET_KEY
-  -
-    name: gcp
-    api_token:
-      auth_file: PATH_TO_JSON_AUTH_FILE
-      project: PROJECT_NAME
-      region: REGION
-      zone: ZONE
-  -
-    name: azure
-    api_token:
-      subscription_id: SUBSCRIPTION_ID
-      client_id: APP_ID
-      client_secret: PASSWORD
-      tenant_id: TENANT_ID
+      access_key:
+      secret_key:
 
 default: digitalocean
 ```
 
 ### :interrobang: Usage :interrobang:
 ```
-➜ tempor -h
-usage: tempor [-h] [-p PROVIDER] [-c COUNT] [--setup] [--list]
-              [--no-config] [--teardown]
+❯ tempor linode --help
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PROVIDER, --provider PROVIDER
-                        Specify the Provider Name
-  -c COUNT, --count COUNT
-                        Number of Images to Create
-  --setup               Setup Image(s)
-  --list                List Available Images
-  --no-config           Leave as a Bare Install
-  --teardown            Tear down VPS
+usage: tempor linode [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
+
+options:
+  -h, --help       show this help message and exit
+  --image image    Specify the OS Image
+  --region region  Specify the Region to Host the Image
+  -s, --setup      Create VPS'
+  -l, --list       List Available VPS'
+  -b, --bare       Leave as a Bare Install
+  -m, --minimal    Minimal Configuration
+  --teardown       Tear down VPS'
+
+          Regions
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━┓
+┃ ID           ┃ Location ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━┩
+│ ap-west      │ in       │
+│ ca-central   │ ca       │
+│ ap-southeast │ au       │
+│ us-central   │ us       │
+│ us-west      │ us       │
+│ us-southeast │ us       │
+│ us-east      │ us       │
+│ eu-west      │ uk       │
+│ ap-south     │ sg       │
+│ eu-central   │ de       │
+│ ap-northeast │ jp       │
+└──────────────┴──────────┘
+                              Images
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ID                            ┃ Name                            ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ linode/almalinux8             │ AlmaLinux 8                     │
+│ linode/alpine3.12             │ Alpine 3.12                     │
+│ linode/alpine3.13             │ Alpine 3.13                     │
+│ linode/alpine3.14             │ Alpine 3.14                     │
+│ linode/alpine3.15             │ Alpine 3.15                     │
+│ linode/arch                   │ Arch Linux                      │
+│ linode/centos7                │ CentOS 7                        │
+│ linode/centos-stream8         │ CentOS Stream 8                 │
+│ linode/centos-stream9         │ CentOS Stream 9                 │
+│ linode/debian10               │ Debian 10                       │
+│ linode/debian11               │ Debian 11                       │
+│ linode/debian9                │ Debian 9                        │
+│ linode/fedora34               │ Fedora 34                       │
+│ linode/fedora35               │ Fedora 35                       │
+│ linode/gentoo                 │ Gentoo                          │
+│ linode/debian11-kube-v1.20.15 │ Kubernetes 1.20.15 on Debian 11 │
+│ linode/debian9-kube-v1.20.7   │ Kubernetes 1.20.7 on Debian 9   │
+│ linode/debian9-kube-v1.21.1   │ Kubernetes 1.21.1 on Debian 9   │
+│ linode/debian11-kube-v1.21.9  │ Kubernetes 1.21.9 on Debian 11  │
+│ linode/debian9-kube-v1.22.2   │ Kubernetes 1.22.2 on Debian 9   │
+│ linode/debian11-kube-v1.22.6  │ Kubernetes 1.22.6 on Debian 11  │
+│ linode/debian11-kube-v1.23.4  │ Kubernetes 1.23.4 on Debian 11  │
+│ linode/opensuse15.3           │ openSUSE Leap 15.3              │
+│ linode/rocky8                 │ Rocky Linux 8                   │
+│ linode/slackware14.2          │ Slackware 14.2                  │
+│ linode/slackware15.0          │ Slackware 15.0                  │
+│ linode/ubuntu16.04lts         │ Ubuntu 16.04 LTS                │
+│ linode/ubuntu18.04            │ Ubuntu 18.04 LTS                │
+│ linode/ubuntu20.04            │ Ubuntu 20.04 LTS                │
+│ linode/ubuntu21.10            │ Ubuntu 21.10                    │
+│ linode/ubuntu22.04            │ Ubuntu 22.04 LTS                │
+│ linode/alpine3.11             │ Alpine 3.11                     │
+│ linode/centos8                │ CentOS 8                        │
+│ linode/fedora33               │ Fedora 33                       │
+│ linode/opensuse15.2           │ openSUSE Leap 15.2              │
+│ linode/slackware14.1          │ Slackware 14.1                  │
+│ linode/ubuntu21.04            │ Ubuntu 21.04                    │
+└───────────────────────────────┴─────────────────────────────────┘
 
 ➜ tempor --setup
 Preparing Configuration...Done.
