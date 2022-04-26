@@ -41,6 +41,19 @@ resource "aws_instance" "vps" {
     associate_public_ip_address = "true"
     key_name = aws_key_pair.default.key_name
 
+    user_data = <<-EOF
+#!/bin/bash
+sudo useradd -m -s /bin/bash -G sudo ${var.username}
+sudo mkdir -p /home/${var.username}/.ssh
+sudo touch /home/${var.username}/.ssh/authorized_keys
+sudo echo ${aws_key_pair.default.public_key} > /home/${var.username}/.ssh/authorized_keys
+sudo chown ${var.username}:${var.username} -R /home/${var.username}
+sudo chmod 700 /home/${var.username}/.ssh
+sudo chmod 600 /home/${var.username}/.ssh/authorized_keys
+sudo usermod -aG sudo ${var.username}
+sudo echo "${var.username} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-custom-init-users
+EOF
+
     security_groups = [
         aws_security_group.allow_ssh.name
     ]

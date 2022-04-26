@@ -21,7 +21,6 @@ from tempor.utils import (
     rm_hosts,
     save_hosts,
     terraform_installed,
-    TF_IMAGE_USERS
 )
 from tempor.playbook import run_playbook
 from tempor.ssh import check_sshkeys, install_ssh_keys
@@ -80,6 +79,7 @@ def get_args():
         # validate API creds
         # only call the APIs once
         assert getattr(globals()[provider], 'authorized')(api_token), f"Invalid Token for {provider}"
+
         provider_info[provider] = dict()
         provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
         provider_info[provider]['regions'] =  getattr(globals()[provider], 'get_regions')(api_token)
@@ -156,7 +156,10 @@ def get_args():
         if not args.setup and (args.bare or args.minimal):
             args.setup = True
 
-        args.user = TF_IMAGE_USERS.get(args.image, 'root')
+        if args.provider == 'aws':
+            args.user = 'user'
+        else:
+            args.user = 'root'
     except AttributeError as e:  # typically thrown at the args.help
         parser.print_help()
         parser.exit(0)

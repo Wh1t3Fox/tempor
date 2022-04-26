@@ -4,4 +4,3 @@ output "instance_ip_address" {
         instance.tags_all.Name => instance.public_ip
     }
 }
-

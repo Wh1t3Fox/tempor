@@ -8,3 +8,6 @@ variable "region" {
 variable "num" {
 	default = 1
 }
+variable "username" {
+    default = "user"
+}

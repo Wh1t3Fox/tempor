@@ -38,16 +38,6 @@ TF_FILE_HASH = {
     "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
     "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
 }
-TF_IMAGE_USERS = {
-    'ami-0d6e9a57f6259ba3a': 'centos', # centos 8
-    'ami-02358d9f5245918a3': 'centos', # centos 7
-    'ami-0d35afd5d19280755': 'admin',  # debian 11
-    'ami-059e59467656af55e': 'admin',  # debian 10
-    'ami-03f9e5587a7d588f8': 'admin',  # debian 9
-    'ami-01691107cfcbce68c': 'kali',   # kali
-    'ami-04505e74c0741db8d': 'ubuntu',  # ubuntu 20.04
-    'ami-0e472ba40eb589f49': 'ubuntu',  # ubuntu 18.04
-}
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"
 ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
