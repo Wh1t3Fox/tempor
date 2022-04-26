@@ -29,14 +29,17 @@ class aws:
     @staticmethod 
     def get_images(api_token: dict, region: str = 'us-east-1') -> Dict:
         return {
-            'ami-0d6e9a57f6259ba3a': 'Centos 8', # centos 8
-            'ami-02358d9f5245918a3': 'Centos 7 ', # centos 7
-            'ami-0d35afd5d19280755': 'Debian 11',  # debian 11
-            'ami-059e59467656af55e': 'Debian 10',  # debian 10
-            'ami-03f9e5587a7d588f8': 'Debain 9',  # debian 9
-            'ami-01691107cfcbce68c': 'Kali',   # kali
-            'ami-04505e74c0741db8d': 'Ubuntu 20.04',  # ubuntu 20.04
-            'ami-0e472ba40eb589f49': 'Ubuntu 18.04',  # ubuntu 18.04
+            'ami-0f9fc25dd2506cf6d': 'Amazon Linux 2',
+            'ami-0d6e9a57f6259ba3a': 'Centos 8',
+            'ami-02358d9f5245918a3': 'Centos 7 ',
+            'ami-0d35afd5d19280755': 'Debian 11',
+            'ami-059e59467656af55e': 'Debian 10',
+            'ami-03f9e5587a7d588f8': 'Debain 9',
+            'ami-01691107cfcbce68c': 'Kali',
+            'ami-0ec1545979d0dc885': 'Rocky 8',
+            'ami-04505e74c0741db8d': 'Ubuntu 20.04',
+            'ami-0e472ba40eb589f49': 'Ubuntu 18.04',
+            'ami-0b0ea68c435eb488d': 'Ubuntu 16.04',
             
         }
         # below is how to query API, but 2k+ items are returned
