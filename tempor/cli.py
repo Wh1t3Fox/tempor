@@ -80,21 +80,21 @@ def get_args():
         # only call the APIs once
         assert getattr(globals()[provider], 'authorized')(api_token), f"Invalid Token for {provider}"
 
-        provider_info[provider] = dict()
-        provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
-        provider_info[provider]['regions'] =  getattr(globals()[provider], 'get_regions')(api_token)
+        #provider_info[provider] = dict()
+        #provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
+        #provider_info[provider]['regions'] =  getattr(globals()[provider], 'get_regions')(api_token)
 
         prov_parser = subparsers.add_parser(provider, epilog='', add_help=False)
         prov_parser.add_argument(
             "--image",
             metavar = "image",
-            choices = provider_info[provider]['images'].keys(),
+            #choices = provider_info[provider]['images'].keys(),
             help="Specify the OS Image",
         )
         prov_parser.add_argument(
             "--region",
             metavar = "region",
-            choices = provider_info[provider]['regions'].keys(),
+            #choices = provider_info[provider]['regions'].keys(),
             help="Specify the Region to Host the Image",
         )
         prov_parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
@@ -144,6 +144,22 @@ def get_args():
         parser.exit(0)
         sys.exit(1)
     
+    provider_info[args.provider] = dict()
+    provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token)
+    provider_info[args.provider]['regions'] =  getattr(globals()[args.provider], 'get_regions')(api_token)
+
+    if args.image not in provider_info[args.provider]['images']:
+        console.print(f"[red bold]{args.image} is not a supported image")
+        parser.print_help()
+        image_region_choices(args.provider)
+        parser.exit(0)
+
+    if args.region not in provider_info[args.provider]['regions']:
+        console.print(f"[red bold]{args.region} is not a supported region")
+        parser.print_help()
+        image_region_choices(args.provider)
+        parser.exit(0)
+
     valid_image = getattr(globals()[args.provider], 'valid_image_in_region')(args.image, args.region, api_token)
     assert valid_image, f"{args.image} is not available in {args.region}"
 
