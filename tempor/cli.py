@@ -40,7 +40,7 @@ def image_region_choices(provider):
     for _id,name in provider_info[provider]['regions'].items():
         reg_table.add_row(str(_id), str(name))
 
-    img_table = Table(title="Images")
+    img_table = Table(title="Images x86-64")
     img_table.add_column("ID", style="cyan")
     img_table.add_column("Name", style="magenta")
     for _id,name in provider_info[provider]['images'].items():
