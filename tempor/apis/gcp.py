@@ -23,40 +23,58 @@ class gcp:
     
     @staticmethod 
     def get_images(api_token: dict) -> Dict:
+        #return {
+        #    'ubuntu-os-cloud/ubuntu-2004-lts': 'Ubuntu 20.04',
+        #    'ubuntu-os-cloud/ubuntu-1804-lts': 'Ubuntu 18.04'
+        #}
         images = dict()
 
         auth_file = api_token['auth_file']
+        proj = api_token['project']
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build('compute', 'v1', credentials=creds)
 
         # this is stupid see https://issuetracker.google.com/issues/64718267?pli=1
         projects = [
-            #'centos-cloud',
-            #'debian-cloud',
+            proj,
+            'centos-cloud',
+            'debian-cloud',
+            'fedora-coreos-cloud',
+            'rocky-linux-cloud',
             'ubuntu-os-cloud',
+            'ubuntu-os-pro-cloud',
         ]
 
         for project in projects:
-            req = service.images().list(project=project,
-                    filter='(deprecated.state="ACTIVE")')
-            while req is not None:
-                resp = req.execute()
-                print(resp)
+            resp = service.images().list(project=project).execute()
+            
+            if 'items' not in resp:
+                continue
+            
+            for image in resp['items']:
+                # ignore the deprecated and obsolete images
+                if 'deprecated' in image and \
+                        'state' in image['deprecated'] and \
+                        image['deprecated']['state'] in ['OBSOLETE', 'DEPRECATED']:
+                            continue
 
-                for image in resp['items']:
-                    print(image)
-                    #if 'deprecated' in image and \
-                    #        'state' in image['deprecated'] and \
-                    #        image['deprecated']['state'] in ['OBSOLETE', 'DEPRECATED']:
-                    #            continue
-
+                '''
+                The image from which to initialize this disk. 
+                This can be one of: the image's self_link, 
+                projects/{project}/global/images/{image}, 
+                projects/{project}/global/images/family/{family}, 
+                global/images/{image}, global/images/family/{family}, 
+                family/{family}, {project}/{family}, 
+                {project}/{image}, {family}, or {image}
+                '''
+                try:
                     _image = f'{project}/{image["family"]}'
-
-                    if _image in images:
-                        continue
-
                     images[_image] = image['description']
+                except:
+                    _image = f'{project}/{image["name"]}'
+                    images[_image] = image['name']
+
 
         return images
     
@@ -76,12 +94,9 @@ class gcp:
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build('compute', 'v1', credentials=creds)
         
-        req = service.regions().list(project=project)
-        while req is not None:
-            resp = req.execute()
-
-            for region in resp['items']:
-                if region['status'] == 'UP':
-                    regions[region['name']] = region['zones']
+        resp = service.regions().list(project=project).execute()
+        for region in resp['items']:
+            if region['status'] == 'UP':
+                regions[region['name']] = [z.split('zones/')[-1] for z in region['zones']]
 
         return regions

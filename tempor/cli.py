@@ -35,7 +35,10 @@ def image_region_choices(provider):
 
     reg_table = Table(title="Regions")
     reg_table.add_column("ID", style="cyan")
-    reg_table.add_column("Location", style="magenta")
+    if provider == 'gcp':
+        reg_table.add_column("Zones", style="magenta")
+    else:
+        reg_table.add_column("Location", style="magenta")
 
     for _id,name in provider_info[provider]['regions'].items():
         reg_table.add_row(str(_id), str(name))
