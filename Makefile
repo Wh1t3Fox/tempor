@@ -43,7 +43,7 @@ clean: 					## Cleanup VPS and Files
 
 .PHONY: test
 test: build					## Testing with Terraform
-	@docker run -it --rm --init -v "$(HOME)/.config/tempor:/home/user/.config/tempor" --entrypoint=/bin/bash tempor-test
+	@docker run -it --rm --init -v "$(HOME)/.config/tempor/:/home/user/.config/tempor/:ro" --entrypoint=/bin/bash tempor-test
 
 .PHONY: release
 release: clean	## Publish version to pypi
