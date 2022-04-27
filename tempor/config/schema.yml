@@ -7,10 +7,12 @@ properties:
   default:
     type: string
     enum:
+      - aws
+      - azure
       - digitalocean
+      - gcp
       - linode
       - vultr
-      - aws
 definitions:
   provider:
     type: object

@@ -29,5 +29,14 @@ providers:
     api_token:
       auth_file: 
       project: 
+  -
+    name: azure
+    region: westus2
+    image: Canonical/UbuntuServer/18_04-lts-gen2
+    api_token:
+      subscription_id: 
+      client_id: 
+      client_secret: 
+      tenant_id: 
 
 default: digitalocean

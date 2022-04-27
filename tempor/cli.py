@@ -148,7 +148,10 @@ def get_args():
         sys.exit(1)
     
     provider_info[args.provider] = dict()
-    provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token)
+    if args.provider == 'azure':
+        provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token, args.region)
+    else:
+        provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token)
     provider_info[args.provider]['regions'] =  getattr(globals()[args.provider], 'get_regions')(api_token)
 
     if args.image not in provider_info[args.provider]['images']:
