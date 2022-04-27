@@ -46,6 +46,9 @@ setup(
         "rich==9.3.0",
         "ssh-config==0.0.22",
         "PyYAML==5.4.1",
+        "boto3==1.22.1",
+        "requests==2.27.1",
+        "google-api-python-client==2.46.0"
     ],
     extras_require={
         "dev": [
