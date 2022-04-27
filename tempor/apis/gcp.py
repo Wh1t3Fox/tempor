@@ -36,6 +36,7 @@ class gcp:
         service = discovery.build('compute', 'v1', credentials=creds)
 
         # this is stupid see https://issuetracker.google.com/issues/64718267?pli=1
+        # https://cloud.google.com/compute/docs/images/os-details
         projects = [
             proj,
             'centos-cloud',
