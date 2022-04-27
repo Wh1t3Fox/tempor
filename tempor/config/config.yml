@@ -21,5 +21,13 @@ providers:
     api_token:
       access_key:
       secret_key:
+  -
+    name: gcp
+    region: us-east1
+    zone: us-east1b
+    image: ubuntu-os-cloud/ubuntu-1804-lts
+    api_token:
+      auth_file: 
+      project: 
 
 default: digitalocean
