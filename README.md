@@ -29,16 +29,16 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
 #### Total Setup Times
 ```
 # bare setup
-tempor -p aws -i ubuntu_20-04 -s -b  10.54s user 1.15s system 26% cpu 44.542 total
+tempor aws -b  10.54s user 1.15s system 26% cpu 44.542 total
 
 # minimal  setup
-tempor -p aws -i ubuntu_20-04 -s -m  37.36s user 4.22s system 18% cpu 3:42.71 total
+tempor aws -m  37.36s user 4.22s system 18% cpu 3:42.71 total
   
 # full setup
-tempor -p aws -i ubuntu_20-04 -s  96.83s user 15.69s system 22% cpu 8:20.32 total
+tempor aws -s  96.83s user 15.69s system 22% cpu 8:20.32 total
 
 # teardown
-tempor -p aws -i ubuntu_20-04 --teardown  8.25s user 1.15s system 23% cpu 39.431 total
+tempor aws --teardown  8.25s user 1.15s system 23% cpu 39.431 total
 
 ```
   
@@ -87,6 +87,23 @@ providers:
     api_token:
       access_key:
       secret_key:
+  -
+    name: gcp
+    region: us-east1
+    zone: us-east1b
+    image: ubuntu-os-cloud/ubuntu-1804-lts
+    api_token:
+      auth_file:
+      project:
+  -
+    name: azure
+    region: westus2
+    image: Canonical/UbuntuServer/18_04-lts-gen2
+    api_token:
+      subscription_id:
+      client_id:
+      client_secret:
+      tenant_id:
 
 default: digitalocean
 ```
@@ -166,7 +183,7 @@ options:
 │ linode/ubuntu21.04            │ Ubuntu 21.04                    │
 └───────────────────────────────┴─────────────────────────────────┘
 
-➜ tempor --setup
+➜ tempor linode --setup
 Preparing Configuration...Done.
 Creating VPS...Done.
 Configuring SSH Keys...Done.
@@ -175,7 +192,7 @@ VPS' now available!
 
 ssh nnvnv620
 
-➜ tempor --list
+➜ tempor linode --list
          Active VPS'
 ┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
 ┃ VPS Name ┃ IP Address     ┃
