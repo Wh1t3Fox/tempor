@@ -10,6 +10,7 @@ import argparse
 import time
 import json
 import sys
+import re
 import os
 
 from tempor import ROOT_DIR
@@ -143,6 +144,7 @@ def get_args():
 
             if 'api_token' in p:
                 api_token = p['api_token']
+                args.api_token = api_token
             break
     else:
         console.print(f"[red bold]{default_provider} is not a supported provider")
@@ -193,8 +195,15 @@ def get_args():
     return (args.provider, api_token, args)
 
 
-def main():
-    provider, api_token, args = get_args()
+def main(args: argparse.Namespace = None, override_teardown: bool = False):
+    if not args:
+        provider, api_token, args = get_args()
+
+    if override_teardown:
+        provider = args.provider
+        api_token = args.api_token
+        args.teardown = True
+        args.setup = False
 
     plan_path = f"{ROOT_DIR}/providers/{provider}/files/plans/{args.region}/{args.image}/plan"
     
@@ -265,8 +274,10 @@ def main():
                         }
     )
     if ret != 0 and stderr:
-        console.print("[red bold]Failed during Planning")
-        console.print(f"[red bold]{stderr}")
+        # Fix the color escape sequences
+        stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+        print(stderr)
+        main(args, True)  # force teardown
         return
     console.print("Done.")
 
@@ -274,9 +285,10 @@ def main():
     console.print("Creating VPS...", end="", style="bold italic")
     ret, stdout, stderr = t.cmd("apply", plan_path)
     if ret != 0 and stderr:
-        console.print("[red bold]Failed during Applying")
-        console.print(f"[red bold]{stderr}")
-        return
+        # Fix the color escape sequences
+        stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+        print(stderr)
+        main(args, True)  # force teardown
     console.print("Done.")
 
     console.print("Configuring SSH Keys...", end="", style="bold italic")
