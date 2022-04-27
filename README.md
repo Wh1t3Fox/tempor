@@ -25,6 +25,9 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
    * OUTUT only allow DNS, HTTP/S, DoT
  * More to come...
 
+<p>
+Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!  
+</p>
   
 #### Total Setup Times
 ```
@@ -110,6 +113,15 @@ default: digitalocean
 
 ### :interrobang: Usage :interrobang:
 ```
+❯ tempor --help
+usage: tempor [-h] {digitalocean,linode,vultr,aws,gcp,azure} ...
+
+positional arguments:
+  {digitalocean,linode,vultr,aws,gcp,azure}
+
+options:
+  -h, --help            show this help message and exit
+
 ❯ tempor linode --help
 
 usage: tempor linode [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
