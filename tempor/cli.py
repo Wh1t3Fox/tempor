@@ -81,7 +81,10 @@ def get_args():
 
         # validate API creds
         # only call the APIs once
-        assert getattr(globals()[provider], 'authorized')(api_token), f"Invalid Token for {provider}"
+        if not getattr(globals()[provider], 'authorized')(api_token):
+            console.print(f"[red bold] Invalid {provider} API Token. Fix or remove provider.")
+            sys.exit(1)
+
 
         #provider_info[provider] = dict()
         #provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
