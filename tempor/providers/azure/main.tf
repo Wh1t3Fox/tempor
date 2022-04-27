@@ -104,9 +104,9 @@ resource "azurerm_linux_virtual_machine" "vps" {
     }
 
     source_image_reference {
-        publisher = "Canonical"
-        offer = "UbuntuServer"
-        sku = "20_04-lts-gen2"
+        publisher = element(split("/", var.image), 0)
+        offer = element(split("/", var.image), 1)
+        sku = element(split("/", var.image), 2)
         version = "latest"
     }
 }
