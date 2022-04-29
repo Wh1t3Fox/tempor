@@ -18,7 +18,7 @@ from tempor.console import console
 SSH_CONFIG_PATH = expanduser("~/.ssh/config")
 
 
-def add_config_entry(hostname, attr):
+def add_config_entry(hostname: str, attr: dict) -> None:
     new_host = Host(hostname, attr)
 
     # does ~/.ssh/config exist?
@@ -39,7 +39,7 @@ def add_config_entry(hostname, attr):
     cfg.write()
 
 
-def remove_config_entry(hostname):
+def remove_config_entry(hostname: str) -> None:
     # Nothing to remove if config doesn't exist
     if not path.isfile(expanduser(SSH_CONFIG_PATH)):
         return
@@ -63,7 +63,7 @@ def remove_config_entry(hostname):
         pass
 
 
-def check_sshkeys(provider):
+def check_sshkeys(provider: str) -> bool:
     if provider == "azure":
         key_type = "rsa"
     else:
@@ -89,14 +89,14 @@ def check_sshkeys(provider):
         console.print("Done.")
 
 
-def install_ssh_keys(provider, hostname, ip_address, user):
+def install_ssh_keys(provider: str, hostname: str, ip_address: str, user: str) -> None:
     old_dir = f"{ROOT_DIR}/providers/{provider}/files/.ssh"
     out_dir = f"{DATA_DIR}/{hostname}/ssh"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     for fname in os.listdir(old_dir):
-        shutil.copy(os.path.join(old_dir, fname), out_dir)
+        shutil.move(os.path.join(old_dir, fname), out_dir)
 
     attr = {
         "Hostname": ip_address,

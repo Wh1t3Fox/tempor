@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# TODO: Call the provider APIs instead of this stupid hard coding
 
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
+from typing import Dict, List
+from rich.table import Table
 import jsonschema
 import platform
 import hashlib
@@ -16,12 +17,9 @@ import yaml
 import stat
 import os
 
-from tempor import ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
+from tempor import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
 from tempor.console import console
 from tempor.ssh import remove_config_entry
-
-
-
 
 TF_VER = "1.1.9"
 TF_ZIP_HASH = {
@@ -43,7 +41,45 @@ HOSTS_FILE = f"{DATA_DIR}/hosts"
 ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
 
 
-def get_config():
+def image_region_choices(provider: str) -> str:
+    if provider is None:
+        print(''' ''')
+        return
+
+    reg_table = Table(title="Regions")
+    reg_table.add_column("ID", style="cyan")
+    if provider == 'gcp':
+        reg_table.add_column("Zones", style="magenta")
+    else:
+        reg_table.add_column("Location", style="magenta")
+
+    for _id,name in provider_info[provider]['regions'].items():
+        reg_table.add_row(str(_id), str(name))
+
+    img_table = Table(title="Images x86-64")
+    img_table.add_column("ID", style="cyan")
+    img_table.add_column("Name", style="magenta")
+    for _id,name in provider_info[provider]['images'].items():
+        img_table.add_row(str(_id), str(name))
+
+    print(f'''
+usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
+
+options:
+  -h, --help       show this help message and exit
+  --image image    Specify the OS Image
+  --region region  Specify the Region to Host the Image
+  -s, --setup      Create VPS'
+  -l, --list       List Available VPS'
+  -b, --bare       Leave as a Bare Install
+  -m, --minimal    Minimal Configuration
+  --teardown       Tear down VPS'
+''')
+    console.print(reg_table)
+    console.print(img_table)
+
+
+def get_config() -> Dict:
     fpath = f"{CONFIG_DIR}/config.yml"
 
     if not os.path.exists(fpath):
@@ -68,7 +104,7 @@ def get_config():
         return cfg
 
 
-def terraform_installed():
+def terraform_installed() -> str:
     updated = True
     out_file = shutil.which("terraform")
 
@@ -121,26 +157,33 @@ def terraform_installed():
     return out_file
 
 
-def rm_hosts(provider):
+def rm_hosts(provider: str, workspace: str) -> None:
+    hostnames = list()
     hosts = get_hosts()
 
     if not hosts or provider not in hosts:
         return
 
-    for hostname in hosts[provider]:
-        remove_config_entry(hostname)
+    for idx, host in enumerate(hosts[provider]):
+        for hostname, values in host.items():
+            if values['workspace'] == workspace:
+                hostnames.append(hostname)
+                del hosts[provider][idx]
+                remove_config_entry(hostname)
 
-    del hosts[provider]
 
     with open(HOSTS_FILE, "w") as fw:
         json.dump(hosts, fw)
 
     if os.path.exists(ANSIBLE_HOSTS):
-        with open(ANSIBLE_HOSTS, "w+") as fw:
-            fw.write("")
+        with open(ANSIBLE_HOSTS) as fr, open(ANSIBLE_HOSTS, "w+") as fw:
+            for line in fr:
+                for hostname in hostnames:
+                    line = line.replace(hostname, '')
+                fw.write(line)
 
 
-def get_hosts():
+def get_hosts() -> Dict:
     hosts = dict()
     try:
         if os.path.exists(HOSTS_FILE):
@@ -151,7 +194,27 @@ def get_hosts():
     return hosts
 
 
-def save_hosts(provider, new_hosts):
+def get_hostname(tf_workspace: str) -> str:
+    all_hosts = get_hosts()
+
+    for provider in all_hosts:
+        for hostnames in all_hosts[provider]:
+            for hostname, values in hostnames.items():
+                if values['workspace'] == tf_workspace:
+                    return hostname
+
+
+'''
+{
+    '<provider>': [
+        '<hostname>': {
+            'ip': '<ip>',
+            'workspace': '<workspace>'
+        },
+    ]
+}
+'''
+def save_hosts(provider: str, new_hosts: dict) -> None:
     hosts = dict()
 
     if not isinstance(new_hosts, dict):
@@ -159,38 +222,34 @@ def save_hosts(provider, new_hosts):
         return
 
     # load in what's there
-    try:
-        if os.path.exists(HOSTS_FILE):
-            with open(HOSTS_FILE) as fr:
-                hosts = json.load(fr)
-    except json.decoder.JSONDecodeError:
-        pass  # Invalid file so lets overwrite it
+    hosts = get_hosts()
 
     # combine 2 dictionaries
     if provider not in hosts:
-        hosts[provider] = dict()
+        hosts[provider] = list()
 
-    hosts[provider].update(new_hosts)
+    hosts[provider].append(new_hosts)
 
     with open(HOSTS_FILE, "w") as fw:
         json.dump(hosts, fw)
 
     with open(ANSIBLE_HOSTS, "a+") as fw:
-        for host, ip in hosts[provider].items():
-            fw.write(f"{host}\n")
+        for host in hosts[provider]:
+            for hostname, values in host.items():
+                fw.write(f"{hostname}\n")
 
 
-def random_line(f):
+def random_line(f: str) -> str:
     with open(f) as fr:
         lines = fr.read().splitlines()
         return random.choice(lines).replace("'", "").lower()
 
 
-def random_number(min_val=0, max_val=100):
+def random_number(min_val: int = 0, max_val: int = 100) -> int:
     return str(random.randint(min_val, max_val))
 
 
-def random_str(min_val=5, max_val=10):
+def random_str(min_val: int = 5, max_val: int = 10) -> str:
     return "".join(
         [
             random.choice(string.ascii_lowercase)
@@ -199,7 +258,7 @@ def random_str(min_val=5, max_val=10):
     )
 
 
-def random_name():
+def random_name() -> str:
     try:
         wordlist = Path("/usr/share/dict/american-english")
         if not wordlist.is_file():

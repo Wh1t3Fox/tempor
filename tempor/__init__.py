@@ -32,3 +32,5 @@ if not os.path.exists(CONFIG_DIR):
 
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
+
+provider_info = dict()

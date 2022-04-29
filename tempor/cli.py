@@ -13,60 +13,35 @@ import sys
 import re
 import os
 
-from tempor import ROOT_DIR
-from tempor.apis import *
+from tempor import (
+    provider_info,
+    ROOT_DIR
+)
+from tempor.apis import (
+    aws,
+    azure,
+    digitalocean,
+    gcp,
+    linode,
+    vultr
+)
 from tempor.console import console
 from tempor.utils import (
     get_config,
     get_hosts,
+    get_hostname,
+    image_region_choices,
     rm_hosts,
     save_hosts,
     terraform_installed,
 )
+from tempor.workspaces import *
 from tempor.playbook import run_playbook
 from tempor.ssh import check_sshkeys, install_ssh_keys
 
 
-provider_info = dict()
-
-def image_region_choices(provider):
-    if provider is None:
-        print(''' ''')
-        return
-
-    reg_table = Table(title="Regions")
-    reg_table.add_column("ID", style="cyan")
-    if provider == 'gcp':
-        reg_table.add_column("Zones", style="magenta")
-    else:
-        reg_table.add_column("Location", style="magenta")
-
-    for _id,name in provider_info[provider]['regions'].items():
-        reg_table.add_row(str(_id), str(name))
-
-    img_table = Table(title="Images x86-64")
-    img_table.add_column("ID", style="cyan")
-    img_table.add_column("Name", style="magenta")
-    for _id,name in provider_info[provider]['images'].items():
-        img_table.add_row(str(_id), str(name))
-
-    print(f'''
-usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
-
-options:
-  -h, --help       show this help message and exit
-  --image image    Specify the OS Image
-  --region region  Specify the Region to Host the Image
-  -s, --setup      Create VPS'
-  -l, --list       List Available VPS'
-  -b, --bare       Leave as a Bare Install
-  -m, --minimal    Minimal Configuration
-  --teardown       Tear down VPS'
-''')
-    console.print(reg_table)
-    console.print(img_table)
-
-def get_args():
+# TODO: cleanup some of this code
+def get_args() -> (str, str, argparse.Namespace):
     cfg = get_config()
 
     if not cfg:
@@ -195,7 +170,7 @@ def get_args():
     return (args.provider, api_token, args)
 
 
-def main(args: argparse.Namespace = None, override_teardown: bool = False):
+def main(args: argparse.Namespace = None, override_teardown: bool = False) -> None:
     if not args:
         provider, api_token, args = get_args()
 
@@ -206,6 +181,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False):
         args.setup = False
 
     plan_path = f"{ROOT_DIR}/providers/{provider}/files/plans/{args.region}/{args.image}/plan"
+    # The name must contain only URL safe characters, and no path separators.
+    tf_workspace_name = f'{provider}_{args.region}_{args.image}'.replace('/', '+')
     
     plan_parent_path = Path(plan_path).parent.absolute()
     if not os.path.exists(plan_parent_path):
@@ -221,16 +198,38 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False):
         variables={"api_token": api_token},
         terraform_bin_path=terr_path,
     )
+
     # make sure terraform is initialized
     ret, stdout, stderr = t.init()
     if ret != 0 and stderr:
         console.print("[red bold]Failed during initialization")
-        console.print(f"[red bold]{stderr}")
+        stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+        print(stderr)
         return
+    
+    current_workspace = get_current_workspace(t)
+
+    # Is the current workspace different than the one we should be using?
+    # listing is irrelevant for workspaces
+    if (current_workspace != tf_workspace_name) and not args.list:
+        workspaces = get_all_workspace(t)
+
+        if tf_workspace_name not in workspaces:
+            create_new_workspace(t, tf_workspace_name)
+        else:
+            select_workspace(t, tf_workspace_name)
+
+    elif not (args.teardown or args.list):
+        # Only 1 provider/region/image at a time
+        console.print(f"[red bold]Provider/Region/Image Combination taken. Chose a different region, image, or provider.")
+        return
+
 
     # now what do we want to do?
     if args.teardown:
-        console.print("Tearing down...", end="", style="bold italic")
+        hostname = get_hostname(tf_workspace_name)
+        console.print(f"Tearing down {hostname}...", end="", style="bold italic")
+        rm_hosts(provider, tf_workspace_name)
         ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", 
                                 var={
                                     "api_token": api_token,
@@ -238,11 +237,24 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False):
                                     "region": args.region
                                 })
         if ret != 0 and stderr:
-            console.print("[red bold]Failed during Teardown")
-            console.print(f"[red bold]{stderr}")
-        rm_hosts(provider)
+            stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+            print(stderr)
+
+        # switch to default workspace
+        ret, stdout, stderr = t.cmd("workspace", "select", "default")
+        if ret != 0 and stderr:
+            stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+            print(stderr)
+
+        # delete old workspace
+        ret, stdout, stderr = t.cmd("workspace", "delete", tf_workspace_name)
+        if ret != 0 and stderr:
+            stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
+            print(stderr)
+
         console.print("Done.")
         return
+
 
     elif args.list:
         all_hosts = get_hosts()
@@ -251,9 +263,12 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False):
             table = Table(title="Active VPS'")
             table.add_column("VPS Name", style="cyan")
             table.add_column("IP Address", style="magenta")
+            table.add_column("Image", style="magenta")
 
-            for host, ip in all_hosts[provider].items():
-                table.add_row(host, ip)
+            for host in all_hosts[provider]:
+                for hostname, values in host.items():
+                    image = values['workspace'].split('_')[-1]
+                    table.add_row(hostname, values['ip'], image.replace('+', '/'))
             console.print(table)
         return
 
@@ -299,19 +314,28 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False):
     # digitalocean
     if "droplet_ip_address" in output:
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
-            new_hosts[hostname] = ip_address
+            new_hosts[hostname] = {
+                    'ip': ip_address, 
+                    'workspace': tf_workspace_name
+            }
             install_ssh_keys(provider, hostname, ip_address, args.user)
 
     # linode, aws
     elif "instance_ip_address" in output:
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
-            new_hosts[hostname] = ip_address
+            new_hosts[hostname] = {
+                    'ip': ip_address, 
+                    'workspace': tf_workspace_name
+            }
             install_ssh_keys(provider, hostname, ip_address, args.user)
 
     # vultr
     elif "server_ip_address" in output:
         for hostname, ip_address in output["server_ip_address"]["value"].items():
-            new_hosts[hostname] = ip_address
+            new_hosts[hostname] = {
+                    'ip': ip_address, 
+                    'workspace': tf_workspace_name
+            }
             install_ssh_keys(provider, hostname, ip_address, args.user)
     console.print("Done.")
 
