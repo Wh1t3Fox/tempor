@@ -1,14 +1,14 @@
 export DOCKER_BUILDKIT=1
 
-#GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
-#
-#ifeq ($(MAKECMDGOALS),release)
-#
-#ifneq (x$(GIT_NOT_CLEAN_CHECK), x)
-#$(error echo You are trying to release a build based on a dirty repo)
-#endif
-#
-#endif
+GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
+
+ifeq ($(MAKECMDGOALS),release)
+
+ifneq (x$(GIT_NOT_CLEAN_CHECK), x)
+$(error echo You are trying to release a build based on a dirty repo)
+endif
+
+endif
 
 all: help
 
