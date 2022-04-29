@@ -1,14 +1,14 @@
 export DOCKER_BUILDKIT=1
 
-GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
-
-ifeq ($(MAKECMDGOALS),release)
-
-ifneq (x$(GIT_NOT_CLEAN_CHECK), x)
-$(error echo You are trying to release a build based on a dirty repo)
-endif
-
-endif
+#GIT_NOT_CLEAN_CHECK = $(shell git status --porcelain)
+#
+#ifeq ($(MAKECMDGOALS),release)
+#
+#ifneq (x$(GIT_NOT_CLEAN_CHECK), x)
+#$(error echo You are trying to release a build based on a dirty repo)
+#endif
+#
+#endif
 
 all: help
 
@@ -46,6 +46,10 @@ test: build					## Testing with Terraform
 	@docker run -it --rm --init -v "$(HOME)/.config/tempor/:/home/user/.config/tempor/:ro" --entrypoint=/bin/bash tempor-test
 
 .PHONY: release
-release: clean	## Publish version to pypi
-	python setup.py sdist
-	twine upload dist/*
+release: clean
+	@echo -e "${VER}" > tempor/VERSION
+	@git add tempor/VERSION
+	@git commit -m "Version ${VER}"
+	@git push
+	@git tag -a "${VER}" -m "${VER}"
+	@git push origin --tags
