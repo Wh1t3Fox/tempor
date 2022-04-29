@@ -96,7 +96,7 @@ def install_ssh_keys(provider: str, hostname: str, ip_address: str, user: str) -
         os.makedirs(out_dir)
 
     for fname in os.listdir(old_dir):
-        shutil.move(os.path.join(old_dir, fname), out_dir)
+        shutil.copy(os.path.join(old_dir, fname), out_dir)
 
     attr = {
         "Hostname": ip_address,
