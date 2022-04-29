@@ -228,6 +228,9 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     # now what do we want to do?
     if args.teardown:
         hostname = get_hostname(tf_workspace_name)
+        if hostname is None:
+            console.print('No Image to teardown.')
+            return
         console.print(f"Tearing down {hostname}...", end="", style="bold italic")
         rm_hosts(provider, tf_workspace_name)
         ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", 
