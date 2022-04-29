@@ -266,12 +266,13 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             table = Table(title="Active VPS'")
             table.add_column("VPS Name", style="cyan")
             table.add_column("IP Address", style="magenta")
+            table.add_column("Region", style="magenta")
             table.add_column("Image", style="magenta")
 
             for host in all_hosts[provider]:
                 for hostname, values in host.items():
                     image = values['workspace'].split('_')[-1]
-                    table.add_row(hostname, values['ip'], image.replace('+', '/'))
+                    table.add_row(hostname, values['ip'], values['region'], image.replace('+', '/'))
             console.print(table)
         return
 
@@ -307,6 +308,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
         print(stderr)
         main(args, True)  # force teardown
+        return
     console.print("Done.")
 
     console.print("Configuring SSH Keys...", end="", style="bold italic")
@@ -319,6 +321,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
             new_hosts[hostname] = {
                     'ip': ip_address, 
+                    'region': args.region,
                     'workspace': tf_workspace_name
             }
             install_ssh_keys(provider, hostname, ip_address, args.user)
@@ -328,6 +331,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
             new_hosts[hostname] = {
                     'ip': ip_address, 
+                    'region': args.region,
                     'workspace': tf_workspace_name
             }
             install_ssh_keys(provider, hostname, ip_address, args.user)
@@ -337,6 +341,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         for hostname, ip_address in output["server_ip_address"]["value"].items():
             new_hosts[hostname] = {
                     'ip': ip_address, 
+                    'region': args.region,
                     'workspace': tf_workspace_name
             }
             install_ssh_keys(provider, hostname, ip_address, args.user)
