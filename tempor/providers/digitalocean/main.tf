@@ -20,7 +20,7 @@ resource "digitalocean_droplet" "vps" {
     image = var.image
     name = "${data.external.vps_name.result.name}${count.index}"
     region = var.region
-    size = "s-1vcpu-1gb"
+    size = var.resources
     ssh_keys = [
         digitalocean_ssh_key.default.fingerprint
     ]

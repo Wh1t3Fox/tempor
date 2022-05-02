@@ -52,7 +52,7 @@ resource "linode_instance" "vps" {
     image = var.image
     label = "${data.external.vps_name.result.name}${count.index}"
     region = var.region
-    type = "g6-standard-1"
+    type = var.resources
     root_pass = data.external.root_pass.result.value
     authorized_keys = [linode_sshkey.default.ssh_key]
 

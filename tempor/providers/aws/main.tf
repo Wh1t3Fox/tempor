@@ -37,7 +37,7 @@ resource "aws_security_group" "allow_ssh" {
 resource "aws_instance" "vps" {
     count = var.num
     ami = var.image
-    instance_type = "t2.micro"
+    instance_type = var.resources
     associate_public_ip_address = "true"
     key_name = aws_key_pair.default.key_name
 

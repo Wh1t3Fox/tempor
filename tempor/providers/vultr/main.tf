@@ -12,7 +12,7 @@ resource "vultr_ssh_key" "default" {
 resource "vultr_instance" "vps" {
     count = var.num
     os_id = var.image
-    plan = "vc2-1c-1gb"
+    plan = var.resources
     region = var.region
     label = "${data.external.vps_name.result.name}${count.index}"
     ssh_key_ids = [vultr_ssh_key.default.id]

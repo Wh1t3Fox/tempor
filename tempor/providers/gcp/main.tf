@@ -21,7 +21,7 @@ resource "google_compute_firewall" "allow-ssh" {
 resource "google_compute_instance" "vps" {
     count = var.num
     name = "${data.external.vps_name.result.name}${count.index}"
-    machine_type = "f1-micro"
+    machine_type = var.resources
     zone = var.zone
     tags = ["ssh"]
 

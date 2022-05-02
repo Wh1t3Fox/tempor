@@ -86,7 +86,7 @@ resource "azurerm_linux_virtual_machine" "vps" {
     name = "${data.external.vps_name.result.name}${count.index}"
     resource_group_name = azurerm_resource_group.main.name
     location = azurerm_resource_group.main.location
-    size = "Standard_F2"
+    size = var.resources
     admin_username = "root"
     network_interface_ids = [
         azurerm_network_interface.main.id,
