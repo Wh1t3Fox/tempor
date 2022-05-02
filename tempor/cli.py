@@ -27,9 +27,9 @@ from tempor.apis import (
 )
 from tempor.console import console
 from tempor.utils import (
+    find_hostname,
     get_config,
     get_hosts,
-    get_hostname,
     image_region_choices,
     rm_hosts,
     save_hosts,
@@ -42,12 +42,14 @@ from tempor.ssh import check_sshkeys, install_ssh_keys
 
 # TODO: cleanup some of this code
 def get_args() -> (str, str, argparse.Namespace):
+
     cfg = get_config()
 
     if not cfg:
         sys.exit(1)
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--teardown", default=None, help="Name of VPS Image to Tear down")
 
     # build args for each provider
     subparsers = parser.add_subparsers(dest='provider')
@@ -55,16 +57,16 @@ def get_args() -> (str, str, argparse.Namespace):
         provider = entry['name']
         api_token = entry['api_token']
 
+        provider_info[provider] = dict()
+
         # validate API creds
         # only call the APIs once
         if not getattr(globals()[provider], 'authorized')(api_token):
             console.print(f"[red bold] Invalid {provider} API Token. Fix or remove provider.")
             sys.exit(1)
 
+        provider_info[provider]['api_token'] = api_token
 
-        #provider_info[provider] = dict()
-        #provider_info[provider]['images'] =  getattr(globals()[provider], 'get_images')(api_token)
-        #provider_info[provider]['regions'] =  getattr(globals()[provider], 'get_regions')(api_token)
 
         prov_parser = subparsers.add_parser(provider, epilog='', add_help=False)
         prov_parser.add_argument(
@@ -87,11 +89,14 @@ def get_args() -> (str, str, argparse.Namespace):
         prov_parser.add_argument(
             "-m", "--minimal", action="store_true", help="Minimal Configuration"
         )
-        prov_parser.add_argument("--teardown", action="store_true", help="Tear down VPS'")
         prov_parser.add_argument('-h', '--help', action='store_true')
 
     
     args = parser.parse_args()
+
+    if args.teardown:
+        return args
+
 
     # Check for a default provider
     if 'default' in cfg and cfg['default']:
@@ -127,7 +132,6 @@ def get_args() -> (str, str, argparse.Namespace):
         parser.exit(0)
         sys.exit(1)
     
-    provider_info[args.provider] = dict()
     if args.provider == 'azure':
         provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token, args.region)
     else:
@@ -167,22 +171,34 @@ def get_args() -> (str, str, argparse.Namespace):
         parser.exit(0)
 
 
-    return (args.provider, api_token, args)
+    return args
 
 
 def main(args: argparse.Namespace = None, override_teardown: bool = False) -> None:
     if not args:
-        provider, api_token, args = get_args()
+        args = get_args()
+
+    # if teardown we need to look up some info
+    if args.teardown:
+        _host = find_hostname(args.teardown)
+
+        if not _host:
+            console.print(f"[red bold]{args.teardown} is not a valid hostname")
+            return
+
+        _provider, _, _image = _host['workspace'].replace('+', '/').split('_')
+        args.provider = _provider
+        args.image = _image
+        args.region = _host['region']
+        args.api_token = provider_info[args.provider]['api_token']
+
+    plan_path = f"{ROOT_DIR}/providers/{args.provider}/files/plans/{args.region}/{args.image}/plan"
+    # The name must contain only URL safe characters, and no path separators.
+    tf_workspace_name = f'{args.provider}_{args.region}_{args.image}'.replace('/', '+')
 
     if override_teardown:
-        provider = args.provider
-        api_token = args.api_token
-        args.teardown = True
+        args.teardown = tf_workspace_name
         args.setup = False
-
-    plan_path = f"{ROOT_DIR}/providers/{provider}/files/plans/{args.region}/{args.image}/plan"
-    # The name must contain only URL safe characters, and no path separators.
-    tf_workspace_name = f'{provider}_{args.region}_{args.image}'.replace('/', '+')
     
     plan_parent_path = Path(plan_path).parent.absolute()
     if not os.path.exists(plan_parent_path):
@@ -194,8 +210,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         return
 
     t = Terraform(
-        working_dir=f"{ROOT_DIR}/providers/{provider}",
-        variables={"api_token": api_token},
+        working_dir=f"{ROOT_DIR}/providers/{args.provider}",
+        variables={"api_token": args.api_token},
         terraform_bin_path=terr_path,
     )
 
@@ -227,15 +243,10 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     # now what do we want to do?
     if args.teardown:
-        hostname = get_hostname(tf_workspace_name)
-        if hostname is None:
-            console.print('No Image to teardown.')
-            return
-        console.print(f"Tearing down {hostname}...", end="", style="bold italic")
-        rm_hosts(provider, tf_workspace_name)
-        ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve", 
+        console.print(f"Tearing down {args.teardown}...", end="", style="bold italic")
+        ret, stdout, stderr = t.cmd("apply", "-destroy", "-auto-approve",
                                 var={
-                                    "api_token": api_token,
+                                    "api_token": args.api_token,
                                     "image": args.image,
                                     "region": args.region
                                 })
@@ -255,6 +266,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             stderr = re.sub(f'(\[\d+m)', r'\033\1', stderr)
             print(stderr)
 
+        rm_hosts(args.provider, tf_workspace_name)
         console.print("Done.")
         return
 
@@ -269,7 +281,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             table.add_column("Region", style="magenta")
             table.add_column("Image", style="magenta")
 
-            for host in all_hosts[provider]:
+            for host in all_hosts[args.provider]:
                 for hostname, values in host.items():
                     image = values['workspace'].split('_')[-1]
                     table.add_row(hostname, values['ip'], values['region'], image.replace('+', '/'))
@@ -280,14 +292,15 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if not args.setup:
         return
 
-    if check_sshkeys(provider) is False:
+    # Creates new key pair
+    if check_sshkeys(args.provider, args.region, args.image) is False:
         return
 
     # lets plan the config
     console.print("Preparing Configuration...", end="", style="bold italic")
     ret, stdout, stderr = t.cmd(
             "plan", f"-out={plan_path}", var={
-                            "api_token": api_token, 
+                            "api_token": args.api_token, 
                             "image": args.image,
                             "region": args.region
                         }
@@ -324,7 +337,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     'region': args.region,
                     'workspace': tf_workspace_name
             }
-            install_ssh_keys(provider, hostname, ip_address, args.user)
+            install_ssh_keys(args.provider, args.region, args.image, hostname, ip_address, args.user)
 
     # linode, aws
     elif "instance_ip_address" in output:
@@ -334,7 +347,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     'region': args.region,
                     'workspace': tf_workspace_name
             }
-            install_ssh_keys(provider, hostname, ip_address, args.user)
+            install_ssh_keys(args.provider, args.region, args.image, hostname, ip_address, args.user)
 
     # vultr
     elif "server_ip_address" in output:
@@ -344,10 +357,10 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     'region': args.region,
                     'workspace': tf_workspace_name
             }
-            install_ssh_keys(provider, hostname, ip_address, args.user)
+            install_ssh_keys(args.provider, args.region, args.image, hostname, ip_address, args.user)
     console.print("Done.")
 
-    save_hosts(provider, new_hosts)
+    save_hosts(args.provider, new_hosts)
 
     if not args.bare:
         playbook = 'minimal.yml' if args.minimal else 'main.yml'

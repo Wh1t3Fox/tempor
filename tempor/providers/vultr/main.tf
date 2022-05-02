@@ -6,7 +6,7 @@ provider "vultr" {
 
 resource "vultr_ssh_key" "default" {
     name = data.external.vps_name.result.name
-    ssh_key = chomp(file("${path.module}/files/.ssh/id_ed25519.pub"))
+    ssh_key = chomp(file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub"))
 }
 
 resource "vultr_instance" "vps" {

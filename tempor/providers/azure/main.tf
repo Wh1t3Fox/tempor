@@ -95,7 +95,7 @@ resource "azurerm_linux_virtual_machine" "vps" {
 
     admin_ssh_key {
         username = "root"
-        public_key = file("${path.module}/files/.ssh/id_rsa.pub")
+        public_key = file("${path.module}/files/${var.region}/${var.image}/.ssh/id_rsa.pub")
     }
 
     os_disk {

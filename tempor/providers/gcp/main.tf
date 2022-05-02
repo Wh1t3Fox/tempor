@@ -37,7 +37,7 @@ resource "google_compute_instance" "vps" {
     }
 
     metadata = {
-        ssh-keys = "root:${file("${path.module}/files/.ssh/id_ed25519.pub")}"
+        ssh-keys = "root:${file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub")}"
     }
 }
 

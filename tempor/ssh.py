@@ -63,18 +63,17 @@ def remove_config_entry(hostname: str) -> None:
         pass
 
 
-def check_sshkeys(provider: str) -> bool:
-    if provider == "azure":
-        key_type = "rsa"
-    else:
-        key_type = "ed25519"
+def check_sshkeys(provider: str, region: str, image: str) -> bool:
+    # azure only allows RSA keys, so dumb
+    key_type = "rsa" if provider == "azure" else "ed25519"
+
 
     prog = shutil.which("ssh-keygen")
     if not prog:
         console.print("[red bold]ssh-keygen not available. Is OpenSSH installed?")
         return False
 
-    out_dir = f"{ROOT_DIR}/providers/{provider}/files/.ssh"
+    out_dir = f"{ROOT_DIR}/providers/{provider}/files/{region}/{image}/.ssh"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -89,8 +88,8 @@ def check_sshkeys(provider: str) -> bool:
         console.print("Done.")
 
 
-def install_ssh_keys(provider: str, hostname: str, ip_address: str, user: str) -> None:
-    old_dir = f"{ROOT_DIR}/providers/{provider}/files/.ssh"
+def install_ssh_keys(provider: str, region: str, image: str, hostname: str, ip_address: str, user: str) -> None:
+    old_dir = f"{ROOT_DIR}/providers/{provider}/files/{region}/{image}/.ssh"
     out_dir = f"{DATA_DIR}/{hostname}/ssh"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

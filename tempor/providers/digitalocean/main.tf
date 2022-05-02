@@ -4,7 +4,7 @@ provider "digitalocean" {
 
 resource "digitalocean_ssh_key" "default" {
     name = data.external.vps_name.result.name
-    public_key = file("${path.module}/files/.ssh/id_ed25519.pub")
+    public_key = file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub")
 }
 
 #data "template_file" "script" {

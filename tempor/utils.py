@@ -194,14 +194,13 @@ def get_hosts() -> Dict:
     return hosts
 
 
-def get_hostname(tf_workspace: str) -> str:
+def find_hostname(name: str) -> str:
     all_hosts = get_hosts()
 
     for provider in all_hosts:
-        for hostnames in all_hosts[provider]:
-            for hostname, values in hostnames.items():
-                if values['workspace'] == tf_workspace:
-                    return hostname
+        for idx, vps in enumerate(all_hosts[provider]):
+            if name in vps:
+                return all_hosts[provider][idx][name]
 
 
 '''
