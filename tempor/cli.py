@@ -274,7 +274,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     elif args.list:
         all_hosts = get_hosts()
 
-        if provider in all_hosts:
+        if args.provider in all_hosts:
             table = Table(title="Active VPS'")
             table.add_column("VPS Name", style="cyan")
             table.add_column("IP Address", style="magenta")
