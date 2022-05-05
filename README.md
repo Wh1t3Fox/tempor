@@ -132,14 +132,15 @@ options:
 usage: tempor linode [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
 
 options:
-  -h, --help       show this help message and exit
-  --image image    Specify the OS Image
-  --region region  Specify the Region to Host the Image
-  -s, --setup      Create VPS'
-  -l, --list       List Available VPS'
-  -b, --bare       Leave as a Bare Install
-  -m, --minimal    Minimal Configuration
-  --teardown       Tear down VPS'
+  -h, --help            show this help message and exit
+  --image image         Specify the OS Image
+  --region region       Specify the Region to Host the Image
+  --resources resource  Specify the hardware resources for the host image
+  -s, --setup           Create VPS'
+  -l, --list            List Available VPS'
+  -b, --bare            Leave as a Bare Install
+  -m, --minimal         Minimal Configuration
+  --teardown            Tear down VPS'
 
           Regions
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━┓
