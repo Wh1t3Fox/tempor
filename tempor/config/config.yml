@@ -3,21 +3,25 @@ providers:
     name: digitalocean
     region: nyc1
     image: ubuntu-20-04-x64
+    resources: s-1vcpu-1gb
     api_token:
   -
     name: linode
     region: us-east
     image: linode/ubuntu20.04
+    resources: g6-standard-1
     api_token:
   -
     name: vultr
     region: ewr
     image: 387
+    resources: vc2-1c-1gb
     api_token:
   -
     name: aws
     region: us-east-1
     image: ami-04505e74c0741db8d
+    resources: t2.micro
     api_token:
       access_key:
       secret_key:
@@ -26,6 +30,7 @@ providers:
     region: us-east1
     zone: us-east1b
     image: ubuntu-os-cloud/ubuntu-1804-lts
+    resources: f1-micro
     api_token:
       auth_file: 
       project: 
@@ -33,6 +38,7 @@ providers:
     name: azure
     region: westus2
     image: Canonical/UbuntuServer/18_04-lts-gen2
+    resources: Standard_F2
     api_token:
       subscription_id: 
       client_id: 

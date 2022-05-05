@@ -62,6 +62,13 @@ def image_region_choices(provider: str) -> str:
     for _id,name in provider_info[provider]['images'].items():
         img_table.add_row(str(_id), str(name))
 
+    res_table = Table(title="Hardware Resources")
+    res_table.add_column("ID", style="cyan")
+    res_table.add_column("Price", style="magenta")
+    res_table.add_column("Description", style="magenta")
+    for k,v in provider_info[provider]['resources'].items():
+        res_table.add_row(str(k), str(v['price']), str(v['description']))
+
     print(f'''
 usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
 
@@ -77,6 +84,7 @@ options:
 ''')
     console.print(reg_table)
     console.print(img_table)
+    console.print(res_table)
 
 
 def get_config() -> Dict:

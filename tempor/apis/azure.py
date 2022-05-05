@@ -82,16 +82,6 @@ class azure:
 
 
         return images
-    
-
-    @staticmethod 
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
-        images = azure.get_images(token, region)
-
-        if image in images:
-            return True
-
-        return False
 
 
     @staticmethod 
@@ -113,3 +103,62 @@ class azure:
 
 
         return regions
+
+
+    def get_price(region: str) -> float:
+        prices = dict()
+
+        res = requests.get(f'https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20%27eastus%27%20and%20serviceFamily%20eq%20%27Compute%27%20and%20tierMinimumUnits%20eq%200').json()
+
+        #TODO there are multiple skunames with different prices :/
+        for item in res['Items']:
+            prices[item['armSkuName']] = item['unitPrice']
+
+        return prices
+
+
+    @staticmethod 
+    def get_resources(token: str, region: str) -> Dict:
+        sizes = dict()
+
+        oauth_token = azure.get_auth_token(token)['access_token']
+
+        prices = azure.get_price(region)
+
+        # Need to figure out pagination, but in sample test it was a single page
+        resp = requests.get(f'{API_URL}/subscriptions/{token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01', headers={
+                    'Authorization': f'Bearer {oauth_token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+
+        for size in resp['value']:
+            description = f"{size['numberOfCores']} Cores {size['memoryInMB']//1024}Gb"
+
+            sizes[size['name']] = {
+                'description': description,
+                'price': prices.get(size['name'], 'UNK')
+            }
+
+        return sizes
+    
+
+    @staticmethod 
+    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
+        images = azure.get_images(token, region)
+
+        if image in images:
+            return True
+
+        return False
+    
+
+    @staticmethod 
+    def valid_resource_in_region(resource: str, region: str, token: str) -> Dict:
+        resources = azure.get_resources(token, region)
+
+        if resource in resources:
+            return True
+
+        return False
+
+

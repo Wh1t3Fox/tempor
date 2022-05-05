@@ -46,11 +46,6 @@ class linode:
             page += 1
 
         return images
-    
-
-    @staticmethod 
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
-        return True  # linode does not restrict images in regions
 
 
     @staticmethod 
@@ -73,3 +68,37 @@ class linode:
             page += 1
 
         return regions
+
+
+    @staticmethod 
+    def get_resources(token: str) -> Dict:
+        types = dict()
+
+        page = 1
+        while True:
+            resp = requests.get(f'{API_URL}/linode/types?page={page}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+
+            for _type in resp['data']:
+                types[_type['id']] = {
+                    'description': _type['label'],
+                    'price': f"${_type['price']['hourly']}/hr"
+                }
+
+            if page == resp['pages']:
+                break
+            page += 1
+
+        return types
+    
+
+    @staticmethod 
+    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+        return True  # linode does not restrict images in regions
+
+
+    @staticmethod 
+    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+        return True  # linode does not restrict types in regions

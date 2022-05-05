@@ -47,11 +47,6 @@ class vultr:
                 cursor = '?cursor=' + resp['meta']['links']['next']
 
         return images
-   
-
-    @staticmethod 
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
-        return True  # vultr does not restrict images in regions
 
 
     @staticmethod 
@@ -74,3 +69,66 @@ class vultr:
                 cursor = '?cursor=' + resp['meta']['links']['next']
 
         return regions
+
+
+    @staticmethod 
+    def get_resources(token: str) -> Dict:
+        types = {
+            'vc2': 'Cloud Compute',
+            'vdc': 'Dedicated Cloud',
+            'vhf': 'High Frequency Compute',
+            'vhp': 'High Performance',
+            'voc': 'All Optimized Cloud Types',
+            'voc-g': 'General Purpose Optimized Cloud',
+            'voc-c': 'CPU Optimized Cloud',
+            'voc-m': 'Memory Optimized Cloud',
+            'voc-s': 'Storage Optimized Cloud'
+        }
+
+        plans = dict()
+
+        cursor = ''
+        while True:
+            resp = requests.get(f'{API_URL}/plans{cursor}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+            
+            for plan in resp['plans']:
+                plans[plan['id']] = {
+                    'description': types[plan['type']],
+                    'price': f"${plan['monthly_cost']}/month"
+                }
+
+            if 'links' not in resp['meta'] or not resp['meta']['links']['next']:
+                break
+            else:
+                cursor = '?cursor=' + resp['meta']['links']['next']
+
+        return plans
+   
+
+    @staticmethod 
+    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+        return True  # vultr does not restrict images in regions
+    
+
+    @staticmethod 
+    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+        cursor = ''
+        while True:
+            resp = requests.get(f'{API_URL}/plans{cursor}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+            
+            for plan in resp['plans']:
+                if resource == plan['id']:
+                    return region in plan['locations']
+
+            if 'links' not in resp['meta'] or not resp['meta']['links']['next']:
+                break
+            else:
+                cursor = '?cursor=' + resp['meta']['links']['next']
+
+        return False

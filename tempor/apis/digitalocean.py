@@ -47,31 +47,6 @@ class digitalocean:
             page += 1
 
         return images
-    
-
-    @staticmethod 
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
-        images = list()
-
-        page = 1
-        while True:
-            resp = requests.get(f'{API_URL}/images?per_page=500&page={page}', headers={
-                    'Authorization': f'Bearer {token}',
-                    'Content-Type': 'application/json'
-                        }).json()
-
-
-            for i in resp['images']:
-                if i['slug'] == image:
-                    # image is in region and available
-                    return region in i['regions'] and i['status'] == 'available'
-
-            if not resp['links'] or 'last' not in resp['links']['pages']:
-                break
-
-            page += 1
-
-        return False
 
 
     @staticmethod 
@@ -95,3 +70,75 @@ class digitalocean:
             page += 1
 
         return regions
+
+
+    @staticmethod
+    def get_resources(token: str) -> Dict:
+        sizes = dict()
+
+        page = 1
+        while True:
+            resp = requests.get(f'{API_URL}/sizes?per_page=500&page={page}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+
+            for size in resp['sizes']:
+                if size['available'] == True:
+                    sizes[size['slug']] = {
+                        'description': size['description'],
+                        'price': f"${size['price_hourly']}/hr"
+                    }
+
+            if not resp['links'] or 'last' not in resp['links']['pages']:
+                break
+
+            page += 1
+
+        return sizes
+    
+
+    @staticmethod 
+    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+        page = 1
+        while True:
+            resp = requests.get(f'{API_URL}/images?per_page=500&page={page}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+
+
+            for i in resp['images']:
+                if i['slug'] == image:
+                    # image is in region and available
+                    return region in i['regions'] and i['status'] == 'available'
+
+            if not resp['links'] or 'last' not in resp['links']['pages']:
+                break
+
+            page += 1
+
+        return False
+    
+
+    @staticmethod 
+    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+        page = 1
+        while True:
+            resp = requests.get(f'{API_URL}/sizes?per_page=500&page={page}', headers={
+                    'Authorization': f'Bearer {token}',
+                    'Content-Type': 'application/json'
+                        }).json()
+
+            for size in resp['sizes']:
+                print(size)
+                if size['slug'] == resource:
+                    # resource is in region and available
+                    return region in size['regions'] and size['available'] == True
+
+            if not resp['links'] or 'last' not in resp['links']['pages']:
+                break
+
+            page += 1
+
+        return False

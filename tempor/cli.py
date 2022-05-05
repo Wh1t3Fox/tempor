@@ -72,14 +72,17 @@ def get_args() -> (str, str, argparse.Namespace):
         prov_parser.add_argument(
             "--image",
             metavar = "image",
-            #choices = provider_info[provider]['images'].keys(),
-            help="Specify the OS Image",
+            help="Specify the OS image",
         )
         prov_parser.add_argument(
             "--region",
             metavar = "region",
-            #choices = provider_info[provider]['regions'].keys(),
-            help="Specify the Region to Host the Image",
+            help="Specify the region to host the image",
+        )
+        prov_parser.add_argument(
+            "--resources",
+            metavar = "resources",
+            help="Specify the hardware resources for the host image",
         )
         prov_parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
         prov_parser.add_argument("-l", "--list", action="store_true", help="List Available VPS'")
@@ -117,10 +120,20 @@ def get_args() -> (str, str, argparse.Namespace):
                 if not args.image:
                     args.image = default_image
 
+            # GCP only
+            if 'zone' in p:
+                default_zone = p['zone']
+                args.zone = default_zone
+
             if 'region' in p:
                 default_region = p['region']
                 if not args.region:
                     args.region = default_region
+
+            if 'resources' in p:
+                default_resources = p['resources']
+                if not args.resources:
+                    args.resources = default_resources
 
             if 'api_token' in p:
                 api_token = p['api_token']
@@ -132,11 +145,22 @@ def get_args() -> (str, str, argparse.Namespace):
         parser.exit(0)
         sys.exit(1)
     
-    if args.provider == 'azure':
+    provider_info[args.provider]['regions'] =  getattr(globals()[args.provider], 'get_regions')(api_token)
+
+    if args.provider == 'azure' or args.provider == 'aws':
         provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token, args.region)
+        provider_info[args.provider]['resources'] =  getattr(globals()[args.provider], 'get_resources')(api_token, args.region)
+    elif args.provider == 'gcp':
+        # make sure the image/region combo is allowed 
+        valid_zone = getattr(globals()[args.provider], 'valid_zone')(api_token, args.zone)
+        assert valid_zone, f"{args.zone} is not valid"
+
+        provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token)
+        provider_info[args.provider]['resources'] =  getattr(globals()[args.provider], 'get_resources')(api_token, args.zone)
     else:
         provider_info[args.provider]['images'] =  getattr(globals()[args.provider], 'get_images')(api_token)
-    provider_info[args.provider]['regions'] =  getattr(globals()[args.provider], 'get_regions')(api_token)
+        provider_info[args.provider]['resources'] =  getattr(globals()[args.provider], 'get_resources')(api_token)
+
 
     if args.image not in provider_info[args.provider]['images']:
         console.print(f"[red bold]{args.image} is not a supported image")
@@ -150,8 +174,14 @@ def get_args() -> (str, str, argparse.Namespace):
         image_region_choices(args.provider)
         parser.exit(0)
 
+    # make sure the image/region combo is allowed 
     valid_image = getattr(globals()[args.provider], 'valid_image_in_region')(args.image, args.region, api_token)
     assert valid_image, f"{args.image} is not available in {args.region}"
+
+    # make sure the CPU RAM resources are allowed in this region
+    valid_resources = getattr(globals()[args.provider], 'valid_resource_in_region')(args.resources, args.region, api_token)
+    assert valid_resources, f"{args.resources} is not available in {args.region}"
+
 
     try:
         if args.help:
