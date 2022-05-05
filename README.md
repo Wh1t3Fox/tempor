@@ -72,29 +72,34 @@ providers:
     name: digitalocean
     region: nyc1
     image: ubuntu-20-04-x64
+    resources: s-1vcpu-1gb
     api_token:
   -
     name: linode
     region: us-east
     image: linode/ubuntu20.04
+    resources: g6-standard-1
     api_token:
   -
     name: vultr
     region: ewr
     image: 387
+    resources: vc2-1c-1gb
     api_token:
   -
     name: aws
     region: us-east-1
     image: ami-04505e74c0741db8d
+    resources: t2.micro
     api_token:
       access_key:
       secret_key:
   -
     name: gcp
     region: us-east1
-    zone: us-east1b
+    zone: us-east1-b
     image: ubuntu-os-cloud/ubuntu-1804-lts
+    resources: f1-micro
     api_token:
       auth_file:
       project:
@@ -102,6 +107,7 @@ providers:
     name: azure
     region: westus2
     image: Canonical/UbuntuServer/18_04-lts-gen2
+    resources: Standard_F2
     api_token:
       subscription_id:
       client_id:
@@ -152,7 +158,7 @@ options:
 │ eu-central   │ de       │
 │ ap-northeast │ jp       │
 └──────────────┴──────────┘
-                              Images
+                           Images x86-64
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ ID                            ┃ Name                            ┃
 ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
@@ -174,10 +180,13 @@ options:
 │ linode/debian11-kube-v1.20.15 │ Kubernetes 1.20.15 on Debian 11 │
 │ linode/debian9-kube-v1.20.7   │ Kubernetes 1.20.7 on Debian 9   │
 │ linode/debian9-kube-v1.21.1   │ Kubernetes 1.21.1 on Debian 9   │
+│ linode/debian11-kube-v1.21.12 │ Kubernetes 1.21.12 on Debian 11 │
 │ linode/debian11-kube-v1.21.9  │ Kubernetes 1.21.9 on Debian 11  │
 │ linode/debian9-kube-v1.22.2   │ Kubernetes 1.22.2 on Debian 9   │
 │ linode/debian11-kube-v1.22.6  │ Kubernetes 1.22.6 on Debian 11  │
+│ linode/debian11-kube-v1.22.9  │ Kubernetes 1.22.9 on Debian 11  │
 │ linode/debian11-kube-v1.23.4  │ Kubernetes 1.23.4 on Debian 11  │
+│ linode/debian11-kube-v1.23.6  │ Kubernetes 1.23.6 on Debian 11  │
 │ linode/opensuse15.3           │ openSUSE Leap 15.3              │
 │ linode/rocky8                 │ Rocky Linux 8                   │
 │ linode/slackware14.2          │ Slackware 14.2                  │
@@ -194,26 +203,60 @@ options:
 │ linode/slackware14.1          │ Slackware 14.1                  │
 │ linode/ubuntu21.04            │ Ubuntu 21.04                    │
 └───────────────────────────────┴─────────────────────────────────┘
+                         Hardware Resources
+┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ID               ┃ Price      ┃ Description                      ┃
+┡━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ g6-nanode-1      │ $0.0075/hr │ Nanode 1GB                       │
+│ g6-standard-1    │ $0.015/hr  │ Linode 2GB                       │
+│ g6-standard-2    │ $0.03/hr   │ Linode 4GB                       │
+│ g6-standard-4    │ $0.06/hr   │ Linode 8GB                       │
+│ g6-standard-6    │ $0.12/hr   │ Linode 16GB                      │
+│ g6-standard-8    │ $0.24/hr   │ Linode 32GB                      │
+│ g6-standard-16   │ $0.48/hr   │ Linode 64GB                      │
+│ g6-standard-20   │ $0.72/hr   │ Linode 96GB                      │
+│ g6-standard-24   │ $0.96/hr   │ Linode 128GB                     │
+│ g6-standard-32   │ $1.44/hr   │ Linode 192GB                     │
+│ g7-highmem-1     │ $0.09/hr   │ Linode 24GB                      │
+│ g7-highmem-2     │ $0.18/hr   │ Linode 48GB                      │
+│ g7-highmem-4     │ $0.36/hr   │ Linode 90GB                      │
+│ g7-highmem-8     │ $0.72/hr   │ Linode 150GB                     │
+│ g7-highmem-16    │ $1.44/hr   │ Linode 300GB                     │
+│ g6-dedicated-2   │ $0.045/hr  │ Dedicated 4GB                    │
+│ g6-dedicated-4   │ $0.09/hr   │ Dedicated 8GB                    │
+│ g6-dedicated-8   │ $0.18/hr   │ Dedicated 16GB                   │
+│ g6-dedicated-16  │ $0.36/hr   │ Dedicated 32GB                   │
+│ g6-dedicated-32  │ $0.72/hr   │ Dedicated 64GB                   │
+│ g6-dedicated-48  │ $1.08/hr   │ Dedicated 96GB                   │
+│ g6-dedicated-50  │ $1.44/hr   │ Dedicated 128GB                  │
+│ g6-dedicated-56  │ $2.88/hr   │ Dedicated 256GB                  │
+│ g6-dedicated-64  │ $5.76/hr   │ Dedicated 512GB                  │
+│ g1-gpu-rtx6000-1 │ $1.5/hr    │ Dedicated 32GB + RTX6000 GPU x1  │
+│ g1-gpu-rtx6000-2 │ $3.0/hr    │ Dedicated 64GB + RTX6000 GPU x2  │
+│ g1-gpu-rtx6000-3 │ $4.5/hr    │ Dedicated 96GB + RTX6000 GPU x3  │
+│ g1-gpu-rtx6000-4 │ $6.0/hr    │ Dedicated 128GB + RTX6000 GPU x4 │
+└──────────────────┴────────────┴──────────────────────────────────┘
 
-➜ tempor linode --setup
+❯ tempor linode -b
+Generating new key pair...Done.
 Preparing Configuration...Done.
 Creating VPS...Done.
 Configuring SSH Keys...Done.
 
 VPS' now available!
 
-ssh nnvnv620
+ssh ljtilopnez100
 
-➜ tempor linode --list
-         Active VPS'
-┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
-┃ VPS Name ┃ IP Address     ┃
-┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
-│ nnvnv620 │ 178.128.144.45 │
-└──────────┴────────────────┘
+❯ tempor linode --list
+                                  Active VPS'
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ VPS Name      ┃ IP Address    ┃ Region  ┃ Image              ┃ Hardware      ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ ljtilopnez100 │ 66.228.46.192 │ us-east │ linode/ubuntu20.04 │ g6-standard-1 │
+└───────────────┴───────────────┴─────────┴────────────────────┴───────────────┘
 
-➜ tempor --teardown
-Tearing down...Done.
+❯ tempor --teardown ljtilopnez100
+Tearing down ljtilopnez100...Done.
 
 ```
 
