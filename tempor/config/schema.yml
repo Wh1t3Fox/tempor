@@ -4,15 +4,6 @@ properties:
     type: array
     items:
       $ref: '#/definitions/provider'
-  default:
-    type: string
-    enum:
-      - aws
-      - azure
-      - digitalocean
-      - gcp
-      - linode
-      - vultr
 definitions:
   provider:
     type: object
@@ -26,4 +17,6 @@ definitions:
       name: 
         type: string
       region:
+        type: string
+      resources:
         type: string
