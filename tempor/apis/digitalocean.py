@@ -131,7 +131,6 @@ class digitalocean:
                         }).json()
 
             for size in resp['sizes']:
-                print(size)
                 if size['slug'] == resource:
                     # resource is in region and available
                     return region in size['regions'] and size['available'] == True
