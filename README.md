@@ -114,7 +114,6 @@ providers:
       client_secret:
       tenant_id:
 
-default: digitalocean
 ```
 
 ### :interrobang: Usage :interrobang:
