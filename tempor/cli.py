@@ -84,13 +84,13 @@ def get_args() -> (str, str, argparse.Namespace):
             metavar = "resources",
             help="Specify the hardware resources for the host image",
         )
-        prov_parser.add_argument("-s", "--setup", action="store_true", help="Create VPS'")
-        prov_parser.add_argument("-l", "--list", action="store_true", help="List Available VPS'")
+        prov_parser.add_argument("-s", "--setup", action="store_true", default=False, help="Create VPS'")
+        prov_parser.add_argument("-l", "--list", action="store_true", default=False, help="List Available VPS'")
         prov_parser.add_argument(
-            "-b", "--bare", action="store_true", help="Leave as a Bare Install"
+            "-b", "--bare", action="store_true", default=False, help="Leave as a Bare Install"
         )
         prov_parser.add_argument(
-            "-m", "--minimal", action="store_true", help="Minimal Configuration"
+            "-m", "--minimal", action="store_true", default=False, help="Minimal Configuration"
         )
         prov_parser.add_argument('-h', '--help', action='store_true')
 
@@ -182,7 +182,6 @@ def get_args() -> (str, str, argparse.Namespace):
         parser.print_help()
         parser.exit(0)
 
-
     return args
 
 
@@ -192,6 +191,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     # if teardown we need to look up some info
     if args.teardown:
+        args.list = False
         _host = find_hostname(args.teardown)
 
         if not _host:
