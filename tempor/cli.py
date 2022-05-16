@@ -92,6 +92,9 @@ def get_args() -> (str, str, argparse.Namespace):
         prov_parser.add_argument(
             "-f", "--full", action="store_true", default=False, help="Full Configuration with hardening"
         )
+        prov_parser.add_argument(
+            "-c", "--custom", type=Path, default=False, help="Specify Ansible role for custom configuration"
+        )
         prov_parser.add_argument('-h', '--help', action='store_true')
 
     
