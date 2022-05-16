@@ -84,13 +84,13 @@ def get_args() -> (str, str, argparse.Namespace):
             metavar = "resources",
             help="Specify the hardware resources for the host image",
         )
-        prov_parser.add_argument("-s", "--setup", action="store_true", default=False, help="Create VPS'")
+        prov_parser.add_argument("-s", "--setup", action="store_true", default=False, help="Create a VPS")
         prov_parser.add_argument("-l", "--list", action="store_true", default=False, help="List Available VPS'")
         prov_parser.add_argument(
-            "-b", "--bare", action="store_true", default=False, help="Leave as a Bare Install"
+            "-m", "--minimal", action="store_true", default=False, help="Minimal Configuration (just configs)"
         )
         prov_parser.add_argument(
-            "-m", "--minimal", action="store_true", default=False, help="Minimal Configuration"
+            "-f", "--full", action="store_true", default=False, help="Full Configuration with hardening"
         )
         prov_parser.add_argument('-h', '--help', action='store_true')
 
@@ -171,7 +171,7 @@ def get_args() -> (str, str, argparse.Namespace):
             parser.exit(0)
 
         # configure some easier options
-        if not args.setup and (args.bare or args.minimal):
+        if not args.setup and (args.full or args.minimal):
             args.setup = True
 
         if args.provider == 'aws':
@@ -382,7 +382,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     save_hosts(args.provider, new_hosts)
 
-    if not args.bare:
+    if not args.full:
         playbook = 'minimal.yml' if args.minimal else 'main.yml'
         run_playbook(playbook, args.user)
 
