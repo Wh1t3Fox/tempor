@@ -36,7 +36,7 @@ from tempor.utils import (
     terraform_installed,
 )
 from tempor.workspaces import *
-from tempor.playbook import run_playbook
+from tempor.playbook import run_playbook, run_custom_playbook
 from tempor.ssh import check_sshkeys, install_ssh_keys
 
 
@@ -385,9 +385,13 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     save_hosts(args.provider, new_hosts)
 
-    if not args.full:
-        playbook = 'minimal.yml' if args.minimal else 'main.yml'
-        run_playbook(playbook, args.user)
+    # Ansible configuration
+    if args.custom:
+        run_custom_playbook(args.custom, args.user)
+    elif args.full:
+        run_playbook('main.yml', args.user)
+    elif args.minimal:
+        run_playbook('minimal.yml', args.user)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:
