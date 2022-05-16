@@ -81,7 +81,7 @@ options:
   -l, --list            List Available VPS'
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
-  -c, --custom          Specify Ansible role for custom configuration
+  -c, --custom          Specify Ansible role for custom configuration (main.yml file)
 ''')
     console.print(reg_table)
     console.print(img_table)
