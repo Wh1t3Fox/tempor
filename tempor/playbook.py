@@ -16,9 +16,12 @@ def run_playbook(playbook: str = "main.yml", user: str = "root") -> None:
     )
 
 def run_custom_playbook(playbook, user: str = "root") -> None:
-    parent_dir = Path(playbook).parent.absolute()
+    # make sure we convert to full paths
+    path = Path(playbook)
+    parent_dir = path.parent.absolute()
+    full_path = os.path.join(parent_dir, path.name)
 
     ansible_runner.run(
-        private_data_dir=parent_dir, playbook=playbook, verbosity=1, 
+        private_data_dir=parent_dir, playbook=full_path, verbosity=1, 
         extravars = {"ansible_user": user}
     )

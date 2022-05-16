@@ -6,6 +6,8 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import track
 from pathlib import Path
+from os import access, R_OK
+from os.path import isfile
 import argparse
 import time
 import json
@@ -93,7 +95,7 @@ def get_args() -> (str, str, argparse.Namespace):
             "-f", "--full", action="store_true", default=False, help="Full Configuration with hardening"
         )
         prov_parser.add_argument(
-            "-c", "--custom", type=argparse.FileType('r'), default=False, help="Specify Ansible role for custom configuration (main.yml file)"
+            "-c", "--custom", type=str, default=False, help="Specify Ansible role for custom configuration (main.yml file)"
         )
         prov_parser.add_argument('-h', '--help', action='store_true')
 
@@ -102,6 +104,11 @@ def get_args() -> (str, str, argparse.Namespace):
 
     if args.teardown:
         return args
+
+    if args.custom:
+        file = args.custom
+        assert isfile(file) and access(file, R_OK), \
+       f"File {file} doesn't exist or isn't readable"
 
 
     # check options for this provider
