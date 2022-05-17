@@ -110,7 +110,7 @@ def get_args() -> (str, str, argparse.Namespace):
             "--custom",
             type=str,
             default=False,
-            help="Specify Ansible role for custom configuration (main.yml file)",
+            help="Specify Ansible playbook for custom configuration (Path to main.yml file)",
         )
         prov_parser.add_argument("-h", "--help", action="store_true")
 
