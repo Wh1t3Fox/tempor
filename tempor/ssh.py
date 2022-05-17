@@ -31,7 +31,6 @@ def add_config_entry(hostname: str, attr: dict) -> None:
     else:
         cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
 
-
     cfg.add(new_host)
     cfg.write()
 
@@ -64,7 +63,6 @@ def check_sshkeys(provider: str, region: str, image: str) -> bool:
     # azure only allows RSA keys, so dumb
     key_type = "rsa" if provider == "azure" else "ed25519"
 
-
     prog = shutil.which("ssh-keygen")
     if not prog:
         console.print("[red bold]ssh-keygen not available. Is OpenSSH installed?")
@@ -85,7 +83,9 @@ def check_sshkeys(provider: str, region: str, image: str) -> bool:
         console.print("Done.")
 
 
-def install_ssh_keys(provider: str, region: str, image: str, hostname: str, ip_address: str, user: str) -> None:
+def install_ssh_keys(
+    provider: str, region: str, image: str, hostname: str, ip_address: str, user: str
+) -> None:
     old_dir = f"{ROOT_DIR}/providers/{provider}/files/{region}/{image}/.ssh"
     out_dir = f"{DATA_DIR}/{hostname}/ssh"
     if not os.path.exists(out_dir):

@@ -48,7 +48,7 @@ setup(
         "PyYAML==6.0",
         "boto3==1.23.1",
         "requests==2.27.1",
-        "google-api-python-client==2.47.0"
+        "google-api-python-client==2.47.0",
     ],
     extras_require={
         "dev": [

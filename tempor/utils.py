@@ -47,28 +47,29 @@ def image_region_choices(provider: str) -> str:
 
     reg_table = Table(title="Regions")
     reg_table.add_column("ID", style="cyan")
-    if provider == 'gcp':
+    if provider == "gcp":
         reg_table.add_column("Zones", style="magenta")
     else:
         reg_table.add_column("Location", style="magenta")
 
-    for _id,name in provider_info[provider]['regions'].items():
+    for _id, name in provider_info[provider]["regions"].items():
         reg_table.add_row(str(_id), str(name))
 
     img_table = Table(title="Images x86-64")
     img_table.add_column("ID", style="cyan")
     img_table.add_column("Name", style="magenta")
-    for _id,name in provider_info[provider]['images'].items():
+    for _id, name in provider_info[provider]["images"].items():
         img_table.add_row(str(_id), str(name))
 
     res_table = Table(title="Hardware Resources")
     res_table.add_column("ID", style="cyan")
     res_table.add_column("Price", style="magenta")
     res_table.add_column("Description", style="magenta")
-    for k,v in provider_info[provider]['resources'].items():
-        res_table.add_row(str(k), str(v['price']), str(v['description']))
+    for k, v in provider_info[provider]["resources"].items():
+        res_table.add_row(str(k), str(v["price"]), str(v["description"]))
 
-    print(f'''
+    print(
+        f"""
 usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
 
 options:
@@ -81,7 +82,8 @@ options:
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
   -c, --custom          Specify Ansible role for custom configuration (main.yml file)
-''')
+"""
+    )
     console.print(reg_table)
     console.print(img_table)
     console.print(res_table)
@@ -138,16 +140,17 @@ def terraform_installed() -> str:
         out_file = f"{BIN_DIR}/terraform"
     else:  # check version
         h = hashlib.sha256()
-        with open(out_file, 'rb') as fr:
+        with open(out_file, "rb") as fr:
             tf = BytesIO(fr.read())
 
             if TF_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
                 updated = False
 
-
     if not os.path.exists(out_file) or not updated:
         out_file = f"{BIN_DIR}/terraform"
-        console.print(f"Terraform not in Path or Out-of-Date. Installing v{TF_VER} to {out_file} ...")
+        console.print(
+            f"Terraform not in Path or Out-of-Date. Installing v{TF_VER} to {out_file} ..."
+        )
 
         h = hashlib.sha256()
         with urlopen(url) as zipresp:
@@ -174,11 +177,10 @@ def rm_hosts(provider: str, workspace: str) -> None:
 
     for idx, host in enumerate(hosts[provider]):
         for hostname, values in host.items():
-            if values['workspace'] == workspace:
+            if values["workspace"] == workspace:
                 hostnames.append(hostname)
                 del hosts[provider][idx]
                 remove_config_entry(hostname)
-
 
     with open(HOSTS_FILE, "w") as fw:
         json.dump(hosts, fw)
@@ -187,7 +189,7 @@ def rm_hosts(provider: str, workspace: str) -> None:
         with open(ANSIBLE_HOSTS) as fr, open(ANSIBLE_HOSTS, "w+") as fw:
             for line in fr:
                 for hostname in hostnames:
-                    line = line.replace(hostname, '')
+                    line = line.replace(hostname, "")
                 fw.write(line)
 
 
@@ -211,7 +213,7 @@ def find_hostname(name: str) -> str:
                 return all_hosts[provider][idx][name]
 
 
-'''
+"""
 {
     '<provider>': [
         '<hostname>': {
@@ -220,7 +222,9 @@ def find_hostname(name: str) -> str:
         },
     ]
 }
-'''
+"""
+
+
 def save_hosts(provider: str, new_hosts: dict) -> None:
     hosts = dict()
 
