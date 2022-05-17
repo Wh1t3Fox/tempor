@@ -8,6 +8,7 @@ from rich.progress import track
 from pathlib import Path
 from os import access, R_OK
 from os.path import isfile
+import subprocess
 import argparse
 import time
 import json
@@ -16,6 +17,7 @@ import re
 import os
 
 from tempor import (
+    __version__,
     provider_info,
     ROOT_DIR
 )
@@ -51,7 +53,15 @@ def get_args() -> (str, str, argparse.Namespace):
         sys.exit(1)
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--teardown", default=None, help="Name of VPS Image to Tear down")
+    parser.add_argument(
+        "-t", "--teardown", default=None, help="Name of VPS Image to Tear down"
+    )
+    parser.add_argument(
+        "-u", "--update", action="store_true", help="Check for Upates"
+    )
+    parser.add_argument(
+        "--version", action="store_true", help="Print current version"
+    )
 
     # build args for each provider
     subparsers = parser.add_subparsers(dest='provider')
@@ -102,8 +112,32 @@ def get_args() -> (str, str, argparse.Namespace):
     
     args = parser.parse_args()
 
-    if args.teardown:
+    if args.version:
+        print(__version__)
+        sys.exit(0)
+
+    elif args.update:
+        console.print('Checking for updates...')
+        res = subprocess.check_output(["python3", "-m", "pip", "list", "--outdated", "--not-required"],
+                        stderr=subprocess.DEVNULL).decode()
+
+        if parser.prog in res:
+            offset = res.find(parser.prog)
+            res = res[offset:]
+            _name, _, c_ver, _, _, l_ver, _ = res.split(' ', 6)
+            console.print(f'[green]Version {l_ver} available!')
+            choice = input('Would you like to update? (Y/n)')
+            if choice.lower() == 'y' or choice == '':
+                subprocess.check_output(["python3", "-m", "pip", "install", "-U", "tempor"], 
+                        stdout=subprocess.DENVULL,
+                        stderr=subprocess.DEVNULL)
+        else:
+            console.print('Running latest version.')
+        sys.exit(0)
+
+    elif args.teardown:
         return args
+
 
     if args.custom:
         file = args.custom

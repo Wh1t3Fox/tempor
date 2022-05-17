@@ -43,7 +43,6 @@ ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
 
 def image_region_choices(provider: str) -> str:
     if provider is None:
-        print(''' ''')
         return
 
     reg_table = Table(title="Regions")
