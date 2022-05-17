@@ -126,6 +126,10 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  -t TEARDOWN, --teardown TEARDOWN
+                        Name of VPS Image to Tear down
+  -u, --update          Check for Upates
+  --version             Print current version
 
 ❯ tempor linode --help
 
