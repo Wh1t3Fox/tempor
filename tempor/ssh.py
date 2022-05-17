@@ -27,15 +27,12 @@ def add_config_entry(hostname: str, attr: dict) -> None:
         if not path.exists(os.path.dirname(SSH_CONFIG_PATH)):
             os.makedirs(os.path.dirname(SSH_CONFIG_PATH))
         # create ~/.ssh/config
-        cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
+        cfg = SSHConfig.create(expanduser(SSH_CONFIG_PATH))
     else:
-        try:
-            cfg = SSHConfig.load(expanduser(SSH_CONFIG_PATH))
-        except ssh_config.client.EmptySSHConfig:
-            cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
+        cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
 
 
-    cfg.append(new_host)
+    cfg.add(new_host)
     cfg.write()
 
 
@@ -44,7 +41,7 @@ def remove_config_entry(hostname: str) -> None:
     if not path.isfile(expanduser(SSH_CONFIG_PATH)):
         return
 
-    cfg = SSHConfig.load(expanduser(SSH_CONFIG_PATH))
+    cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
 
     try:
         cfg.remove(hostname)

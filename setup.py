@@ -38,25 +38,25 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={"tempor": ["config", "providers", "playbooks"]},
     install_requires=[
-        "ansible==5.6.0",
+        "ansible==5.7.0",
         "appdirs==1.4.4",
-        "ansible_runner==1.4.6",
-        "jsonschema==3.2.0",
+        "ansible_runner==2.2.0",
+        "jsonschema==4.5.1",
         "python-terraform==0.10.1",
-        "rich==9.3.0",
-        "ssh-config==0.0.22",
-        "PyYAML==5.4.1",
-        "boto3==1.22.1",
+        "rich==12.4.1",
+        "ssh-config==0.1.1",
+        "PyYAML==6.0",
+        "boto3==1.23.1",
         "requests==2.27.1",
-        "google-api-python-client==2.46.0"
+        "google-api-python-client==2.47.0"
     ],
     extras_require={
         "dev": [
-            "black==20.8b1",
-            "twine==3.2.0",
-            "pytest==6.1.2",
-            "pytest_cov==2.10.1",
-            "flit==3.0.0",
+            "black==22.3.0",
+            "twine==4.0.0",
+            "pytest==7.1.2",
+            "pytest_cov==3.0.0",
+            "flit==3.7.1",
         ],
     },
     entry_points={
