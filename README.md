@@ -47,9 +47,10 @@ tempor aws --teardown  8.25s user 1.15s system 23% cpu 39.431 total
   
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
 
-[<img alt="Digital Ocean" src="https://camo.githubusercontent.com/400ad3149c13b05a823e670798697f51ac12f2f5b4a9868dd23dab4f1e21be26/68747470733a2f2f696d616765732e707269736d69632e696f2f7777772d7374617469632f34396161306130392d303664322d346262612d616432302d3462636265353661633530375f6c6f676f2e706e67" height="25px"/>](https://www.digitalocean.com/?refcode=e1c9af803a83)  
-[<img alt="Vultr" src="https://www.vultr.com/media/logo_onwhite.svg" height="25px"/>](https://www.vultr.com/?ref=8742641)  
-[<img alt="Linode" src="https://www.linode.com/wp-content/uploads/2018/10/linode-logo-blk-rgb-minified.svg" height="31px"/>](https://www.linode.com/?r=94d58b46cdd9ef8ee607abb44a87eb204fa05940)  
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.digitaloceanspaces.com/WWW/Badge%203.svg)](https://www.digitalocean.com/?refcode=01f2b1191a36&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+[<img alt="Vultr" src="https://www.vultr.com/media/logo_onwhite.svg" height="65"/>](https://www.vultr.com/?ref=8742641)  
+[<img alt="Linode" src="https://refermehappy.com/static/img/deals/300x150/linode.png" height="65" />](https://www.linode.com/?r=94d58b46cdd9ef8ee607abb44a87eb204fa05940)  
 
 
 ###  :heavy_plus_sign: Install :heavy_plus_sign:
