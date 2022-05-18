@@ -467,9 +467,11 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if args.custom:
         run_custom_playbook(args.custom, args.user)
     elif args.full:
-        run_playbook("main.yml", args.user)
+        run_playbook("full.yml", args.user)
     elif args.minimal:
         run_playbook("minimal.yml", args.user)
+    else:
+        run_playbook("bare.yml", args.user)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:

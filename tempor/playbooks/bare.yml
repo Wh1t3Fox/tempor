@@ -1,8 +1,7 @@
 ---
-- name: Minimal Configuration with hardening
+- name: VPS Hardening
   hosts: all
   become: true
   roles:
-    - configurations
     - firewall
     - dev-sec.ssh-hardening 

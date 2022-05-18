@@ -1,5 +1,5 @@
 ---
-- name: VPS Hardening
+- name: Full Configuration with Hardening
   hosts: all
   become: true
   roles:
