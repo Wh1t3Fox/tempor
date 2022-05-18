@@ -51,6 +51,9 @@ setup(
         "google-api-python-client==2.47.0",
     ],
     extras_require={
+        "doc": [
+            "sphinx"
+        ],
         "dev": [
             "black==22.3.0",
             "twine==4.0.0",
