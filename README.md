@@ -32,16 +32,16 @@ Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!
 #### Total Setup Times
 ```
 # bare setup
-tempor aws -b  10.54s user 1.15s system 26% cpu 44.542 total
+tempor aws -s  10.54s user 1.15s system 26% cpu 44.542 total
 
 # minimal  setup
-tempor aws -m  37.36s user 4.22s system 18% cpu 3:42.71 total
+tempor aws -s -m  37.36s user 4.22s system 18% cpu 3:42.71 total
   
 # full setup
-tempor aws -s  96.83s user 15.69s system 22% cpu 8:20.32 total
+tempor aws -s -f 96.83s user 15.69s system 22% cpu 8:20.32 total
 
 # teardown
-tempor aws --teardown  8.25s user 1.15s system 23% cpu 39.431 total
+tempor --teardown rzcphs100 8.25s user 1.15s system 23% cpu 39.431 total
 
 ```
   
