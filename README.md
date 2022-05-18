@@ -145,6 +145,11 @@ providers:
       client_secret:
       tenant_id:
 
+config:
+  bare: true
+  minimal: false
+  full: false
+  custom: /path/to/playbook.yml
 ```
 
 ### :interrobang: Usage :interrobang:
