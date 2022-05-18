@@ -1,0 +1,38 @@
+{
+ "collection_info": {
+  "namespace": "kewlfft",
+  "name": "aur",
+  "version": "0.10.0",
+  "authors": [
+   "kewl fft <kewl@alto.eu.org>"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "aur",
+   "arch_user_repository",
+   "arch",
+   "archlinux",
+   "arch_linux",
+   "packaging",
+   "software"
+  ],
+  "description": "This collection includes an Ansible module to manage packages from the AUR.",
+  "license": [
+   "GPL-3.0-or-later"
+  ],
+  "license_file": null,
+  "dependencies": {},
+  "repository": "https://github.com/kewlfft/ansible-aur",
+  "documentation": "https://github.com/kewlfft/ansible-aur/blob/master/README.md",
+  "homepage": "https://github.com/kewlfft/ansible-aur",
+  "issues": "https://github.com/kewlfft/ansible-aur/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "0235f5a41cfde1a1ced9942d1a7a94489e2b80f43024967d393781a65c1839cd",
+  "format": 1
+ },
+ "format": 1
+}
