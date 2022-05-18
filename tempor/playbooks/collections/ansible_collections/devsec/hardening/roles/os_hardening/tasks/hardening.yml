@@ -1,0 +1,97 @@
+---
+- name: Fetch OS dependent variables
+  include_vars:
+    file: '{{ item }}'
+    name: 'os_vars'
+  with_first_found:
+    - files:
+        - '{{ ansible_facts.distribution }}_{{ ansible_facts.distribution_major_version }}.yml'
+        - '{{ ansible_facts.distribution }}.yml'
+        - '{{ ansible_facts.os_family }}_{{ ansible_facts.distribution_major_version }}.yml'
+        - '{{ ansible_facts.os_family }}.yml'
+      skip: true
+  tags: always
+
+# we only override variables with our default, if they have not been specified already
+# by default the lookup functions finds all varnames containing the string, therefore
+# we add ^ and $ to denote start and end of string, so this returns only exact matches
+- name: Set OS dependent variables, if not already defined by user  # noqa var-naming
+  set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  when: "not lookup('varnames', '^' + item.key + '$')"
+  with_dict: '{{ os_vars }}'
+  tags: always
+
+- import_tasks: auditd.yml
+  tags: auditd
+  when: os_auditd_enabled | bool
+
+- import_tasks: cron.yml
+  tags: cron
+  when: os_cron_enabled | bool
+
+- import_tasks: ctrlaltdel.yml
+  tags: ctrlaltdel
+  when: os_ctrlaltdel_disabled | bool
+
+- import_tasks: limits.yml
+  tags: limits
+  when: os_limits_enabled | bool
+
+- import_tasks: login_defs.yml
+  tags: login_defs
+  when: os_login_defs_enabled | bool
+
+- import_tasks: minimize_access.yml
+  tags: minimize_access
+  when: os_minimize_access_enabled | bool
+
+- import_tasks: pam.yml
+  tags: pam
+  when: os_pam_enabled | bool
+
+- import_tasks: modprobe.yml
+  tags: modprobe
+  when: os_modprobe_enabled | bool
+
+- import_tasks: profile.yml
+  tags: profile
+  when: os_profile_enabled | bool
+
+- import_tasks: securetty.yml
+  tags: securetty
+  when: os_securetty_enabled | bool
+
+- import_tasks: suid_sgid.yml
+  when: os_security_suid_sgid_enforce  | bool
+  tags: suid_sgid
+
+- import_tasks: sysctl.yml
+  tags: sysctl
+  when: os_sysctl_enabled | bool
+
+- import_tasks: user_accounts.yml
+  tags: user_accounts
+  when: os_user_accounts_enabled | bool
+
+- import_tasks: rhosts.yml
+  tags: rhosts
+  when: os_rhosts_enabled | bool
+
+- import_tasks: yum.yml
+  tags: yum
+  when:
+    - ansible_facts.os_family == 'RedHat'
+    - os_yum_enabled | bool
+
+- import_tasks: apt.yml
+  tags: apt
+  when:
+    - ansible_facts.os_family == 'Debian'
+    - os_apt_enabled | bool
+
+- import_tasks: selinux.yml
+  tags: selinux
+  when:
+    - ansible_facts.selinux.status == 'enabled'
+    - os_selinux_enabled | bool

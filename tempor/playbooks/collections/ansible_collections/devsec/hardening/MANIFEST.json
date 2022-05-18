@@ -1,0 +1,49 @@
+{
+ "collection_info": {
+  "namespace": "devsec",
+  "name": "hardening",
+  "version": "7.14.1",
+  "authors": [
+   "dev-sec <hello@dev-sec.io>"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "devsec",
+   "hardening",
+   "centos",
+   "ubuntu",
+   "debian",
+   "nginx",
+   "mysql",
+   "openssh",
+   "apache_hardening",
+   "mysql_hardening",
+   "nginx_hardening",
+   "os_hardening",
+   "ssh_hardening"
+  ],
+  "description": "This collection provides battle tested hardening for Linux, SSH, nginx, MySQL",
+  "license": [
+   "Apache-2.0"
+  ],
+  "license_file": null,
+  "dependencies": {
+   "ansible.posix": ">=1.0.0",
+   "community.crypto": ">=1.0.0",
+   "community.general": ">=1.0.0",
+   "community.mysql": ">=1.3.0"
+  },
+  "repository": "https://github.com/dev-sec/ansible-collection-hardening/",
+  "documentation": null,
+  "homepage": "https://dev-sec.io/",
+  "issues": "https://github.com/dev-sec/ansible-collection-hardening/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "7bbd92a43f350e01fbb5588e80311d579510161cbed79d978351c99fb93ca79a",
+  "format": 1
+ },
+ "format": 1
+}
