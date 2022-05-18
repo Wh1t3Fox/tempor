@@ -146,6 +146,26 @@ def get_args() -> (str, str, argparse.Namespace):
     elif args.teardown:
         return args
 
+    # not specifying anything other than setup parse config
+    if args.setup and not (args.minimal or args.full or args.custom):
+        if "config" in cfg:
+            # This is default behavior so don't really have to do this
+            # first set is mutually exclusive, but custom can be used with any
+            if "bare" in cfg["config"] and cfg["config"]["bare"] == True:
+                args.minimal = False
+                args.full = False
+            elif "minimal" in cfg["config"] and cfg["config"]["minimal"] == True:
+                args.minimal = True
+                args.full = False
+            elif "full" in cfg["config"] and cfg["config"]["minimal"] == True:
+                args.minimal = False
+                args.full = True
+
+            if "custom" in cfg["config"]:
+                args.minimal = False
+                args.full = False
+                args.custom = cfg["config"]["custom"]
+
     if args.custom:
         file = args.custom
         assert isfile(file) and access(
@@ -464,14 +484,15 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     save_hosts(args.provider, new_hosts)
 
     # Ansible configuration
-    if args.custom:
-        run_custom_playbook(args.custom, args.user)
-    elif args.full:
+    if args.full:
         run_playbook("full.yml", args.user)
     elif args.minimal:
         run_playbook("minimal.yml", args.user)
     else:
         run_playbook("bare.yml", args.user)
+
+    if args.custom:
+        run_custom_playbook(args.custom, args.user)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
     for host in new_hosts:

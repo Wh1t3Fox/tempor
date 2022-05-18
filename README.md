@@ -12,9 +12,9 @@
 
 **tempor** is a tool used for creating ephemeral infrastructure in the cloud. tempor has the ability to create an arbitrary number of servers via Terraform, ideal for penetration testers and bug hunters.
 
-VPS configuration is performed via Ansible roles after creation. Currently the following roles are executed:
- * [dev-sec.os-hardening](https://github.com/dev-sec/ansible-collection-hardening)
- * [dev-sec.ssh-hardening](https://github.com/dev-sec/ansible-collection-hardening)
+VPS configuration is performed via Ansible roles after creation. Currently the following roles are supported:
+ * [dev-sec.os)hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * [dev-sec.ssh_hardening](https://github.com/dev-sec/ansible-collection-hardening)
  * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)
  * [geerlingguy.pip](https://github.com/geerlingguy/ansible-role-pip)
    * docker
@@ -24,6 +24,36 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
    * INPUT only allow SSH
    * OUTUT only allow DNS, HTTP/S, DoT
  * More to come...
+
+<p>
+Bare Setup (Default):
+  
+  * IPv4 and IPV6 iptables lock down
+  * ssh_hardening
+  
+</p>
+
+<p>
+Minimal Setup:
+
+  * Configuration files loaded
+  * IPv4 and IPV6 iptables lock down
+  * ssh_hardening
+</p>
+
+<p>
+Full Setup:
+    
+  * Install packages
+  * Configuration files loaded
+  * IPv4 and IPV6 iptables lock down
+  * ssh_hardening
+  * os_hardening
+  * Install Docker
+  * Install pip
+</p>
+
+Custom Ansible playbook supported with all 3 setups using `--custom` flag!
 
 <p>
 Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!  
@@ -268,3 +298,4 @@ Tearing down ljtilopnez100...Done.
 
 
 Inspired by [pry0cc/axiom](https://github.com/pry0cc/axiom).
+
