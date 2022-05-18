@@ -2,11 +2,13 @@
 - name: Full Configuration with Hardening
   hosts: all
   become: true
+  collections:
+    - devsec.hardening
   roles:
     - packages
     - configurations
     - firewall
-    - dev-sec.ssh-hardening 
-    - dev-sec.os-hardening 
+    - ssh_hardening 
+    - os_hardening 
     - geerlingguy.docker
     - geerlingguy.pip

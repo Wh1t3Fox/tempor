@@ -2,7 +2,9 @@
 - name: Minimal Configuration with hardening
   hosts: all
   become: true
+  collections:
+    - devsec.hardening
   roles:
     - configurations
     - firewall
-    - dev-sec.ssh-hardening 
+    - ssh_hardening 

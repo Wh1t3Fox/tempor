@@ -2,6 +2,8 @@
 - name: VPS Hardening
   hosts: all
   become: true
+  collections:
+    - devsec.hardening
   roles:
     - firewall
-    - dev-sec.ssh-hardening 
+    - ssh_hardening 
