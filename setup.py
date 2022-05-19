@@ -61,6 +61,7 @@ setup(
             "pytest_cov==3.0.0",
             "flit==3.7.1",
         ],
+        "production": None
     },
     entry_points={
         "console_scripts": [

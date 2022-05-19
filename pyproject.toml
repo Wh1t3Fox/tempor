@@ -45,6 +45,7 @@ dev = [
     "flit==3.7.1",
 ] 
 doc = ["sphinx"]
+production = []
 
 [tool.flit.scripts]
 tempor = "tempor.__main__:main"
