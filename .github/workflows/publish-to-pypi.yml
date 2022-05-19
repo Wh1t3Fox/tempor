@@ -24,7 +24,7 @@ jobs:
           draft: false
           prerelease: false
 
-  deploy:
+  build:
     needs: release
     runs-on: ${{matrix.os}}
     strategy:
@@ -32,7 +32,6 @@ jobs:
         os: ["ubuntu-latest"]
         platform: [x64]
         python-version: ["3.8", "3.9", "3.10"]
-
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
@@ -50,6 +49,9 @@ jobs:
         run: |
           python -m flit build
 
+  deploy:
+    needs: build
+    steps:
       - name: Publish distribution to TestPyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
