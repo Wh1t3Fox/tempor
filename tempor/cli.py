@@ -113,7 +113,6 @@ def get_args() -> (str, str, argparse.Namespace):
             help="Full Configuration with hardening",
         )
         prov_parser.add_argument(
-            "-c",
             "--custom",
             type=str,
             default=False,

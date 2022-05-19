@@ -174,6 +174,7 @@ usage: tempor linode [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] 
 
 options:
   -h, --help            show this help message and exit
+  -c, --count           Number of images to create
   --image image         Specify the OS Image
   --region region       Specify the Region to Host the Image
   --resources resource  Specify the hardware resources for the host image
@@ -181,7 +182,7 @@ options:
   -l, --list            List Available VPS'
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
-  -c, --custom          Specify Ansible playbook for custom configuration (Path to main.yml file)
+  --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
   --no-config           Do not run any configuration (except custom)
 
           Regions

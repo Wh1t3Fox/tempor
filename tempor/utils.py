@@ -82,7 +82,7 @@ options:
   -s, --setup           Create a VPS
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
-  -c, --custom          Specify Ansible playbook for custom configuration (Path to main.yml file)
+  --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
   --no-config           Do not run any configuration (except custom)
 """
     )
