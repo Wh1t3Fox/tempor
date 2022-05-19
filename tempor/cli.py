@@ -379,7 +379,6 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                 "api_token": args.api_token,
                 "image": args.image,
                 "region": args.region,
-                "num": args.count,
             },
         )
         if ret != 0 and stderr:
