@@ -370,34 +370,75 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     # now what do we want to do?
     if args.teardown:
+        # If therer are more than 1, remove just this instance, else remove everything
         console.print(f"Tearing down {args.teardown}...", end="", style="bold italic")
-        ret, stdout, stderr = t.cmd(
-            "apply",
-            "-destroy",
-            "-auto-approve",
-            var={
-                "api_token": args.api_token,
-                "image": args.image,
-                "region": args.region,
-            },
-        )
+        ret, stdout, stderr = t.cmd("show")
         if ret != 0 and stderr:
             stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
             print(stderr)
+        output = t.output()
 
-        # switch to default workspace
-        ret, stdout, stderr = t.cmd("workspace", "select", "default")
-        if ret != 0 and stderr:
-            stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+        if "droplet_ip_address" in output:
+            num_instances = len(output["droplet_ip_address"]["value"])
+        elif "instance_ip_address" in output:
+            num_instances = len(output["instance_ip_address"]["value"])
+        elif "server_ip_address" in output:
+            num_instances = len(output["server_ip_address"]["value"])
+        else:
+            num_instances = 0
 
-        # delete old workspace
-        ret, stdout, stderr = t.cmd("workspace", "delete", tf_workspace_name)
-        if ret != 0 and stderr:
-            stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+        if num_instances > 1:
+            # find resources we want to teardown
+            stdout = stdout[: stdout.find(args.teardown)]
+            # search right to left for vps resource
+            stdout = stdout[: stdout.rfind("vps")]
+            # find the full resource name and index
+            target = stdout[stdout.rfind("#") + 2 : stdout.rfind(":")]
 
-        rm_hosts(args.provider, tf_workspace_name)
+            ret, stdout, stderr = t.cmd(
+                "apply",
+                "-destroy",
+                "-auto-approve",
+                f"-target={target}",
+                var={
+                    "api_token": args.api_token,
+                    "image": args.image,
+                    "region": args.region,
+                },
+            )
+            if ret != 0 and stderr:
+                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                print(stderr)
+            rm_hosts(args.provider, args.teardown)
+        else:
+            # destroy all the resources (1 running instance)
+            ret, stdout, stderr = t.cmd(
+                "apply",
+                "-destroy",
+                "-auto-approve",
+                var={
+                    "api_token": args.api_token,
+                    "image": args.image,
+                    "region": args.region,
+                },
+            )
+            if ret != 0 and stderr:
+                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                print(stderr)
+
+            # switch to default workspace
+            ret, stdout, stderr = t.cmd("workspace", "select", "default")
+            if ret != 0 and stderr:
+                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                print(stderr)
+
+            # delete old workspace
+            ret, stdout, stderr = t.cmd("workspace", "delete", tf_workspace_name)
+            if ret != 0 and stderr:
+                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                print(stderr)
+
+            rm_hosts(args.provider)
         console.print("Done.")
         return
 
@@ -470,10 +511,10 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     # Get Hostname and IP Adress
     output = t.output()
 
-    new_hosts = dict()
     # digitalocean
     if "droplet_ip_address" in output:
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
+            new_hosts = dict()
             new_hosts[hostname] = {
                 "ip": ip_address,
                 "region": args.region,
@@ -483,10 +524,12 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             install_ssh_keys(
                 args.provider, args.region, args.image, hostname, ip_address, args.user
             )
+            save_hosts(args.provider, new_hosts)
 
     # linode, aws
     elif "instance_ip_address" in output:
         for hostname, ip_address in output["instance_ip_address"]["value"].items():
+            new_hosts = dict()
             new_hosts[hostname] = {
                 "ip": ip_address,
                 "region": args.region,
@@ -496,10 +539,12 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             install_ssh_keys(
                 args.provider, args.region, args.image, hostname, ip_address, args.user
             )
+            save_hosts(args.provider, new_hosts)
 
     # vultr
     elif "server_ip_address" in output:
         for hostname, ip_address in output["server_ip_address"]["value"].items():
+            new_hosts = dict()
             new_hosts[hostname] = {
                 "ip": ip_address,
                 "region": args.region,
@@ -509,9 +554,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             install_ssh_keys(
                 args.provider, args.region, args.image, hostname, ip_address, args.user
             )
+            save_hosts(args.provider, new_hosts)
     console.print("Done.")
-
-    save_hosts(args.provider, new_hosts)
 
     # Ansible configuration
     if args.no_config:
@@ -527,8 +571,6 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         run_custom_playbook(args.custom, args.user)
 
     console.print("\nVPS' now available!\n", style="bold italic green")
-    for host in new_hosts:
-        console.print(f"ssh {host}", style="magenta")
 
 
 if __name__ == "__main__":

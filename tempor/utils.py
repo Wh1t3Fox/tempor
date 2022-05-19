@@ -170,16 +170,21 @@ def terraform_installed() -> str:
     return out_file
 
 
-def rm_hosts(provider: str, workspace: str) -> None:
+def rm_hosts(provider: str, vps_name: str = "") -> None:
     hostnames = list()
     hosts = get_hosts()
 
-    if not hosts or provider not in hosts:
+    if not hosts or (provider not in hosts):
         return
 
     for idx, host in enumerate(hosts[provider]):
         for hostname, values in host.items():
-            if values["workspace"] == workspace:
+            if vps_name:
+                if hostname == vps_name:
+                    hostnames.append(hostname)
+                    del hosts[provider][idx]
+                    remove_config_entry(hostname)
+            else:
                 hostnames.append(hostname)
                 del hosts[provider][idx]
                 remove_config_entry(hostname)

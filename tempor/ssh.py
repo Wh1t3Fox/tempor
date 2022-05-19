@@ -45,7 +45,7 @@ def remove_config_entry(hostname: str) -> None:
     try:
         cfg.remove(hostname)
         cfg.write()
-    except KeyError:
+    except (KeyError, NameError) as e:
         pass
 
     try:
