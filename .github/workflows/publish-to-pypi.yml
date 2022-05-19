@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Create Release
         uses: actions/create-release@v1
         env:
@@ -19,28 +20,34 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: |
-            Changers in this Release
+            Changes in this Release
           draft: false
           prerelease: false
   deploy:
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        python-version: ["3.9"]
+        os: ["ubuntu-latest"]
+        platform: [x64]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python ${{matrix.python-version}}
-        uses: actions/setup-python@v3
+      - uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          python-version: ${{matrix.python-version}}
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.platform }}
+
       - name: Install Dependencies
         run: |
           python -m pip install flit
           python -m flit install
+
       - name: Build and Publish 
         run: |
           python -m flit build
+
       - name: Publish distribution to TestPyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
@@ -48,6 +55,7 @@ jobs:
           user: __token__
           password: ${{ secrets.testpypi_token }}
           repository_url: https://test.pypi.org/legacy/
+
       - name: Publish distribution to PyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
