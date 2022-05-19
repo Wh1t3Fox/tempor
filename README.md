@@ -89,7 +89,7 @@ python3 -m pip install --user tempor
 ```
 
 #### :wrench: Dependencies :wrench:
-- Python >= 3.6
+- Python >= 3.8
 - Windows - WSL only
 
 tempor runs on *arm*, *aarch64*, *386*, *amd64*, (Linux, Android), and *Darwin* (MacOS X). tempor requires Windows Subsystem for Linux (WSL) for execution on Windows due to the use of fnctl in ansible_runner.
