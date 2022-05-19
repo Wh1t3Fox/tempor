@@ -51,6 +51,7 @@ jobs:
 
   deploy:
     needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Publish distribution to TestPyPI
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
