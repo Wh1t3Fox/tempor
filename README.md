@@ -146,6 +146,7 @@ providers:
       tenant_id:
 
 config:
+  none: false
   bare: true
   minimal: false
   full: false
