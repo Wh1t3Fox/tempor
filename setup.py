@@ -51,9 +51,7 @@ setup(
         "google-api-python-client==2.47.0",
     ],
     extras_require={
-        "doc": [
-            "sphinx"
-        ],
+        "doc": ["sphinx"],
         "dev": [
             "black==22.3.0",
             "twine==4.0.0",
@@ -61,7 +59,7 @@ setup(
             "pytest_cov==3.0.0",
             "flit==3.7.1",
         ],
-        "production": None
+        "test": ["pytest", "pytest-cov"],
     },
     entry_points={
         "console_scripts": [

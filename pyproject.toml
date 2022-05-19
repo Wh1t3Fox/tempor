@@ -1,26 +1,16 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "tempor"
-author = "Wh1t3Fox"
-author-email = "dev@exploit.design"
-home-page = "https://github.com/Wh1t3Fox/tempor"
-requires = [
-        "ansible==5.7.0",
-        "appdirs==1.4.4",
-        "ansible_runner==2.2.0",
-        "jsonschema==4.5.1",
-        "python-terraform==0.10.1",
-        "rich==12.4.1",
-        "ssh-config==0.1.1",
-        "PyYAML==6.0",
-        "boto3==1.23.1",
-        "requests==2.27.1",
-        "google-api-python-client==2.47.0"
+[project]
+name = "tempor"
+authors = [
+    {name = "Wh1t3Fox", email = "dev@exploit.design"}
 ]
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
 requires-python = ">=3.6"
+dynamic = ["version", "description"]
 classifiers=[
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -34,18 +24,23 @@ classifiers=[
     "Operating System :: POSIX :: Linux",
     "Environment :: Console",
 ]
-description-file = "README.md"
+dependencies = [
+        "ansible==5.7.0",
+        "appdirs==1.4.4",
+        "ansible_runner==2.2.0",
+        "jsonschema==4.5.1",
+        "python-terraform==0.10.1",
+        "rich==12.4.1",
+        "ssh-config==0.1.1",
+        "PyYAML==6.0",
+        "boto3==1.23.1",
+        "requests==2.27.1",
+        "google-api-python-client==2.47.0"
+]
 
-[tool.flit.metadata.requires-extra]
-dev = [
-    "black==22.3.0",
-    "twine==4.0.0",
-    "pytest==7.1.2",
-    "pytest_cov==3.0.0",
-    "flit==3.7.1",
-] 
-doc = ["sphinx"]
-production = []
+[project.urls]
+Documentation = "https://github.com/Wh1t3Fox/tempor"
+Source = "https://github.com/Wh1t3Fox/tempor"
 
-[tool.flit.scripts]
+[project.scripts]
 tempor = "tempor.__main__:main"
