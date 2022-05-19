@@ -74,6 +74,7 @@ usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [
 
 options:
   -h, --help            show this help message and exit
+  -c, --count           Number of images to create
   --image image         Specify the OS Image
   --region region       Specify the Region to Host the Image
   --resources resource  Specify the hardware resources for the host image

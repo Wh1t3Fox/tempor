@@ -67,6 +67,13 @@ def get_args() -> (str, str, argparse.Namespace):
 
         prov_parser = subparsers.add_parser(provider, epilog="", add_help=False)
         prov_parser.add_argument(
+            "-c",
+            "--count",
+            type=int,
+            default=1,
+            help="Number of images to create",
+        )
+        prov_parser.add_argument(
             "--image",
             metavar="image",
             help="Specify the OS image",
@@ -373,6 +380,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                 "api_token": args.api_token,
                 "image": args.image,
                 "region": args.region,
+                "num": args.count,
             },
         )
         if ret != 0 and stderr:
@@ -434,7 +442,12 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     ret, stdout, stderr = t.cmd(
         "plan",
         f"-out={plan_path}",
-        var={"api_token": args.api_token, "image": args.image, "region": args.region},
+        var={
+            "api_token": args.api_token,
+            "image": args.image,
+            "region": args.region,
+            "num": args.count,
+        },
     )
     if ret != 0 and stderr:
         # Fix the color escape sequences
