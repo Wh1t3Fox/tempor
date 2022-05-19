@@ -23,6 +23,7 @@ jobs:
             Changes in this Release
           draft: false
           prerelease: false
+
   deploy:
     needs: release
     runs-on: ${{matrix.os}}
@@ -31,9 +32,10 @@ jobs:
         os: ["ubuntu-latest"]
         platform: [x64]
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+
     steps:
+      - uses: actions/checkout@v3
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/checkout@v3
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
