@@ -77,11 +77,12 @@ options:
   --image image         Specify the OS Image
   --region region       Specify the Region to Host the Image
   --resources resource  Specify the hardware resources for the host image
-  -s, --setup           Create a VPS
   -l, --list            List Available VPS'
+  -s, --setup           Create a VPS
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
   -c, --custom          Specify Ansible playbook for custom configuration (Path to main.yml file)
+  --no-config           Do not run any configuration (except custom)
 """
     )
     console.print(reg_table)
