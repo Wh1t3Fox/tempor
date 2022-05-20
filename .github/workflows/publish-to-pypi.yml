@@ -47,12 +47,12 @@ jobs:
                 xz-utils tk-dev libffi-dev liblzma-dev
             curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
             cat << EOT >> ~/.bashrc
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    if command -v pyenv 1>/dev/null 2>&1; then
-      eval "$(pyenv init -)"
-    fi
-EOT
+            export PYENV_ROOT="$HOME/.pyenv"
+            export PATH="$PYENV_ROOT/bin:$PATH"
+            if command -v pyenv 1>/dev/null 2>&1; then
+              eval "$(pyenv init -)"
+            fi
+            EOT
             source ~/.bashrc
             pyenv install ${{ matrix.python-version }}
             pyenv global ${{ matrix.python-version }}
