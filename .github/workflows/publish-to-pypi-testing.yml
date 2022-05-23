@@ -114,7 +114,7 @@ jobs:
           python -m flit build
 
   deploy:
-    needs: [linux_builds, macos_builds, arm_builds]
+    needs: [linux_builds, macos_builds]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
