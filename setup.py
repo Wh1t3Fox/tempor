@@ -25,7 +25,6 @@ setup(
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Operating System :: MacOS :: MacOS X",
@@ -36,7 +35,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={"tempor": ["config", "providers", "playbooks"]},
     install_requires=[
-        "ansible==6.7.0",
+        "ansible==7.3.0",
         "appdirs==1.4.4",
         "ansible_runner==2.2.0",
         "jsonschema==4.5.1",
