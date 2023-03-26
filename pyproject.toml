@@ -23,7 +23,7 @@ classifiers=[
     "Environment :: Console",
 ]
 dependencies = [
-        "ansible==5.7.0",
+        "ansible==7.0.0",
         "appdirs==1.4.4",
         "ansible_runner==2.2.0",
         "jsonschema==4.5.1",
