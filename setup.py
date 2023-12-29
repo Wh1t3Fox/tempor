@@ -35,7 +35,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     package_data={"tempor": ["config", "providers", "playbooks"]},
     install_requires=[
-        "ansible==7.3.0",
+        "ansible==8.5.0",
         "appdirs==1.4.4",
         "ansible_runner==2.2.0",
         "jsonschema==4.5.1",
