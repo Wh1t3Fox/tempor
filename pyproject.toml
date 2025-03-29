@@ -9,7 +9,7 @@ authors = [
 ]
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE"}
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 dynamic = ["version", "description"]
 classifiers=[
     "Development Status :: 4 - Beta",
@@ -17,22 +17,25 @@ classifiers=[
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
     "Environment :: Console",
 ]
 dependencies = [
-        "ansible==7.3.0",
+        "ansible==11.40",
         "appdirs==1.4.4",
-        "ansible_runner==2.2.0",
-        "jsonschema==4.5.1",
+        "ansible_runner==2.4.1",
+        "jsonschema==4.23.0",
         "python-terraform==0.10.1",
-        "rich==12.4.1",
-        "ssh-config==0.1.1",
-        "PyYAML==6.0",
-        "boto3==1.23.1",
-        "requests==2.31.0",
-        "google-api-python-client==2.47.0"
+        "rich==13.9.4",
+        "ssh-config==0.1.5",
+        "PyYAML==6.0.2",
+        "boto3==1.37.23",
+        "requests==2.32.3",
+        "google-api-python-client==2.166.0"
 ]
 
 [project.urls]

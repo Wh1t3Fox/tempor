@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pkg_resources import resource_filename
+import importlib.resources
 from boto3.session import Session
 from typing import List, Dict
 import boto3
@@ -14,18 +14,20 @@ class aws:
     # field will, but then we need to translate the region code into a region name.
     # You could skip this by using the region names in your code directly, but most
     # other APIs are using the region code.
+    @staticmethod
     def get_region_name(region_code):
         default_region = "US East (N. Virginia)"
-        endpoint_file = resource_filename("botocore", "data/endpoints.json")
-        try:
-            with open(endpoint_file, "r") as f:
-                data = json.load(f)
-            # Botocore is using Europe while Pricing API using EU...sigh...
-            return data["partitions"][0]["regions"][region_code]["description"].replace(
-                "Europe", "EU"
-            )
-        except IOError:
-            return default_region
+        ref = importlib.resources.files("botocore") / "data/endpoints.json"
+        with importlib.resources.as_file(ref) as endpoint_file:
+            try:
+                with open(endpoint_file, "r") as f:
+                    data = json.load(f)
+                # Botocore is using Europe while Pricing API using EU...sigh...
+                return data["partitions"][0]["regions"][region_code]["description"].replace(
+                    "Europe", "EU"
+                )
+            except IOError:
+                return default_region
 
     @staticmethod
     def authorized(api_token: dict) -> bool:
@@ -87,7 +89,7 @@ class aws:
         for image in resp["Images"]:
             try:
                 images[image["ImageId"]] = image["Description"]
-            except KeyError as e:
+            except KeyError:
                 pass
 
         print(len(images))
@@ -137,7 +139,7 @@ class aws:
                     "description": description,
                     "price": price,
                 }
-            except KeyError as e:
+            except KeyError:
                 print(instance)
                 exit()
 

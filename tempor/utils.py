@@ -4,8 +4,9 @@
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
-from typing import Dict, List
+from typing import Dict
 from rich.table import Table
+from pathlib import Path
 import jsonschema
 import platform
 import hashlib
@@ -21,20 +22,20 @@ from tempor import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
 from tempor.console import console
 from tempor.ssh import remove_config_entry
 
-TF_VER = "1.1.9"
+TF_VER = "1.11.3"
 TF_ZIP_HASH = {
-    "amd64": "9d2d8a89f5cc8bc1c06cb6f34ce76ec4b99184b07eb776f8b39183b513d7798a",
-    "386": "a29a5c069e1712753ed553f7c6e63f1cd35caefee73496210461c05158b836b4",
-    "arm": "800eee18651b5e552772c60fc1b5eb00cdcefddf11969412203c6de6189aa10a",
-    "arm64": "e8a09d1fe5a68ed75e5fabe26c609ad12a7e459002dea6543f1084993b87a266",
-    "darwin": "c902b3c12042ac1d950637c2dd72ff19139519658f69290b310f1a5924586286",
+    "amd64": "377c8c18e2beab24f721994859236e98383350bf767921436511370d1f7c472b",
+    "386": "f5a4250f371df3b9b54b7f802495a9e341a8846e3536f673d1f8c1d28e8c0b85",
+    "arm": "9bf99463a9353a4242a5650fedc20833537db26c0aa7063ab673a179a5a7ba26",
+    "arm64": "d685953bec501c0acda13319f34dddaadf33a8f553c85533531d3c7d5f84604a",
+    "darwin": "bcdbb6f35c536da333d410cd0d0c1f5d543c4f40d46c8f96e419190fe3e9d941",
 }
 TF_FILE_HASH = {
-    "amd64": "8d5b3b0a164e95de9cafbdd6ca16a1ec439927b9bb6ec146b9566473ca796cc0",
-    "386": "db94691af978caa67b2c6a527d46cf8c7ea738c42a3750a121ddf4eb993bab25",
-    "arm": "4c797f48f7614706e35ecd60e16f0c776404515119d37eed44c0417194a0426b",
-    "arm64": "d501a25b7f95dfa3d5414bc4fc5382c09fe926464c4114a288ddbd7bb688d94c",
-    "darwin": "41ea760fa6b4b60525731af0acda64e76cc21f098a6f33b7c92868f5c8667a7f",
+    "amd64": "e42d3d36350c2fb085c9d6c8cb9e19bc3e86c1a295862731dad3a3d674a74f9c",
+    "386": "fb8619837748bae100b65944c067a12f9e7f15ee04c729fd8f5c9103675c234c",
+    "arm": "6c87a3200e3c58d4a804db31219756ae4cb47d221b4316c1825d71e11e26dc2f",
+    "arm64": "c9652d71628df086d486c6d07609aae2f08a00c62cfb27a605a490ff71c19581",
+    "darwin": "551e00959094b15424596a8786ad278c7b257c43c534cb1c5f2d2565ab142583",
 }
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"

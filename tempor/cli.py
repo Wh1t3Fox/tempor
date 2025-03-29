@@ -345,7 +345,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     ret, stdout, stderr = t.init()
     if ret != 0 and stderr:
         console.print("[red bold]Failed during initialization")
-        stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
         print(stderr)
         return
 
@@ -364,7 +364,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     elif not (args.teardown or args.list):
         # Only 1 provider/region/image at a time
         console.print(
-            f"[red bold]Provider/Region/Image Combination taken. Chose a different region, image, or provider."
+            "[red bold]Provider/Region/Image Combination taken. Chose a different region, image, or provider."
         )
         return
 
@@ -374,7 +374,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         console.print(f"Tearing down {args.teardown}...", end="", style="bold italic")
         ret, stdout, stderr = t.cmd("show")
         if ret != 0 and stderr:
-            stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
             print(stderr)
         output = t.output()
 
@@ -407,7 +407,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                 },
             )
             if ret != 0 and stderr:
-                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
                 print(stderr)
             rm_hosts(args.provider, args.teardown)
         else:
@@ -423,19 +423,19 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                 },
             )
             if ret != 0 and stderr:
-                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
                 print(stderr)
 
             # switch to default workspace
             ret, stdout, stderr = t.cmd("workspace", "select", "default")
             if ret != 0 and stderr:
-                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
                 print(stderr)
 
             # delete old workspace
             ret, stdout, stderr = t.cmd("workspace", "delete", tf_workspace_name)
             if ret != 0 and stderr:
-                stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
                 print(stderr)
 
             rm_hosts(args.provider)
@@ -490,7 +490,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     )
     if ret != 0 and stderr:
         # Fix the color escape sequences
-        stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
         print(stderr)
         main(args, True)  # force teardown
         return
@@ -501,7 +501,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     ret, stdout, stderr = t.cmd("apply", plan_path)
     if ret != 0 and stderr:
         # Fix the color escape sequences
-        stderr = re.sub(f"(\[\d+m)", r"\033\1", stderr)
+        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
         print(stderr)
         main(args, True)  # force teardown
         return

@@ -102,5 +102,6 @@ def install_ssh_keys(
         "StrictHostKeyChecking": "no",
         "UserKnownHostsFile": "/dev/null",
         "IdentityFile": f"{out_dir}/id_ed25519",
+        "IdentityAgent": "none"
     }
     add_config_entry(hostname, attr)
