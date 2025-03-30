@@ -18,9 +18,9 @@ import yaml
 import stat
 import os
 
-from tempor import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
-from tempor.console import console
+from tempor.constant import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
 from tempor.ssh import remove_config_entry
+from tempor.console import console
 
 TF_VER = "1.11.3"
 TF_ZIP_HASH = {
@@ -42,7 +42,7 @@ HOSTS_FILE = f"{DATA_DIR}/hosts"
 ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
 
 
-def image_region_choices(provider: str) -> str:
+def image_region_choices(provider: str) -> None:
     if provider is None:
         return
 
@@ -71,7 +71,7 @@ def image_region_choices(provider: str) -> str:
 
     print(
         f"""
-usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
+usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m]
 
 options:
   -h, --help            show this help message and exit
@@ -83,6 +83,7 @@ options:
   -s, --setup           Create a VPS
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
+  -t, --tags            Add tags to aws EC2 instance
   --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
   --no-config           Do not run any configuration (except custom)
 """
@@ -98,7 +99,7 @@ def get_config() -> Dict:
     if not os.path.exists(fpath):
         console.print(f"Creating New Config File: {fpath}")
         shutil.copy(f"{ROOT_DIR}/config/config.yml", fpath)
-        return None
+        return dict()
 
     with open(fpath) as fr, open(f"{ROOT_DIR}/config/schema.yml") as fr2:
         try:
@@ -113,7 +114,7 @@ def get_config() -> Dict:
                 )
             else:
                 console.print(f"[red bold]{e}")
-            return None
+            return dict()
         return cfg
 
 
@@ -136,13 +137,12 @@ def terraform_installed() -> str:
         arch = "darwin"
         url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
     else:
-        return None
+        return ""
 
     # Check if we've already installed
     if not out_file:
         out_file = f"{BIN_DIR}/terraform"
     else:  # check version
-        h = hashlib.sha256()
         with open(out_file, "rb") as fr:
             tf = BytesIO(fr.read())
 
@@ -155,7 +155,6 @@ def terraform_installed() -> str:
             f"Terraform not in Path or Out-of-Date. Installing v{TF_VER} to {out_file} ..."
         )
 
-        h = hashlib.sha256()
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
 
@@ -219,6 +218,7 @@ def find_hostname(name: str) -> str:
         for idx, vps in enumerate(all_hosts[provider]):
             if name in vps:
                 return all_hosts[provider][idx][name]
+    return ""
 
 
 """
@@ -264,7 +264,7 @@ def random_line(f: str) -> str:
         return random.choice(lines).replace("'", "").lower()
 
 
-def random_number(min_val: int = 0, max_val: int = 100) -> int:
+def random_number(min_val: int = 0, max_val: int = 100) -> str:
     return str(random.randint(min_val, max_val))
 
 

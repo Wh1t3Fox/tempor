@@ -14,7 +14,9 @@ def get_current_workspace(tf: python_terraform.Terraform) -> str:
         stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
         print(stderr)
 
-    return stdout.strip()
+    if stdout:
+        return stdout.strip()
+    return ""
 
 
 def get_all_workspace(tf: python_terraform.Terraform) -> List[str]:
@@ -23,7 +25,9 @@ def get_all_workspace(tf: python_terraform.Terraform) -> List[str]:
         stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
         print(stderr)
 
-    return list(map(lambda s: s.strip("* ").strip(), stdout.split("\n")))
+    if stdout:
+        return list(map(lambda s: s.strip("* ").strip(), stdout.split("\n")))
+    return list()
 
 
 def create_new_workspace(tf: python_terraform.Terraform, name: str) -> bool:

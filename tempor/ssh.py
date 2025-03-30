@@ -4,15 +4,12 @@
 import ssh_config
 from ssh_config import SSHConfig, Host
 from os.path import expanduser
-from pathlib import Path
 from os import path
 import subprocess
 import shutil
-import shlex
-import sys
 import os
 
-from tempor import ROOT_DIR, DATA_DIR
+from tempor.constant import ROOT_DIR, DATA_DIR
 from tempor.console import console
 
 SSH_CONFIG_PATH = expanduser("~/.ssh/config")
@@ -45,17 +42,17 @@ def remove_config_entry(hostname: str) -> None:
     try:
         cfg.remove(hostname)
         cfg.write()
-    except (KeyError, NameError) as e:
+    except (KeyError, NameError):
         pass
 
     try:
         shutil.rmtree(f"{DATA_DIR}/{hostname}")
-    except OSError as e:
+    except OSError:
         pass
 
     try:
         shutil.rmtree(f"{ROOT_DIR}/playbooks/artifacts")
-    except OSError as e:
+    except OSError:
         pass
 
 
@@ -81,6 +78,8 @@ def check_sshkeys(provider: str, region: str, image: str) -> bool:
             shell=True,
         )
         console.print("Done.")
+
+    return True
 
 
 def install_ssh_keys(

@@ -13,8 +13,9 @@ import sys
 import re
 import os
 
-from tempor import __version__, provider_info, ROOT_DIR
-from tempor.apis import aws, azure, digitalocean, gcp, linode, vultr
+from tempor.constant import __version__, provider_info, ROOT_DIR
+from tempor.playbook import run_playbook, run_custom_playbook
+from tempor.ssh import check_sshkeys, install_ssh_keys
 from tempor.console import console
 from tempor.utils import (
     find_hostname,
@@ -31,11 +32,10 @@ from tempor.workspaces import (
     create_new_workspace,
     select_workspace
 )
-from tempor.playbook import run_playbook, run_custom_playbook
-from tempor.ssh import check_sshkeys, install_ssh_keys
+from tempor.apis import *
 
 
-def get_args() -> (str, str, argparse.Namespace):
+def get_args() -> tuple[str, str, argparse.Namespace]:
 
     cfg = get_config()
 
