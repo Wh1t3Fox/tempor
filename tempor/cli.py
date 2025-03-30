@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-from python_terraform import *
-from rich.console import Console
+from python_terraform import Terraform
 from rich.table import Table
-from rich.progress import track
 from pathlib import Path
 from os import access, R_OK
 from os.path import isfile
 import subprocess
 import argparse
-import time
 import json
 import sys
 import re
@@ -28,7 +25,12 @@ from tempor.utils import (
     save_hosts,
     terraform_installed,
 )
-from tempor.workspaces import *
+from tempor.workspaces import (
+    get_current_workspace,
+    get_all_workspace,
+    create_new_workspace,
+    select_workspace
+)
 from tempor.playbook import run_playbook, run_custom_playbook
 from tempor.ssh import check_sshkeys, install_ssh_keys
 
@@ -66,6 +68,7 @@ def get_args() -> (str, str, argparse.Namespace):
         provider_info[provider]["api_token"] = api_token
 
         prov_parser = subparsers.add_parser(provider, epilog="", add_help=False)
+        prov_parser.add_argument("-h", "--help", action="store_true")
         prov_parser.add_argument(
             "-c",
             "--count",
@@ -118,12 +121,20 @@ def get_args() -> (str, str, argparse.Namespace):
             default=False,
             help="Specify Ansible playbook for custom configuration (Path to main.yml file)",
         )
-        prov_parser.add_argument("-h", "--help", action="store_true")
         prov_parser.add_argument(
             "--no-config",
             action="store_true",
             help="Do not run any configuration (except custom)",
         )
+        if provider == "aws":
+            prov_parser.add_argument(
+                "-t",
+                "--tags",
+                type=json.loads,
+                default="{}",
+                metavar="tags",
+                help="Tags to add to the instance",
+            )
 
     args = parser.parse_args()
 
@@ -166,23 +177,23 @@ def get_args() -> (str, str, argparse.Namespace):
         if "config" in cfg:
             # This is default behavior so don't really have to do this
             # first set is mutually exclusive, but custom can be used with any
-            if "none" in cfg["config"] and cfg["config"]["none"] == True:
+            if "none" in cfg["config"] and cfg["config"]["none"] is True:
                 args.no_config = True
-            elif "bare" in cfg["config"] and cfg["config"]["bare"] == True:
+            elif "bare" in cfg["config"] and cfg["config"]["bare"] is True:
                 args.minimal = False
                 args.full = False
-            elif "minimal" in cfg["config"] and cfg["config"]["minimal"] == True:
+            elif "minimal" in cfg["config"] and cfg["config"]["minimal"] is True:
                 args.minimal = True
                 args.full = False
-            elif "full" in cfg["config"] and cfg["config"]["minimal"] == True:
+            elif "full" in cfg["config"] and cfg["config"]["minimal"] is True:
                 args.minimal = False
                 args.full = False
                 args.minimal = False
                 args.full = True
             elif (
-                ("bare" in cfg["config"] and cfg["config"]["bare"] == False)
-                and ("minimal" in cfg["config"] and cfg["config"]["minimal"] == False)
-                and ("full" in cfg["config"] and cfg["config"]["minimal"] == False)
+                ("bare" in cfg["config"] and cfg["config"]["bare"] is False)
+                and ("minimal" in cfg["config"] and cfg["config"]["minimal"] is False)
+                and ("full" in cfg["config"] and cfg["config"]["minimal"] is False)
             ):
                 args.no_config = True
 
@@ -218,7 +229,6 @@ def get_args() -> (str, str, argparse.Namespace):
                 args.api_token = p["api_token"]
             break
     else:
-        console.print(f"[red bold]{default_provider} is not a supported provider")
         parser.print_help()
         parser.exit(0)
         sys.exit(1)
@@ -292,7 +302,9 @@ def get_args() -> (str, str, argparse.Namespace):
             args.user = "user"
         else:
             args.user = "root"
+            args.tags = {}
     except AttributeError as e:  # typically thrown at the args.help
+        console.print(e)
         parser.print_help()
         parser.exit(0)
 
@@ -310,7 +322,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
         if not _host:
             console.print(f"[red bold]{args.teardown} is not a valid hostname")
-            return
+            return None
 
         _provider, _, _image = _host["workspace"].replace("+", "/").split("_")
         args.provider = _provider
@@ -333,7 +345,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     terr_path = terraform_installed()
     if terr_path is None:
         console.print("[red bold]Platform not Supported")
-        return
+        return None
 
     t = Terraform(
         working_dir=f"{ROOT_DIR}/providers/{args.provider}",
@@ -404,6 +416,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     "api_token": args.api_token,
                     "image": args.image,
                     "region": args.region,
+                    "tags": args.tags
                 },
             )
             if ret != 0 and stderr:
@@ -420,6 +433,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     "api_token": args.api_token,
                     "image": args.image,
                     "region": args.region,
+                    "tags": args.tags
                 },
             )
             if ret != 0 and stderr:
@@ -486,6 +500,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             "image": args.image,
             "region": args.region,
             "num": args.count,
+            "tags": args.tags
         },
     )
     if ret != 0 and stderr:

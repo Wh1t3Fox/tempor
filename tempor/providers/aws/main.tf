@@ -58,9 +58,9 @@ EOF
         aws_security_group.allow_ssh.name
     ]
 
-    tags = {
-        Name = "${data.external.vps_name.result.name}${count.index}"
-    }
+    tags = merge({
+      Name = "${data.external.vps_name.result.name}${count.index}"
+    }, var.tags)
 }
 
 

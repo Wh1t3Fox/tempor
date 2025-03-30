@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-from tempor.apis.aws import aws
-from tempor.apis.azure import azure
-from tempor.apis.digitalocean import digitalocean
-from tempor.apis.gcp import gcp
-from tempor.apis.linode import linode
-from tempor.apis.vultr import vultr
+from .aws import aws
+from .azure import azure
+from .digitalocean import digitalocean
+from .gcp import gcp
+from .linode import linode
+from .vultr import vultr

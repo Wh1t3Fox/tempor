@@ -3,13 +3,8 @@
 """
 Quick and Easy Infrastructure
 """
-
-from appdirs import *
-from pathlib import Path
-import logging
-import logging.config
+from appdirs import user_config_dir, user_data_dir
 import site
-import sys
 import os
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))

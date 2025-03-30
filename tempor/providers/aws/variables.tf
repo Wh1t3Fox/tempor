@@ -14,3 +14,6 @@ variable "region" {
 variable "resources" {
     default = "t2.micro"
 }
+variable "tags" {
+    default = {}
+}

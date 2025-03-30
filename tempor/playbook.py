@@ -6,7 +6,6 @@ import ansible_runner
 import os
 
 from tempor import ROOT_DIR
-from tempor.console import console
 
 
 def run_playbook(playbook: str = "full.yml", user: str = "root") -> None:
