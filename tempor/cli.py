@@ -105,6 +105,11 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             help="Full Configuration with hardening",
         )
         prov_parser.add_argument(
+            "--no-config",
+            action="store_true",
+            help="Do not run any configuration (except custom)",
+        )
+        prov_parser.add_argument(
             "--custom",
             type=str,
             default=False,
@@ -438,6 +443,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             save_hosts(args.provider, new_hosts)
     console.print("Done.")
 
+    if args.no_config:
+        pass
     # Ansible configuration
     if args.full:
         run_playbook("full.yml", args.user)
