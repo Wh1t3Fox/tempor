@@ -9,6 +9,33 @@ import json
 
 class aws:
 
+    amis = {
+            "ami-0f9fc25dd2506cf6d": {
+                "name": "Amazon Linux 2023",
+                "user": "ec2-user"
+             },
+            "ami-01691107cfcbce68c": {
+                "name": "Kali",
+                "user": "kali"
+            },
+            "ami-084568db4383264d4": {
+                "name": "Ubuntu Server 24.04 LTS",
+                "user": "ubuntu"
+            },
+            "ami-0c15e602d3d6c6c4a":{
+                "name": "Red Hat Enterprise Linux 9",
+                "user": "ec2-user"
+            },
+            "ami-04b7f73ef0b798a0f":{
+                "name": "SUSE Linux Enterprise Server 15 SP6 ",
+                "user": "ec2-user"
+            },
+            "ami-0779caf41f9ba54f0":{
+                "name": "Debian 12",
+                "user": "admin"
+            }
+        }
+
     # Translate region code to region name. Even though the API data contains
     # regionCode field, it will not return accurate data. However using the location
     # field will, but then we need to translate the region code into a region name.
@@ -49,22 +76,14 @@ class aws:
 
     @staticmethod
     def get_images(api_token: dict, region: str = "us-east-1") -> Dict:
-        return {
-            "ami-0f9fc25dd2506cf6d": "Amazon Linux 2",
-            "ami-0d6e9a57f6259ba3a": "Centos 8",
-            "ami-02358d9f5245918a3": "Centos 7 ",
-            "ami-0d35afd5d19280755": "Debian 11",
-            "ami-059e59467656af55e": "Debian 10",
-            "ami-03f9e5587a7d588f8": "Debain 9",
-            "ami-01691107cfcbce68c": "Kali",
-            "ami-0ec1545979d0dc885": "Rocky 8",
-            "ami-04505e74c0741db8d": "Ubuntu 20.04",
-            "ami-0e472ba40eb589f49": "Ubuntu 18.04",
-            "ami-0b0ea68c435eb488d": "Ubuntu 16.04",
-        }
-        # below is how to query API, but 2k+ items are returned
         images = dict()
 
+        for ami in aws.amis:
+            images[ami] = aws.amis[ami]["name"]
+
+        return images
+
+        # below is how to query API, but 2k+ items are returned
         access_key = api_token["access_key"]
         secret_key = api_token["secret_key"]
         client = boto3.client(
@@ -146,7 +165,7 @@ class aws:
         return instances
 
     @staticmethod
-    def get_regions(api_token: dict) -> List:
+    def get_regions(api_token: dict) -> dict:
         regions = dict()
 
         session = Session()
@@ -158,7 +177,7 @@ class aws:
         return regions
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
+    def valid_image_in_region(image: str, region: str, token: str) -> bool:
         images = aws.get_images(token, region)
 
         if image in images.keys():
@@ -169,3 +188,7 @@ class aws:
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
         return True
+
+    @staticmethod
+    def get_user(ami) -> str:
+        return aws.amis[ami]["user"]

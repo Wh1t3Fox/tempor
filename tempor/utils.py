@@ -85,7 +85,6 @@ options:
   -m, --minimal         Minimal Configuration (just configs)
   -t, --tags            Add tags to aws EC2 instance
   --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
-  --no-config           Do not run any configuration (except custom)
 """
     )
     console.print(reg_table)

@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-from python_terraform import Terraform
 from rich.table import Table
-from pathlib import Path
 from os import access, R_OK
 from os.path import isfile
 import subprocess
 import argparse
 import json
 import sys
-import re
-import os
 
-from tempor.constant import __version__, provider_info, ROOT_DIR
+from tempor.constant import __version__, provider_info
 from tempor.playbook import run_playbook, run_custom_playbook
 from tempor.ssh import check_sshkeys, install_ssh_keys
 from tempor.console import console
@@ -22,17 +18,10 @@ from tempor.utils import (
     get_config,
     get_hosts,
     image_region_choices,
-    rm_hosts,
-    save_hosts,
-    terraform_installed,
-)
-from tempor.workspaces import (
-    get_current_workspace,
-    get_all_workspace,
-    create_new_workspace,
-    select_workspace
+    save_hosts
 )
 from tempor.apis import *
+from tempor.tf import *
 
 
 def get_args() -> tuple[str, str, argparse.Namespace]:
@@ -120,11 +109,6 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             type=str,
             default=False,
             help="Specify Ansible playbook for custom configuration (Path to main.yml file)",
-        )
-        prov_parser.add_argument(
-            "--no-config",
-            action="store_true",
-            help="Do not run any configuration (except custom)",
         )
         if provider == "aws":
             prov_parser.add_argument(
@@ -299,10 +283,9 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             args.setup = True
 
         if args.provider == "aws":
-            args.user = "user"
+            args.user = aws.get_user(args.image)
         else:
             args.user = "root"
-            args.tags = {}
     except AttributeError as e:  # typically thrown at the args.help
         console.print(e)
         parser.print_help()
@@ -330,49 +313,17 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         args.region = _host["region"]
         args.api_token = provider_info[args.provider]["api_token"]
 
-    plan_path = f"{ROOT_DIR}/providers/{args.provider}/files/plans/{args.region}/{args.image}/plan"
-    # The name must contain only URL safe characters, and no path separators.
-    tf_workspace_name = f"{args.provider}_{args.region}_{args.image}".replace("/", "+")
+    tf = TF(args.provider, args.region, args.image, args.api_token)
+
+    tf_workspace_name = tf.get_workspace_name()
 
     if override_teardown:
         args.teardown = tf_workspace_name
         args.setup = False
 
-    plan_parent_path = Path(plan_path).parent.absolute()
-    if not os.path.exists(plan_parent_path):
-        os.makedirs(plan_parent_path)
-
-    terr_path = terraform_installed()
-    if terr_path is None:
-        console.print("[red bold]Platform not Supported")
-        return None
-
-    t = Terraform(
-        working_dir=f"{ROOT_DIR}/providers/{args.provider}",
-        variables={"api_token": args.api_token},
-        terraform_bin_path=terr_path,
-    )
-
-    # make sure terraform is initialized
-    ret, stdout, stderr = t.init()
-    if ret != 0 and stderr:
-        console.print("[red bold]Failed during initialization")
-        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-        print(stderr)
-        return
-
-    current_workspace = get_current_workspace(t)
-
-    # Is the current workspace different than the one we should be using?
-    # listing is irrelevant for workspaces
-    if (current_workspace != tf_workspace_name) and not args.list:
-        workspaces = get_all_workspace(t)
-
-        if tf_workspace_name not in workspaces:
-            create_new_workspace(t, tf_workspace_name)
-        else:
-            select_workspace(t, tf_workspace_name)
-
+    # make sure we have the correct workspace, and create it if it does not exist
+    if not tf.correct_workspace() and not args.list:
+        tf.setup_workspace()
     elif not (args.teardown or args.list):
         # Only 1 provider/region/image at a time
         console.print(
@@ -382,77 +333,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     # now what do we want to do?
     if args.teardown:
-        # If therer are more than 1, remove just this instance, else remove everything
         console.print(f"Tearing down {args.teardown}...", end="", style="bold italic")
-        ret, stdout, stderr = t.cmd("show")
-        if ret != 0 and stderr:
-            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
-        output = t.output()
-
-        if "droplet_ip_address" in output:
-            num_instances = len(output["droplet_ip_address"]["value"])
-        elif "instance_ip_address" in output:
-            num_instances = len(output["instance_ip_address"]["value"])
-        elif "server_ip_address" in output:
-            num_instances = len(output["server_ip_address"]["value"])
-        else:
-            num_instances = 0
-
-        if num_instances > 1:
-            # find resources we want to teardown
-            stdout = stdout[: stdout.find(args.teardown)]
-            # search right to left for vps resource
-            stdout = stdout[: stdout.rfind("vps")]
-            # find the full resource name and index
-            target = stdout[stdout.rfind("#") + 2 : stdout.rfind(":")]
-
-            ret, stdout, stderr = t.cmd(
-                "apply",
-                "-destroy",
-                "-auto-approve",
-                f"-target={target}",
-                var={
-                    "api_token": args.api_token,
-                    "image": args.image,
-                    "region": args.region,
-                    "tags": args.tags
-                },
-            )
-            if ret != 0 and stderr:
-                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
-            rm_hosts(args.provider, args.teardown)
-        else:
-            # destroy all the resources (1 running instance)
-            ret, stdout, stderr = t.cmd(
-                "apply",
-                "-destroy",
-                "-auto-approve",
-                var={
-                    "api_token": args.api_token,
-                    "image": args.image,
-                    "region": args.region,
-                },
-            )
-            if ret != 0 and stderr:
-                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
-
-            # switch to default workspace
-            ret, stdout, stderr = t.cmd("workspace", "select", "default")
-            if ret != 0 and stderr:
-                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
-
-            # delete old workspace
-            ret, stdout, stderr = t.cmd("workspace", "delete", tf_workspace_name)
-            if ret != 0 and stderr:
-                stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
-
-            rm_hosts(args.provider)
-        console.print("Done.")
+        tf.teardown(args.teardown)
         return
 
     elif args.list:
@@ -481,50 +363,35 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             console.print(table)
         return
 
+
     # prevent accidental creations
     if not args.setup:
         return
 
+
+    # lets plan the config
+    console.print("Preparing Configuration...", end="", style="bold italic")
+    if not tf.plan(args.count):
+        # if plan fails -- teardown
+        main(args, True)
+    console.print("Done.")
+
+
+    # now apply the config
+    console.print("Creating VPS...", end="", style="bold italic")
+    if not tf.apply():
+        # if apply fails -- teardown
+        main(args, True)
+    console.print("Done.")
+
+
+    console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Creates new key pair
     if check_sshkeys(args.provider, args.region, args.image) is False:
         return
 
-    # lets plan the config
-    console.print("Preparing Configuration...", end="", style="bold italic")
-    ret, stdout, stderr = t.cmd(
-        "plan",
-        f"-out={plan_path}",
-        var={
-            "api_token": args.api_token,
-            "image": args.image,
-            "region": args.region,
-            "num": args.count,
-            "tags": args.tags
-        },
-    )
-    if ret != 0 and stderr:
-        # Fix the color escape sequences
-        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-        print(stderr)
-        main(args, True)  # force teardown
-        return
-    console.print("Done.")
-
-    # now apply the config
-    console.print("Creating VPS...", end="", style="bold italic")
-    ret, stdout, stderr = t.cmd("apply", plan_path)
-    if ret != 0 and stderr:
-        # Fix the color escape sequences
-        stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-        print(stderr)
-        main(args, True)  # force teardown
-        return
-    console.print("Done.")
-
-    console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Get Hostname and IP Adress
-    output = t.output()
-
+    output = tf.get_output()
     # digitalocean
     if "droplet_ip_address" in output:
         for hostname, ip_address in output["droplet_ip_address"]["value"].items():
@@ -572,9 +439,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     console.print("Done.")
 
     # Ansible configuration
-    if args.no_config:
-        pass
-    elif args.full:
+    if args.full:
         run_playbook("full.yml", args.user)
     elif args.minimal:
         run_playbook("minimal.yml", args.user)
