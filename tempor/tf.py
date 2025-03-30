@@ -7,15 +7,15 @@ import sys
 import re
 import os
 
-from tempor.constant import ROOT_DIR
-from tempor.console import console
-from tempor.workspaces import (
+from .constant import ROOT_DIR
+from .console import console
+from .workspaces import (
     get_current_workspace,
     get_all_workspace,
     create_new_workspace,
     select_workspace
 )
-from tempor.utils import terraform_installed, rm_hosts
+from .utils import terraform_installed, rm_hosts
 
 
 class TF:

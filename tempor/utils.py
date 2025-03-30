@@ -18,9 +18,9 @@ import yaml
 import stat
 import os
 
-from tempor.constant import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
-from tempor.ssh import remove_config_entry
-from tempor.console import console
+from .constant import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
+from .ssh import remove_config_entry
+from .console import console
 
 TF_VER = "1.11.3"
 TF_ZIP_HASH = {

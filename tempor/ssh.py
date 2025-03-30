@@ -9,8 +9,8 @@ import subprocess
 import shutil
 import os
 
-from tempor.constant import ROOT_DIR, DATA_DIR
-from tempor.console import console
+from .constant import ROOT_DIR, DATA_DIR
+from .console import console
 
 SSH_CONFIG_PATH = expanduser("~/.ssh/config")
 

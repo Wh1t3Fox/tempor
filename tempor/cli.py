@@ -9,19 +9,19 @@ import argparse
 import json
 import sys
 
-from tempor.constant import __version__, provider_info
-from tempor.playbook import run_playbook, run_custom_playbook
-from tempor.ssh import check_sshkeys, install_ssh_keys
-from tempor.console import console
-from tempor.utils import (
+from .constant import __version__, provider_info
+from .playbook import run_playbook, run_custom_playbook
+from .ssh import check_sshkeys, install_ssh_keys
+from .console import console
+from .utils import (
     find_hostname,
     get_config,
     get_hosts,
     image_region_choices,
     save_hosts
 )
-from tempor.apis import *
-from tempor.tf import *
+from .apis import *
+from .tf import *
 
 
 def get_args() -> tuple[str, str, argparse.Namespace]:
