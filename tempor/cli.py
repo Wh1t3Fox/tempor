@@ -446,7 +446,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if args.no_config:
         pass
     # Ansible configuration
-    if args.full:
+    elif args.full:
         run_playbook("full.yml", args.user)
     elif args.minimal:
         run_playbook("minimal.yml", args.user)
