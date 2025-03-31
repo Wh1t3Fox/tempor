@@ -15,6 +15,7 @@ from .ssh import check_sshkeys, install_ssh_keys
 from .console import console
 from .utils import (
     find_hostname,
+    get_all_hostnames,
     get_config,
     get_hosts,
     image_region_choices,
@@ -33,7 +34,7 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-t", "--teardown", default=None, help="Name of VPS Image to Tear down"
+        "-t", "--teardown", default=None, choices=get_all_hostnames(), help="Name of VPS Image to Tear down"
     )
     parser.add_argument("-u", "--update", action="store_true", help="Check for Upates")
     parser.add_argument("--version", action="store_true", help="Print current version")

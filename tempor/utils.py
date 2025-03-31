@@ -4,7 +4,7 @@
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
-from typing import Dict
+from typing import Dict, List
 from rich.table import Table
 from pathlib import Path
 import jsonschema
@@ -209,6 +209,15 @@ def get_hosts() -> Dict:
     except json.decoder.JSONDecodeError:
         pass
     return hosts
+
+
+def get_all_hostnames() -> List:
+    hostnames = list()
+    for provider, servers in get_hosts().items():
+        for vps in servers:
+            for hostname in vps.keys():
+                hostnames.append(hostname)
+    return hostnames
 
 
 def find_hostname(name: str) -> str:
