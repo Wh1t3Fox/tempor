@@ -89,7 +89,7 @@ python3 -m pip install --user tempor
 ```
 
 #### :wrench: Dependencies :wrench:
-- Python >= 3.8
+- Python >= 3.11
 - Windows - WSL only
 
 ### :gear: Configuration :gear:
