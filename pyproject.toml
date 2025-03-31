@@ -28,7 +28,7 @@ dependencies = [
         "ansible_runner==2.4.1",
         "jsonschema==4.23.0",
         "python-terraform==0.10.1",
-        "rich==13.9.4",
+        "rich==14.0.0",
         "ssh-config==0.1.5",
         "PyYAML==6.0.2",
         "boto3==1.37.23",
