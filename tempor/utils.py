@@ -83,6 +83,7 @@ options:
   -s, --setup           Create a VPS
   -f, --full            Full Configuration with hardening
   -m, --minimal         Minimal Configuration (just configs)
+  --no-config           No Anisble setup at all
   -t, --tags            Add tags to aws EC2 instance
   --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
 """

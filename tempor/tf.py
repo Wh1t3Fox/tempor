@@ -34,6 +34,14 @@ class TF:
             console.print("[red bold]Platform not Supported")
             sys.exit(1)
 
+        # pass tokens for AWS thourh ENV
+        # this allows the user to also just set the ENV variables as well
+        if provider == 'aws':
+            os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
+            os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
+            os.environ['AWS_REGION'] = self.region
+
+
         # Create the Object
         self.t = Terraform(
             working_dir=f"{ROOT_DIR}/providers/{self.provider}",

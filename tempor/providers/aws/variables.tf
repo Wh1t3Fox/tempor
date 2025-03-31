@@ -6,7 +6,7 @@ variable "username" {
     default = "user"
 }
 variable "image" {
-    default = "ami-04505e74c0741db8d"
+    default = "ami-0f9fc25dd2506cf6d"
 }
 variable "region" {
     default = "us-east-1"

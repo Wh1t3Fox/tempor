@@ -1,8 +1,4 @@
-provider "aws" {
-  access_key = var.api_token.access_key
-  secret_key = var.api_token.secret_key
-  region = var.region
-}
+provider "aws" {}
 
 resource "aws_key_pair" "default" {
     key_name = data.external.vps_name.result.name
