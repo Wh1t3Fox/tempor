@@ -19,10 +19,11 @@ from .utils import terraform_installed, rm_hosts
 
 
 class TF:
-    def __init__(self, provider, region, image, api_token=None, tags=dict()):
+    def __init__(self, provider, region, image, resources, api_token=None, tags=dict()):
         self.provider = provider
         self.region = region
         self.image = image
+        self.resources = resources
         self.api_token = api_token
         self.tags = tags
 
@@ -61,7 +62,7 @@ class TF:
             return
 
 
-    def get_output(self) -> str:
+    def get_output(self) -> dict:
         return self.t.output()
 
 
@@ -101,6 +102,46 @@ class TF:
                 select_workspace(self.t, self.workspace_name)
 
 
+    def get_new_hosts(self) -> dict:
+        new_hosts = dict()
+
+        # figure out which provider we are
+        output = self.get_output()
+        # digitalocean
+        if "droplet_ip_address" in output:
+            for hostname, ip_address in output.get("droplet_ip_address", {}).get("value").items():
+                new_hosts[hostname] = {
+                    "ip": ip_address,
+                    "region": self.region,
+                    "image": self.image,
+                    "resources": self.resources,
+                    "workspace": self.get_workspace_name(),
+                }
+
+        # linode, aws
+        elif "instance_ip_address" in output:
+            for hostname, ip_address in output.get("instance_ip_address", {}).get("value").items():
+                new_hosts[hostname] = {
+                    "ip": ip_address,
+                    "region": self.region,
+                    "image": self.image,
+                    "resources": self.resources,
+                    "workspace": self.get_workspace_name(),
+                }
+
+        # vultr
+        elif "server_ip_address" in output:
+            for hostname, ip_address in output.get("server_ip_address", {}).get("value").items():
+                new_hosts[hostname] = {
+                    "ip": ip_address,
+                    "region": self.region,
+                    "image": self.image,
+                    "resources": self.resources,
+                    "workspace": self.get_workspace_name(),
+                }
+        return new_hosts
+
+
     def plan(self, count = 1) -> bool:
         ret, stdout, stderr = self.t.cmd(
             "plan",
@@ -109,6 +150,7 @@ class TF:
                 "api_token": self.api_token,
                 "image": self.image,
                 "region": self.region,
+                "resources": self.resources,
                 "num": count,
                 "tags": self.tags
             },
@@ -168,6 +210,7 @@ class TF:
                     "api_token": self.api_token,
                     "image": self.image,
                     "region": self.region,
+                    "resources": self.resources,
                     "tags": self.tags
                 },
             )
@@ -184,6 +227,7 @@ class TF:
                 var={
                     "api_token": self.api_token,
                     "image": self.image,
+                    "resources": self.resources,
                     "region": self.region,
                 },
             )

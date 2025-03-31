@@ -315,11 +315,12 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
         _provider, _, _image = _host["workspace"].replace("+", "/").split("_")
         args.provider = _provider
-        args.image = _image
         args.region = _host["region"]
+        args.image = _image
+        args.resources = _host["resources"]
         args.api_token = provider_info[args.provider]["api_token"]
 
-    tf = TF(args.provider, args.region, args.image, args.api_token)
+    tf = TF(args.provider, args.region, args.image, args.resources, args.api_token)
 
     tf_workspace_name = tf.get_workspace_name()
 
@@ -374,6 +375,11 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if not args.setup:
         return
 
+    console.print("Configuring SSH Keys...", end="", style="bold italic")
+    # Creates new key pair
+    if check_sshkeys(args.provider, args.region, args.image) is False:
+        return
+    console.print("Done.")
 
     # lets plan the config
     console.print("Preparing Configuration...", end="", style="bold italic")
@@ -390,59 +396,16 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         main(args, True)
     console.print("Done.")
 
-
-    console.print("Configuring SSH Keys...", end="", style="bold italic")
-    # Creates new key pair
-    if check_sshkeys(args.provider, args.region, args.image) is False:
-        return
-
-    # Get Hostname and IP Adress
-    output = tf.get_output()
-    # digitalocean
-    if "droplet_ip_address" in output:
-        for hostname, ip_address in output["droplet_ip_address"]["value"].items():
-            new_hosts = dict()
-            new_hosts[hostname] = {
-                "ip": ip_address,
-                "region": args.region,
-                "resources": args.resources,
-                "workspace": tf_workspace_name,
-            }
-            install_ssh_keys(
-                args.provider, args.region, args.image, hostname, ip_address, args.user
-            )
-            save_hosts(args.provider, new_hosts)
-
-    # linode, aws
-    elif "instance_ip_address" in output:
-        for hostname, ip_address in output["instance_ip_address"]["value"].items():
-            new_hosts = dict()
-            new_hosts[hostname] = {
-                "ip": ip_address,
-                "region": args.region,
-                "resources": args.resources,
-                "workspace": tf_workspace_name,
-            }
-            install_ssh_keys(
-                args.provider, args.region, args.image, hostname, ip_address, args.user
-            )
-            save_hosts(args.provider, new_hosts)
-
-    # vultr
-    elif "server_ip_address" in output:
-        for hostname, ip_address in output["server_ip_address"]["value"].items():
-            new_hosts = dict()
-            new_hosts[hostname] = {
-                "ip": ip_address,
-                "region": args.region,
-                "resources": args.resources,
-                "workspace": tf_workspace_name,
-            }
-            install_ssh_keys(
-                args.provider, args.region, args.image, hostname, ip_address, args.user
-            )
-            save_hosts(args.provider, new_hosts)
-    console.print("Done.")
+    for hostname, val in tf.get_new_hosts().items():
+        install_ssh_keys(
+            args.provider,
+            val.get('region'), 
+            val.get('image'), 
+            hostname,
+            val.get('ip_address'), 
+            args.user
+        )
+        save_hosts(args.provider,{hostname: val})
 
     if args.no_config:
         pass
@@ -457,7 +420,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if args.custom:
         run_custom_playbook(args.custom, args.user)
 
-    console.print("\nVPS' now available!\n", style="bold italic green")
+    console.print(f"\nVPS {hostname} now available!\n", style="bold italic green")
 
 
 if __name__ == "__main__":
