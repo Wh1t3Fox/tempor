@@ -19,7 +19,7 @@ from .utils import terraform_installed, rm_hosts
 
 
 class TF:
-    def __init__(self, provider, region, image, api_token, tags=dict()):
+    def __init__(self, provider, region, image, api_token=None, tags=dict()):
         self.provider = provider
         self.region = region
         self.image = image
@@ -36,11 +36,14 @@ class TF:
 
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
-        if provider == 'aws':
+        if provider == 'aws' and self.api_token:
             os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
             os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
             os.environ['AWS_REGION'] = self.region
-
+        elif provider == 'aws' and not self.api_token:
+            if not (os.environ.get('AWS_ACCESS_KEY_ID') or os.environ.get('AWS_SECRET_ACCESS_KEY')):
+                console.print('[red]No AWS API Tokens detected.[/red]')
+                sys.exit(1)
 
         # Create the Object
         self.t = Terraform(
