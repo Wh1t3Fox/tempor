@@ -402,7 +402,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             val.get('region'), 
             val.get('image'), 
             hostname,
-            val.get('ip_address'), 
+            val.get('ip'), 
             args.user
         )
         save_hosts(args.provider,{hostname: val})
