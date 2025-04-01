@@ -14,3 +14,6 @@ variable "region" {
 variable "resources" {
     default = "vc2-1c-1gb"
 }
+variable "vps_name" {
+  default = ""
+}

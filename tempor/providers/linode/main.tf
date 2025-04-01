@@ -3,8 +3,8 @@ provider "linode" {
 }
 
 resource "linode_sshkey" "default" {
-    label = data.external.vps_name.result.name
-    ssh_key = chomp(file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub"))
+    label = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
+    ssh_key = chomp(file("${path.module}/files/${var.region}/${var.image}/${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}/.ssh/id_ed25519.pub"))
 }
 
 #resource "linode_stackscript" "script" {
@@ -50,7 +50,7 @@ resource "linode_sshkey" "default" {
 resource "linode_instance" "vps" {
     count = var.num
     image = var.image
-    label = "${data.external.vps_name.result.name}${count.index}"
+    label = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}${var.num == 1 ? "" : count.index}"
     region = var.region
     type = var.resources
     root_pass = data.external.root_pass.result.value

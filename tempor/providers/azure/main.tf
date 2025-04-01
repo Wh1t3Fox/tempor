@@ -8,12 +8,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "main" {
-    name = "${data.external.vps_name.result.name}-resource"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-resource"
     location = var.region
 }
 
 resource "azurerm_virtual_network" "main" {
-  name                = "${data.external.vps_name.result.name}-network"
+  name                = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-network"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
@@ -27,14 +27,14 @@ resource "azurerm_subnet" "internal" {
 }
 
 resource "azurerm_public_ip" "public_ip" {
-  name                = "${data.external.vps_name.result.name}-public_ip"
+  name                = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-public_ip"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_interface" "main" {
-  name                = "${data.external.vps_name.result.name}-nic1"
+  name                = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-nic1"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 
@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "main" {
 }
 
 resource "azurerm_network_interface" "internal" {
-  name                = "${data.external.vps_name.result.name}-nic2"
+  name                = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-nic2"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -59,7 +59,7 @@ resource "azurerm_network_interface" "internal" {
 }
 
 resource "azurerm_network_security_group" "ssh" {
-    name = "${data.external.vps_name.result.name}-fw"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-fw"
     location            = azurerm_resource_group.main.location
     resource_group_name = azurerm_resource_group.main.name
     security_rule {
@@ -83,7 +83,7 @@ resource "azurerm_network_interface_security_group_association" "main" {
 
 resource "azurerm_linux_virtual_machine" "vps" {
     count = var.num
-    name = "${data.external.vps_name.result.name}${count.index}"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}${var.num == 1 ? "" : count.index}"
     resource_group_name = azurerm_resource_group.main.name
     location = azurerm_resource_group.main.location
     size = var.resources
@@ -95,7 +95,7 @@ resource "azurerm_linux_virtual_machine" "vps" {
 
     admin_ssh_key {
         username = "root"
-        public_key = file("${path.module}/files/${var.region}/${var.image}/.ssh/id_rsa.pub")
+        public_key = file("${path.module}/files/${var.region}/${var.image}/${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}/.ssh/id_rsa.pub")
     }
 
     os_disk {

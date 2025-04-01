@@ -5,7 +5,7 @@ provider "vultr" {
 }
 
 resource "vultr_ssh_key" "default" {
-    name = data.external.vps_name.result.name
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
     ssh_key = chomp(file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub"))
 }
 
@@ -14,7 +14,7 @@ resource "vultr_instance" "vps" {
     os_id = var.image
     plan = var.resources
     region = var.region
-    label = "${data.external.vps_name.result.name}${count.index}"
+    label = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}${var.num == 1 ? "" : count.index}"
     ssh_key_ids = [vultr_ssh_key.default.id]
 }
 

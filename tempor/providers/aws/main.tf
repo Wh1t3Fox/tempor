@@ -1,12 +1,12 @@
 provider "aws" {}
 
 resource "aws_key_pair" "default" {
-    key_name = data.external.vps_name.result.name
-    public_key = chomp(file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub"))
+    key_name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
+    public_key = chomp(file("${path.module}/files/${var.region}/${var.image}/${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}/.ssh/id_ed25519.pub"))
 }
 
 resource "aws_security_group" "allow_ssh" {
-    name = "${data.external.vps_name.result.name}"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
 
     ingress {
       description      = "Allow SSH"
@@ -26,7 +26,7 @@ resource "aws_security_group" "allow_ssh" {
     }
 
     tags = {
-        Name = "${data.external.vps_name.result.name}"
+        Name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
     }
 }
 
@@ -37,25 +37,12 @@ resource "aws_instance" "vps" {
     associate_public_ip_address = "true"
     key_name = aws_key_pair.default.key_name
 
-    user_data = <<-EOF
-#!/bin/bash
-sudo useradd -m -s /bin/bash -G sudo ${var.username}
-sudo mkdir -p /home/${var.username}/.ssh
-sudo touch /home/${var.username}/.ssh/authorized_keys
-sudo echo ${aws_key_pair.default.public_key} > /home/${var.username}/.ssh/authorized_keys
-sudo chown ${var.username}:${var.username} -R /home/${var.username}
-sudo chmod 700 /home/${var.username}/.ssh
-sudo chmod 600 /home/${var.username}/.ssh/authorized_keys
-sudo usermod -aG sudo ${var.username}
-sudo echo "${var.username} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-custom-init-users
-EOF
-
     security_groups = [
         aws_security_group.allow_ssh.name
     ]
 
     tags = merge({
-      Name = "${data.external.vps_name.result.name}${count.index}"
+      Name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}${var.num == 1 ? "" : count.index}"
     }, var.tags)
 }
 

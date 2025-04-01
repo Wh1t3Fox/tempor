@@ -15,15 +15,22 @@ from .workspaces import (
     create_new_workspace,
     select_workspace
 )
-from .utils import terraform_installed, rm_hosts
+from .utils import (
+    terraform_installed, 
+    rm_hosts, 
+    random_line, 
+    random_number,
+    random_str
+)
 
 
 class TF:
-    def __init__(self, provider, region, image, resources, api_token=None, tags=dict()):
+    def __init__(self, provider, region, image, resources, vps_name=None, api_token=None, tags=dict()):
         self.provider = provider
         self.region = region
         self.image = image
         self.resources = resources
+        self.vps_name = self.generate_vps_name() if not vps_name else vps_name
         self.api_token = api_token
         self.tags = tags
 
@@ -62,12 +69,16 @@ class TF:
             return
 
 
+    def get_vps_name(self) -> str:
+        return self.vps_name
+
+
     def get_output(self) -> dict:
         return self.t.output()
 
 
     def get_plan_path(self) -> str:
-        plan_path =  f"{ROOT_DIR}/providers/{self.provider}/files/plans/{self.region}/{self.image}/plan"
+        plan_path =  f"{ROOT_DIR}/providers/{self.provider}/files/plans/{self.region}/{self.image}/{self.vps_name}/plan"
 
         # Create dirs if needed
         plan_parent_path = Path(plan_path).parent.absolute()
@@ -83,7 +94,7 @@ class TF:
 
     def get_workspace_name(self) -> str:
         # The name must contain only URL safe characters, and no path separators.
-        return f"{self.provider}_{self.region}_{self.image}".replace("/", "+")
+        return f"{self.provider}_{self.region}_{self.image}_{self.vps_name}".replace("/", "+")
 
 
     def correct_workspace(self) -> bool:
@@ -152,6 +163,7 @@ class TF:
                 "region": self.region,
                 "resources": self.resources,
                 "num": count,
+                "vps_name": self.vps_name,
                 "tags": self.tags
             },
         )
@@ -211,6 +223,7 @@ class TF:
                     "image": self.image,
                     "region": self.region,
                     "resources": self.resources,
+                    "vps_name": self.vps_name,
                     "tags": self.tags
                 },
             )
@@ -227,8 +240,10 @@ class TF:
                 var={
                     "api_token": self.api_token,
                     "image": self.image,
-                    "resources": self.resources,
                     "region": self.region,
+                    "resources": self.resources,
+                    "vps_name": self.vps_name,
+                    "tags": self.tags
                 },
             )
             if ret != 0 and stderr:
@@ -252,3 +267,13 @@ class TF:
         return
 
 
+    def generate_vps_name(self) -> str:
+        try:
+            wordlist = Path("/usr/share/dict/american-english")
+            if not wordlist.is_file():
+                raise FileNotFoundError
+            name = f"{random_line(wordlist)}{random_number()}"
+        except FileNotFoundError:
+            name = f"{random_str()}{random_number()}"
+
+        return name

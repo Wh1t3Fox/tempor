@@ -14,3 +14,6 @@ variable "region" {
 variable "resources" {
     default = "g6-standard-1"
 }
+variable "vps_name" {
+  default = ""
+}

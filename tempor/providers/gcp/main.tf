@@ -6,7 +6,7 @@ provider "google" {
 
 # allow ssh
 resource "google_compute_firewall" "allow-ssh" {
-    name = "${data.external.vps_name.result.name}-fw-ssh"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}-fw-ssh"
     network = "default"
     allow {
         protocol = "tcp"
@@ -20,7 +20,7 @@ resource "google_compute_firewall" "allow-ssh" {
 
 resource "google_compute_instance" "vps" {
     count = var.num
-    name = "${data.external.vps_name.result.name}${count.index}"
+    name = "${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}${var.num == 1 ? "" : count.index}"
     machine_type = var.resources
     zone = var.zone
     tags = ["ssh"]
@@ -37,7 +37,7 @@ resource "google_compute_instance" "vps" {
     }
 
     metadata = {
-        ssh-keys = "root:${file("${path.module}/files/${var.region}/${var.image}/.ssh/id_ed25519.pub")}"
+        ssh-keys = "root:${file("${path.module}/files/${var.region}/${var.image}/${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}/.ssh/id_ed25519.pub")}"
     }
 }
 

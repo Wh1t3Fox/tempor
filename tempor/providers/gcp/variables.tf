@@ -17,3 +17,6 @@ variable "zone" {
 variable "resources" {
     default = "f1-micro"
 }
+variable "vps_name" {
+  default = ""
+}

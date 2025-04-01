@@ -82,6 +82,11 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             help="Specify the hardware resources for the host image",
         )
         prov_parser.add_argument(
+            "--hostname",
+            metavar="hostname",
+            help="Specify the name of the VPS",
+        )
+        prov_parser.add_argument(
             "-s", "--setup", action="store_true", default=False, help="Create a VPS"
         )
         prov_parser.add_argument(
@@ -313,14 +318,15 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             console.print(f"[red bold]{args.teardown} is not a valid hostname")
             return None
 
-        _provider, _, _image = _host["workspace"].replace("+", "/").split("_")
+        _provider, _, _image, _ = _host["workspace"].replace("+", "/").split("_")
         args.provider = _provider
         args.region = _host["region"]
         args.image = _image
         args.resources = _host["resources"]
         args.api_token = provider_info[args.provider]["api_token"]
+        args.hostname = args.teardown
 
-    tf = TF(args.provider, args.region, args.image, args.resources, args.api_token)
+    tf = TF(args.provider, args.region, args.image, args.resources, args.hostname, args.api_token)
 
     tf_workspace_name = tf.get_workspace_name()
 
@@ -334,7 +340,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     elif not (args.teardown or args.list):
         # Only 1 provider/region/image at a time
         console.print(
-            "[red bold]Provider/Region/Image Combination taken. Chose a different region, image, or provider."
+            "[red bold]Provider/Region/Image/Hostname Combination taken. Chose a different provider, region, image, or hostname."
         )
         return
 
@@ -360,7 +366,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     ip = values["ip"] if "ip" in values else "UNK"
                     region = values["region"] if "region" in values else "UNK"
                     image = (
-                        values["workspace"].split("_")[-1].replace("+", "/")
+                        values["workspace"].split("_")[-2].replace("+", "/")
                         if "workspace" in values
                         else "UNK"
                     )
@@ -377,7 +383,7 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
 
     console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Creates new key pair
-    if check_sshkeys(args.provider, args.region, args.image) is False:
+    if check_sshkeys(args.provider, args.region, args.image, tf.get_vps_name()) is False:
         return
     console.print("Done.")
 

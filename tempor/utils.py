@@ -79,6 +79,7 @@ options:
   --image image         Specify the OS Image
   --region region       Specify the Region to Host the Image
   --resources resource  Specify the hardware resources for the host image
+  --hostname hostname   Specify the name of the VPS
   -l, --list            List Available VPS'
   -s, --setup           Create a VPS
   -f, --full            Full Configuration with hardening

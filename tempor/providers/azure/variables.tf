@@ -14,3 +14,6 @@ variable "region" {
 variable "resources" {
 	default = "Standard_F2"
 }
+variable "vps_name" {
+  default = ""
+}
