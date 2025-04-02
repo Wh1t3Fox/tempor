@@ -151,3 +151,8 @@ class digitalocean:
             page += 1
 
         return False
+
+
+    @staticmethod
+    def get_user(image: str, region: str) -> str:
+        return 'root'

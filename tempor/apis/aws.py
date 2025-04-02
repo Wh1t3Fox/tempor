@@ -3,39 +3,12 @@
 import importlib.resources
 from boto3.session import Session
 from typing import List, Dict
+import botocore
 import boto3
 import json
 
 
 class aws:
-
-    amis = {
-            "ami-0f9fc25dd2506cf6d": {
-                "name": "Amazon Linux 2023",
-                "user": "ec2-user"
-             },
-            "ami-01691107cfcbce68c": {
-                "name": "Kali",
-                "user": "kali"
-            },
-            "ami-084568db4383264d4": {
-                "name": "Ubuntu Server 24.04 LTS",
-                "user": "ubuntu"
-            },
-            "ami-0c15e602d3d6c6c4a":{
-                "name": "Red Hat Enterprise Linux 9",
-                "user": "ec2-user"
-            },
-            "ami-04b7f73ef0b798a0f":{
-                "name": "SUSE Linux Enterprise Server 15 SP6 ",
-                "user": "ec2-user"
-            },
-            "ami-0779caf41f9ba54f0":{
-                "name": "Debian 12",
-                "user": "admin"
-            }
-        }
-
     # Translate region code to region name. Even though the API data contains
     # regionCode field, it will not return accurate data. However using the location
     # field will, but then we need to translate the region code into a region name.
@@ -78,44 +51,30 @@ class aws:
     def get_images(api_token: dict, region: str = "us-east-1") -> Dict:
         images = dict()
 
-        for ami in aws.amis:
-            images[ami] = aws.amis[ami]["name"]
-
-        return images
-
-        # below is how to query API, but 2k+ items are returned
-        access_key = api_token["access_key"]
-        secret_key = api_token["secret_key"]
         client = boto3.client(
             "ec2",
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            region_name=region,
+            region_name=region
         )
         resp = client.describe_images(
-            Owners=[
-                "099720109477",
-                "679593333241",
-            ],
+            Owners=["amazon"],
+            ImageIds=['ami-087f352c165340ea1'],
             Filters=[
-                {"Name": "architecture", "Values": ["x86_64"]},
                 {"Name": "state", "Values": ["available"]},
+                {"Name": "name", "Values": ["al2023-ami-2023.7.20250331.0-kernel-6.1-x86_64"]},
             ],
-            IncludeDeprecated=False,
         )
 
-        # print(resp)
         for image in resp["Images"]:
             try:
                 images[image["ImageId"]] = image["Description"]
             except KeyError:
                 pass
 
-        print(len(images))
         return images
 
     @staticmethod
     def get_resources(api_token: dict, region: str = "us-east-1") -> Dict:
+        region = 'us-east-1'
         instances = dict()
 
         # get_products function of the Pricing API
@@ -138,7 +97,11 @@ class aws:
 
         f = FLT.format(r=aws.get_region_name(region))
 
-        resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
+        # this only works with cerain regions apparently
+        try:
+            resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
+        except Exception:
+            return instances
 
         for instance in resp["PriceList"]:
             instance = json.loads(instance)
@@ -177,18 +140,68 @@ class aws:
         return regions
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> bool:
-        images = aws.get_images(token, region)
+    def valid_image_in_region(image: str, region: str, api_token: str) -> bool:
+        client = boto3.client(
+            "ec2",
+            region_name=region
+        )
 
-        if image in images.keys():
-            return True
-
-        return False
+        try:
+            # Exception is thrown if the image is not in this region
+            client.describe_images(
+                ImageIds=[image],
+                Filters=[
+                    {"Name": "state", "Values": ["available"]},
+                ],
+            )
+        except Exception:
+            return False
+        return True
 
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
         return True
 
     @staticmethod
-    def get_user(ami) -> str:
-        return aws.amis[ami]["user"]
+    def get_user(image: str, region: str) -> str:
+        client = boto3.client(
+            "ec2",
+            region_name=region
+        )
+
+        try:
+            # Exception is thrown if the image is not in this region
+            resp = client.describe_images(
+                ImageIds=[image],
+                Filters=[
+                    {"Name": "state", "Values": ["available"]},
+                ],
+            )
+            ami = resp.get('Images')[0]
+            ami_name = ami.get('Name').lower()
+
+            platform = ami.get('Platform', '').lower()
+            owner = ami.get('ImageOwnerAlias', '')
+
+            if platform == 'windows':
+                return 'Administrator'
+
+            if 'amazon' in owner or owner == 'aws-marketplace':
+                if 'amzn' in ami_name:
+                    return 'ec2-user'
+                elif 'ubuntu' in ami_name:
+                    return 'ubuntu'
+                elif 'centos' in ami_name:
+                    return 'centos'
+                elif 'fedora' in ami_name:
+                    return 'fedora'
+                elif 'rhel' in ami_name:
+                    return 'ec2-user'
+                else:
+                    return 'ec2-user'
+            else:
+                return 'ec2-user'
+
+        except Exception:
+            return 'ec2-user'
+        return 'ec2-user'

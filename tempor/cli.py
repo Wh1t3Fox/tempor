@@ -232,19 +232,31 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
         globals()[args.provider], "get_regions"
     )(args.api_token)
 
-    if args.provider == "azure" or args.provider == "aws":
+    if args.provider == "azure":
         provider_info[args.provider]["images"] = getattr(
             globals()[args.provider], "get_images"
         )(args.api_token, args.region)
+
         provider_info[args.provider]["resources"] = getattr(
             globals()[args.provider], "get_resources"
         )(args.api_token, args.region)
+    elif args.provider == "aws":
+        provider_info[args.provider]["images"] = dict()
+
+        provider_info[args.provider]["resources"] = getattr(
+            globals()[args.provider], "get_resources"
+        )(args.api_token, args.region)
+
     elif args.provider == "gcp":
         # make sure the image/region combo is allowed
         valid_zone = getattr(globals()[args.provider], "valid_zone")(
             args.api_token, args.zone
         )
-        assert valid_zone, f"{args.zone} is not valid"
+        try:
+            assert valid_zone
+        except AssertionError:
+            console.print(f"[red]{args.zone} is not valid[/red]")
+            sys.exit(1)
 
         provider_info[args.provider]["images"] = getattr(
             globals()[args.provider], "get_images"
@@ -260,12 +272,6 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             globals()[args.provider], "get_resources"
         )(args.api_token)
 
-    if args.image not in provider_info[args.provider]["images"]:
-        console.print(f"[red bold]{args.image} is not a supported image")
-        parser.print_help()
-        image_region_choices(args.provider)
-        parser.exit(0)
-
     if args.region not in provider_info[args.provider]["regions"]:
         console.print(f"[red bold]{args.region} is not a supported region")
         parser.print_help()
@@ -273,16 +279,22 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
         parser.exit(0)
 
     # make sure the image/region combo is allowed
-    valid_image = getattr(globals()[args.provider], "valid_image_in_region")(
-        args.image, args.region, args.api_token
-    )
-    assert valid_image, f"{args.image} is not available in {args.region}"
+    try:
+        assert getattr(globals()[args.provider], "valid_image_in_region")(
+            args.image, args.region, args.api_token
+        )
+    except AssertionError:
+        console.print(f"[red]{args.image} is not available in {args.region}[/red]")
+        sys.exit(1)
 
     # make sure the CPU RAM resources are allowed in this region
-    valid_resources = getattr(globals()[args.provider], "valid_resource_in_region")(
-        args.resources, args.region, args.api_token
-    )
-    assert valid_resources, f"{args.resources} is not available in {args.region}"
+    try:
+        assert getattr(globals()[args.provider], "valid_resource_in_region")(
+            args.resources, args.region, args.api_token
+        )
+    except AssertionError:
+        console.print(f"[red]{args.resources} is not available in {args.region}[/red]")
+        sys.exit(1)
 
     try:
         if args.help:
@@ -293,10 +305,9 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
         if not args.setup and (args.full or args.minimal):
             args.setup = True
 
-        if args.provider == "aws":
-            args.user = aws.get_user(args.image)
-        else:
-            args.user = "root"
+        args.user =  getattr(globals()[args.provider], "get_user")(
+            args.image, args.region
+        )
     except AttributeError as e:  # typically thrown at the args.help
         console.print(e)
         parser.print_help()

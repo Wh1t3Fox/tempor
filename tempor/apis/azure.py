@@ -173,3 +173,7 @@ class azure:
             return True
 
         return False
+
+    @staticmethod
+    def get_user(image: str, region: str) -> str:
+        return 'root'

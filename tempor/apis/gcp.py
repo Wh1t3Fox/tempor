@@ -148,3 +148,8 @@ class gcp:
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> Dict:
         return True
+
+
+    @staticmethod
+    def get_user(image: str, region: str) -> str:
+        return 'root'

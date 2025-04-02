@@ -107,3 +107,7 @@ class linode:
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
         return True  # linode does not restrict types in regions
+
+    @staticmethod
+    def get_user(image: str, region: str) -> str:
+        return 'root'

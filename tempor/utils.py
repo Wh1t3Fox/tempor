@@ -56,11 +56,12 @@ def image_region_choices(provider: str) -> None:
     for _id, name in provider_info[provider]["regions"].items():
         reg_table.add_row(str(_id), str(name))
 
-    img_table = Table(title="Images x86-64")
-    img_table.add_column("ID", style="cyan")
-    img_table.add_column("Name", style="magenta")
-    for _id, name in provider_info[provider]["images"].items():
-        img_table.add_row(str(_id), str(name))
+    if provider != 'aws':
+        img_table = Table(title="Images x86-64")
+        img_table.add_column("ID", style="cyan")
+        img_table.add_column("Name", style="magenta")
+        for _id, name in provider_info[provider]["images"].items():
+            img_table.add_row(str(_id), str(name))
 
     res_table = Table(title="Hardware Resources")
     res_table.add_column("ID", style="cyan")
@@ -90,7 +91,8 @@ options:
 """
     )
     console.print(reg_table)
-    console.print(img_table)
+    if provider != 'aws':
+        console.print(img_table)
     console.print(res_table)
 
 
