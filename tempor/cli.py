@@ -241,7 +241,10 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
             globals()[args.provider], "get_resources"
         )(args.api_token, args.region)
     elif args.provider == "aws":
-        provider_info[args.provider]["images"] = dict()
+        #provider_info[args.provider]["images"] = dict()
+        provider_info[args.provider]["images"] = getattr(
+            globals()[args.provider], "get_images"
+        )(args.api_token, args.region)
 
         provider_info[args.provider]["resources"] = getattr(
             globals()[args.provider], "get_resources"
@@ -278,6 +281,23 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
         image_region_choices(args.provider)
         parser.exit(0)
 
+    try:
+        if args.help:
+            image_region_choices(args.provider)
+            parser.exit(0)
+
+        # configure some easier options
+        if not args.setup and (args.full or args.minimal):
+            args.setup = True
+
+        args.user =  getattr(globals()[args.provider], "get_user")(
+            args.image, args.region
+        )
+    except AttributeError as e:  # typically thrown at the args.help
+        console.print(e)
+        parser.print_help()
+        parser.exit(0)
+
     # make sure the image/region combo is allowed
     try:
         assert getattr(globals()[args.provider], "valid_image_in_region")(
@@ -295,23 +315,6 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
     except AssertionError:
         console.print(f"[red]{args.resources} is not available in {args.region}[/red]")
         sys.exit(1)
-
-    try:
-        if args.help:
-            image_region_choices(args.provider)
-            parser.exit(0)
-
-        # configure some easier options
-        if not args.setup and (args.full or args.minimal):
-            args.setup = True
-
-        args.user =  getattr(globals()[args.provider], "get_user")(
-            args.image, args.region
-        )
-    except AttributeError as e:  # typically thrown at the args.help
-        console.print(e)
-        parser.print_help()
-        parser.exit(0)
 
     return args
 
