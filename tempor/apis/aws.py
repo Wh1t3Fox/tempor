@@ -56,11 +56,18 @@ class aws:
             region_name=region
         )
         resp = client.describe_images(
-            Owners=["amazon"],
-            ImageIds=['ami-087f352c165340ea1'],
+            Owners=[
+                "amazon",
+                "aws-marketplace"
+            ],
             Filters=[
                 {"Name": "state", "Values": ["available"]},
-                {"Name": "name", "Values": ["al2023-ami-2023.7.20250331.0-kernel-6.1-x86_64"]},
+                {"Name": "name", "Values": [
+                    "al2023-ami-2023.7.20250331.0-kernel-6.1-x86_64",
+                    "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250305",
+                    "debian-12-amd64-20250316-2053"
+                    ]
+                 },
             ],
         )
 
