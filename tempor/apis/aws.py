@@ -48,7 +48,7 @@ class aws:
             return False
 
     @staticmethod
-    def get_images(api_token: dict, region: str = "us-east-1") -> Dict:
+    def get_images(api_token: dict = {}, region: str = "us-east-1") -> Dict:
         images = dict()
 
         client = boto3.client(
@@ -135,7 +135,7 @@ class aws:
         return instances
 
     @staticmethod
-    def get_regions(api_token: dict) -> dict:
+    def get_regions(api_token: dict = {}) -> dict:
         regions = dict()
 
         session = Session()
@@ -147,7 +147,7 @@ class aws:
         return regions
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, api_token: str) -> bool:
+    def valid_image_in_region(image: str, region: str, api_token: str = {}) -> bool:
         client = boto3.client(
             "ec2",
             region_name=region
@@ -166,7 +166,7 @@ class aws:
         return True
 
     @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+    def valid_resource_in_region(resource: str, region: str, token: str = {}) -> bool:
         return True
 
     @staticmethod
