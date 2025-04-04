@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import importlib.resources
-from boto3.session import Session
-from typing import List, Dict
-import botocore
+from typing import Dict
 import boto3
 import json
 
@@ -15,7 +13,7 @@ class aws:
     # You could skip this by using the region names in your code directly, but most
     # other APIs are using the region code.
     @staticmethod
-    def get_region_name(region_code):
+    def get_region_name(region_code: str) -> str:
         default_region = "US East (N. Virginia)"
         ref = importlib.resources.files("botocore") / "data/endpoints.json"
         with importlib.resources.as_file(ref) as endpoint_file:
@@ -37,13 +35,13 @@ class aws:
             secret_key = api_token.get("secret_key", None)
             profile = api_token.get("profile", None)
 
-            client = boto3.client(
-                "sts",
-                aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key,
-                profile_name=profile,
-                region_name="us-east-1",
-            )
+            sess = boto3.Session(
+                        aws_access_key_id=access_key,
+                        aws_secret_access_key=secret_key,
+                        profile_name=profile,
+                        region_name="us-east-1"
+                    )
+            client = sess.client("sts")
             client.get_caller_identity()
             return True
         except Exception as e:
@@ -59,13 +57,13 @@ class aws:
         secret_key = api_token.get("secret_key", None)
         profile = api_token.get("profile", None)
 
-        client = boto3.client(
-            "ec2",
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region
-        )
+        sess = boto3.Session(
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    profile_name=profile,
+                    region_name=region
+                )
+        client = sess.client("ec2")
         resp = client.describe_images(
             Owners=[
                 "amazon",
@@ -92,7 +90,6 @@ class aws:
 
     @staticmethod
     def get_resources(api_token: dict = {}, region: str = "us-east-1") -> Dict:
-        region = 'us-east-1'
         instances = dict()
 
         # get_products function of the Pricing API
@@ -107,13 +104,13 @@ class aws:
         secret_key = api_token.get("secret_key", None)
         profile = api_token.get("profile", None)
 
-        client = boto3.client(
-            "pricing",
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region,
-        )
+        sess = boto3.Session(
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    profile_name=profile,
+                    region_name=region
+                )
+        client = sess.client("pricing")
 
         f = FLT.format(r=aws.get_region_name(region))
 
@@ -149,10 +146,18 @@ class aws:
 
     @staticmethod
     def get_regions(api_token: dict = {}) -> dict:
+        access_key = api_token.get("access_key", None)
+        secret_key = api_token.get("secret_key", None)
+        profile = api_token.get("profile", None)
+
         regions = dict()
 
-        session = Session()
-        resp = session.get_available_regions("ec2")
+        sess = boto3.Session(
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    profile_name=profile,
+                )
+        resp = sess.get_available_regions("ec2")
 
         for region in resp:
             regions[region] = region
@@ -165,13 +170,13 @@ class aws:
         secret_key = api_token.get("secret_key", None)
         profile = api_token.get("profile", None)
 
-        client = boto3.client(
-            "ec2",
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region
-        )
+        sess = boto3.Session(
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    profile_name=profile,
+                    region_name=region
+                )
+        client = sess.client("ec2")
 
         try:
             # Exception is thrown if the image is not in this region
@@ -195,13 +200,13 @@ class aws:
         secret_key = api_token.get("secret_key", None)
         profile = api_token.get("profile", None)
 
-        client = boto3.client(
-            "ec2",
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region
-        )
+        sess = boto3.Session(
+                    aws_access_key_id=access_key,
+                    aws_secret_access_key=secret_key,
+                    profile_name=profile,
+                    region_name=region
+                )
+        client = sess.client("ec2")
 
         try:
             # Exception is thrown if the image is not in this region

@@ -44,23 +44,32 @@ class TF:
 
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
+        # ENV set here are only accessible to the child processes
         if self.provider == 'aws':
             self.api_token = {} if self.api_token is None else self.api_token
-            # Do we have env vars being passed!?
+            # Do we have env vars being passed!?, assume the use is competent and setup all the envs
             if (os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY')):
                 # just make sure our region is set
-                if not(region := os.environ.get('AWS_REGION', None)):
+                if os.environ.get('AWS_REGION', None) is None:
                     os.environ['AWS_REGION'] = self.region
+                    
+                # does the user want to run as a different profile?
+                if (profile := self.api_token.get('profile', None)):
+                    os.environ['AWS_PROFILE'] = profile
+
             # do we have a profile specified?
-            elif self.api_token.get('profile', None) is not None:
-                if not(profile := os.environ.get('AWS_PROFILE', None)):
-                    os.environ['AWS_PROFILE'] = self.api_token.get('profile')
+            elif (profile := self.api_token.get('profile', None)):
+                # don't override the set env
+                if os.environ.get('AWS_PROFILE', None) is None:
+                    os.environ['AWS_PROFILE'] = profile
+
             # if the API tokens in the config are populated set them to env variables
             elif (self.api_token.get('access_key', None) is not None and \
                 self.api_token.get('secret_key', None) is not None):
                 os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
                 os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
                 os.environ['AWS_REGION'] = self.region
+
             else:
                 console.print('[red]No AWS API Tokens detected.[/red]')
                 sys.exit(1)
