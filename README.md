@@ -62,6 +62,7 @@ Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!
 <p>
 AWS supports authenticated through ENV variables or API tokens in the config file.
 </p>
+
 #### Total Setup Times
 ```
 # bare setup
