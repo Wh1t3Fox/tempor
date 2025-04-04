@@ -44,12 +44,20 @@ class TF:
 
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
-        if provider == 'aws' and self.api_token:
-            os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
-            os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
-            os.environ['AWS_REGION'] = self.region
-        elif provider == 'aws' and not self.api_token:
-            if not (os.environ.get('AWS_ACCESS_KEY_ID') or os.environ.get('AWS_SECRET_ACCESS_KEY')):
+        if self.provider == 'aws':
+            self.api_token = {} if self.api_token is None else self.api_token
+            # Do we have env vars being passed!?
+            if (os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY')):
+                # just make sure our region is set
+                if not(region := os.environ.get('AWS_REGION', None)):
+                    os.environ['AWS_REGION'] = self.region
+            # if the API tokens in the config are populated set them to env variables
+            elif (self.api_token.get('access_key', None) is not None and \
+                self.api_token.get('secret_key', None) is not None):
+                os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
+                os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
+                os.environ['AWS_REGION'] = self.region
+            else:
                 console.print('[red]No AWS API Tokens detected.[/red]')
                 sys.exit(1)
 
