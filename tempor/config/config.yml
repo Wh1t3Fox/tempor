@@ -46,8 +46,8 @@ providers:
       tenant_id: 
 
 config:
-  none: false
-  bare: true
+  none: true
+  bare: false
   minimal: false
   full: false
   # custom: /path/to/playbook.yml
