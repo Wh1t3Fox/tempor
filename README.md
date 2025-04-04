@@ -26,7 +26,7 @@ VPS configuration is performed via Ansible roles after creation. Currently the f
  * More to come...
 
 <p>
-Bare Setup (Default):
+Bare Setup:
   
   * IPv4 and IPV6 iptables lock down
   * ssh_hardening
@@ -59,6 +59,9 @@ Custom Ansible playbook supported with all 3 setups using `--custom` flag!
 Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!  
 </p>
   
+<p>
+AWS supports authenticated through ENV variables or API tokens in the config file.
+</p>
 #### Total Setup Times
 ```
 # bare setup
@@ -121,8 +124,8 @@ providers:
     image: ami-04505e74c0741db8d
     resources: t2.micro
     api_token:
-      access_key:
-      secret_key:
+      access_key: # Optional
+      secret_key: # Optional
   -
     name: gcp
     region: us-east1
@@ -144,8 +147,8 @@ providers:
       tenant_id:
 
 config:
-  none: false
-  bare: true
+  none: true
+  bare: false
   minimal: false
   full: false
   custom: /path/to/playbook.yml
