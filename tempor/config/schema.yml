@@ -14,7 +14,6 @@ definitions:
       - region
       - image
       - resources
-      - api_token
     properties:
       name: 
         type: string

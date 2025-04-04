@@ -43,7 +43,10 @@ def get_args() -> tuple[str, str, argparse.Namespace]:
     subparsers = parser.add_subparsers(dest="provider")
     for entry in cfg["providers"]:
         provider = entry["name"]
-        api_token = entry["api_token"]
+        if provider == 'aws':
+            api_token = entry.get("api_token", {})
+        else:
+            api_token = entry.get("api_token", "")
 
         provider_info[provider] = dict()
 

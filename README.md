@@ -124,6 +124,7 @@ providers:
     image: ami-04505e74c0741db8d
     resources: t2.micro
     api_token:
+      profile:    # Optional
       access_key: # Optional
       secret_key: # Optional
   -

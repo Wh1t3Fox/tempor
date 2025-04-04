@@ -51,6 +51,10 @@ class TF:
                 # just make sure our region is set
                 if not(region := os.environ.get('AWS_REGION', None)):
                     os.environ['AWS_REGION'] = self.region
+            # do we have a profile specified?
+            elif self.api_token.get('profile', None) is not None:
+                if not(profile := os.environ.get('AWS_PROFILE', None)):
+                    os.environ['AWS_PROFILE'] = self.api_token.get('profile')
             # if the API tokens in the config are populated set them to env variables
             elif (self.api_token.get('access_key', None) is not None and \
                 self.api_token.get('secret_key', None) is not None):

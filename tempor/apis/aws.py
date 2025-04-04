@@ -35,11 +35,13 @@ class aws:
             # None is the default value for these in the boto3 Session classs
             access_key = api_token.get("access_key", None)
             secret_key = api_token.get("secret_key", None)
+            profile = api_token.get("profile", None)
 
             client = boto3.client(
                 "sts",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
+                profile_name=profile,
                 region_name="us-east-1",
             )
             client.get_caller_identity()
@@ -55,11 +57,13 @@ class aws:
         # None is the default value for these in the boto3 Session classs
         access_key = api_token.get("access_key", None)
         secret_key = api_token.get("secret_key", None)
+        profile = api_token.get("profile", None)
 
         client = boto3.client(
             "ec2",
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
+            profile_name=profile,
             region_name=region
         )
         resp = client.describe_images(
@@ -101,11 +105,13 @@ class aws:
 
         access_key = api_token.get("access_key", None)
         secret_key = api_token.get("secret_key", None)
+        profile = api_token.get("profile", None)
 
         client = boto3.client(
             "pricing",
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
+            profile_name=profile,
             region_name=region,
         )
 
@@ -154,14 +160,16 @@ class aws:
         return regions
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, api_token: str = {}) -> bool:
+    def valid_image_in_region(image: str, region: str, api_token: dict = {}) -> bool:
         access_key = api_token.get("access_key", None)
         secret_key = api_token.get("secret_key", None)
+        profile = api_token.get("profile", None)
 
         client = boto3.client(
             "ec2",
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
+            profile_name=profile,
             region_name=region
         )
 
@@ -185,11 +193,13 @@ class aws:
     def get_user(image: str, region: str, api_token: dict = {}) -> str:
         access_key = api_token.get("access_key", None)
         secret_key = api_token.get("secret_key", None)
+        profile = api_token.get("profile", None)
 
         client = boto3.client(
             "ec2",
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
+            profile_name=profile,
             region_name=region
         )
 
