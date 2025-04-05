@@ -42,3 +42,48 @@ Source = "https://github.com/Wh1t3Fox/tempor"
 
 [project.scripts]
 tempor = "tempor.__main__:main"
+
+[tool.black]
+line-length = 88
+exclude = '''
+
+(
+  /(
+      \.eggs        
+    | \.git        
+    | \.ruff_cache
+    | \.tox
+    | \.venv
+    | __pypackages__
+    | _build
+    | build
+    | dist
+    | venv
+  )/
+  | tempor/playbooks
+                     
+)
+'''
+
+[tool.ruff]
+line-length = 88
+exclude = [
+    ".eggs",
+    ".git",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "build",
+    "dist",
+    "venv",
+]
+
+[tool.ruff.lint]
+select = ["D", "E", "F", "W", "B", "ISC", "C4", "UP"]
+fixable = ["D", "E", "F", "W", "B", "ISC", "C4", "UP"]
+ignore = ["B024", "B027", "D205", "D209"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
