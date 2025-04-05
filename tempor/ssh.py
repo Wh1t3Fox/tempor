@@ -1,32 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import ssh_config
 from ssh_config import SSHConfig, Host
-from os.path import expanduser
 from os import path
 import subprocess
 import shutil
 import os
 
-from .constant import ROOT_DIR, DATA_DIR
+from .constant import ROOT_DIR, DATA_DIR, SSH_CONFIG_PATH
 from .console import console
-
-SSH_CONFIG_PATH = expanduser("~/.ssh/config")
 
 
 def add_config_entry(hostname: str, attr: dict) -> None:
     new_host = Host(hostname, attr)
 
     # does ~/.ssh/config exist?
-    if not path.isfile(expanduser(SSH_CONFIG_PATH)):
+    if not path.isfile(SSH_CONFIG_PATH):
         # ~/.ssh/ ?
         if not path.exists(os.path.dirname(SSH_CONFIG_PATH)):
             os.makedirs(os.path.dirname(SSH_CONFIG_PATH))
         # create ~/.ssh/config
-        cfg = SSHConfig.create(expanduser(SSH_CONFIG_PATH))
+        cfg = SSHConfig.create(SSH_CONFIG_PATH)
     else:
-        cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
+        cfg = SSHConfig(SSH_CONFIG_PATH)
 
     cfg.add(new_host)
     cfg.write()
@@ -34,10 +30,10 @@ def add_config_entry(hostname: str, attr: dict) -> None:
 
 def remove_config_entry(hostname: str) -> None:
     # Nothing to remove if config doesn't exist
-    if not path.isfile(expanduser(SSH_CONFIG_PATH)):
+    if not path.isfile(SSH_CONFIG_PATH):
         return
 
-    cfg = SSHConfig(expanduser(SSH_CONFIG_PATH))
+    cfg = SSHConfig(SSH_CONFIG_PATH)
 
     try:
         cfg.remove(hostname)

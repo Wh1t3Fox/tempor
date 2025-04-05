@@ -18,28 +18,19 @@ import yaml
 import stat
 import os
 
-from .constant import provider_info, ROOT_DIR, CONFIG_DIR, BIN_DIR, DATA_DIR
+from .constant import (
+    ANSIBLE_HOSTS, 
+    BIN_DIR, 
+    CONFIG_DIR, 
+    HOSTS_FILE, 
+    provider_info, 
+    ROOT_DIR, 
+    TF_VER, 
+    TF_ZIP_HASH, 
+    TF_FILE_HASH
+)
 from .ssh import remove_config_entry
 from .console import console
-
-TF_VER = "1.11.3"
-TF_ZIP_HASH = {
-    "amd64": "377c8c18e2beab24f721994859236e98383350bf767921436511370d1f7c472b",
-    "386": "f5a4250f371df3b9b54b7f802495a9e341a8846e3536f673d1f8c1d28e8c0b85",
-    "arm": "9bf99463a9353a4242a5650fedc20833537db26c0aa7063ab673a179a5a7ba26",
-    "arm64": "d685953bec501c0acda13319f34dddaadf33a8f553c85533531d3c7d5f84604a",
-    "darwin": "bcdbb6f35c536da333d410cd0d0c1f5d543c4f40d46c8f96e419190fe3e9d941",
-}
-TF_FILE_HASH = {
-    "amd64": "e42d3d36350c2fb085c9d6c8cb9e19bc3e86c1a295862731dad3a3d674a74f9c",
-    "386": "fb8619837748bae100b65944c067a12f9e7f15ee04c729fd8f5c9103675c234c",
-    "arm": "6c87a3200e3c58d4a804db31219756ae4cb47d221b4316c1825d71e11e26dc2f",
-    "arm64": "c9652d71628df086d486c6d07609aae2f08a00c62cfb27a605a490ff71c19581",
-    "darwin": "551e00959094b15424596a8786ad278c7b257c43c534cb1c5f2d2565ab142583",
-}
-
-HOSTS_FILE = f"{DATA_DIR}/hosts"
-ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
 
 
 def image_region_choices(provider: str) -> None:
@@ -53,42 +44,22 @@ def image_region_choices(provider: str) -> None:
     else:
         reg_table.add_column("Location", style="magenta")
 
-    for _id, name in provider_info[provider]["regions"].items():
+    for _id, name in provider_info.get(provider, {}).get("regions", {}).items():
         reg_table.add_row(str(_id), str(name))
 
     img_table = Table(title="Images x86-64")
     img_table.add_column("ID", style="cyan")
     img_table.add_column("Name", style="magenta")
-    for _id, name in provider_info[provider]["images"].items():
+    for _id, name in provider_info.get(provider, {}).get("images", {}).items():
         img_table.add_row(str(_id), str(name))
 
     res_table = Table(title="Hardware Resources")
     res_table.add_column("ID", style="cyan")
     res_table.add_column("Price", style="magenta")
     res_table.add_column("Description", style="magenta")
-    for k, v in provider_info[provider]["resources"].items():
+    for k, v in provider_info.get(provider, {}).get("resources", {}).items():
         res_table.add_row(str(k), str(v["price"]), str(v["description"]))
 
-    print(
-        f"""
-usage: tempor {provider} [-h] [--image image] [--region region] [-s] [-l] [-b] [-m]
-
-options:
-  -h, --help            show this help message and exit
-  -c, --count           Number of images to create
-  --image image         Specify the OS Image
-  --region region       Specify the Region to Host the Image
-  --resources resource  Specify the hardware resources for the host image
-  --hostname hostname   Specify the name of the VPS
-  -l, --list            List Available VPS'
-  -s, --setup           Create a VPS
-  -f, --full            Full Configuration with hardening
-  -m, --minimal         Minimal Configuration (just configs)
-  --no-config           No Anisble setup at all
-  -t, --tags            Add tags to aws EC2 instance
-  --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
-"""
-    )
     console.print(reg_table)
     console.print(img_table)
     console.print(res_table)
@@ -172,7 +143,7 @@ def terraform_installed() -> str:
 
 
 def rm_hosts(provider: str, vps_name: str = "") -> None:
-    hostnames = list()
+    hostnames = []
     hosts = get_hosts()
 
     if not hosts or (provider not in hosts):
@@ -202,7 +173,7 @@ def rm_hosts(provider: str, vps_name: str = "") -> None:
 
 
 def get_hosts() -> Dict:
-    hosts = dict()
+    hosts = {}
     try:
         if os.path.exists(HOSTS_FILE):
             with open(HOSTS_FILE) as fr:
@@ -213,7 +184,7 @@ def get_hosts() -> Dict:
 
 
 def get_all_hostnames() -> List:
-    hostnames = list()
+    hostnames = []
     for provider, servers in get_hosts().items():
         for vps in servers:
             for hostname in vps.keys():
@@ -221,14 +192,14 @@ def get_all_hostnames() -> List:
     return hostnames
 
 
-def find_hostname(name: str) -> str:
+def find_hostname(name: str) -> Dict:
     all_hosts = get_hosts()
 
     for provider in all_hosts:
         for idx, vps in enumerate(all_hosts[provider]):
             if name in vps:
                 return all_hosts[provider][idx][name]
-    return ""
+    return {}
 
 
 """
@@ -244,7 +215,7 @@ def find_hostname(name: str) -> str:
 
 
 def save_hosts(provider: str, new_hosts: dict) -> None:
-    hosts = dict()
+    hosts = {}
 
     if not isinstance(new_hosts, dict):
         console.print("[red bold]Cannot save new hosts")
@@ -268,7 +239,7 @@ def save_hosts(provider: str, new_hosts: dict) -> None:
                 fw.write(f"{hostname}\n")
 
 
-def random_line(f: str) -> str:
+def random_line(f: Path) -> str:
     with open(f) as fr:
         lines = fr.read().splitlines()
         return random.choice(lines).replace("'", "").lower()
