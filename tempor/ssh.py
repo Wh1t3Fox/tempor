@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""SSH Handler Functions."""
 
 from ssh_config import SSHConfig, Host
 from os import path
@@ -12,6 +12,7 @@ from .console import console
 
 
 def add_config_entry(hostname: str, attr: dict) -> None:
+    """Add entry to SSH config."""
     new_host = Host(hostname, attr)
 
     # does ~/.ssh/config exist?
@@ -29,6 +30,7 @@ def add_config_entry(hostname: str, attr: dict) -> None:
 
 
 def remove_config_entry(hostname: str) -> None:
+    """Remove entry from SSH config."""
     # Nothing to remove if config doesn't exist
     if not path.isfile(SSH_CONFIG_PATH):
         return
@@ -53,6 +55,7 @@ def remove_config_entry(hostname: str) -> None:
 
 
 def check_sshkeys(provider: str, region: str, image: str, hostname: str) -> bool:
+    """Check if key exists, and create it if not."""
     # azure only allows RSA keys, so dumb
     key_type = "rsa" if provider == "azure" else "ed25519"
 
@@ -81,6 +84,7 @@ def check_sshkeys(provider: str, region: str, image: str, hostname: str) -> bool
 def install_ssh_keys(
     provider: str, region: str, image: str, hostname: str, ip_address: str, user: str
 ) -> None:
+    """Install SSH config to correct dir."""
     old_dir = f"{ROOT_DIR}/providers/{provider}/files/{region}/{image}/{hostname}/.ssh"
     out_dir = f"{DATA_DIR}/{hostname}/ssh"
     if not os.path.exists(out_dir):
@@ -98,6 +102,6 @@ def install_ssh_keys(
         "UserKnownHostsFile": "/dev/null",
         "IdentityFile": f"{out_dir}/id_ed25519",
         "IdentityAgent": "none",
-        "IdentitiesOnly": "yes"
+        "IdentitiesOnly": "yes",
     }
     add_config_entry(hostname, attr)

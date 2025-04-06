@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
+"""Linode API."""
 
-from typing import Dict
 import requests
-import json
-
-
-API_URL = "https://api.linode.com/v4"
-
 
 class linode:
-    def get_account(token: str) -> Dict:
+    """Linode API Class."""
+
+    API_URL = "https://api.linode.com/v4"
+
+    @staticmethod
+    def get_account(token: str) -> dict:
+        """Get account information."""
         return requests.get(
-            f"{API_URL}/account",
+            f"{linode.API_URL}/account",
             headers={
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
@@ -20,6 +21,7 @@ class linode:
 
     @staticmethod
     def authorized(token: str) -> bool:
+        """Check if API token is valid."""
         resp = linode.get_account(token)
 
         if "errors" in resp:
@@ -28,13 +30,14 @@ class linode:
         return True
 
     @staticmethod
-    def get_images(token: str) -> Dict:
-        images = dict()
+    def get_images(token: str) -> dict:
+        """Get available images."""
+        images = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/images?page={page}",
+                f"{linode.API_URL}/images?page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -51,13 +54,14 @@ class linode:
         return images
 
     @staticmethod
-    def get_regions(token: str) -> Dict:
-        regions = dict()
+    def get_regions(token: str) -> dict:
+        """Get available regions."""
+        regions = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/regions?page={page}",
+                f"{linode.API_URL}/regions?page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -75,13 +79,14 @@ class linode:
         return regions
 
     @staticmethod
-    def get_resources(token: str) -> Dict:
-        types = dict()
+    def get_resources(token: str) -> dict:
+        """Get available resource types."""
+        types = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/linode/types?page={page}",
+                f"{linode.API_URL}/linode/types?page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -102,12 +107,15 @@ class linode:
 
     @staticmethod
     def valid_image_in_region(image: str, region: str, token: str) -> bool:
-        return True  # linode does not restrict images in regions
+        """Linode does not restrict images in regions."""
+        return True
 
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
-        return True  # linode does not restrict types in regions
+        """Linode does not restrict types in regions."""
+        return True
 
     @staticmethod
     def get_user(image: str, region: str) -> str:
-        return 'root'
+        """Return SSH user."""
+        return "root"

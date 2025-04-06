@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Constants defined here."""
 
 from appdirs import user_config_dir, user_data_dir
 from os.path import expanduser
 import site
 import os
 
-provider_info = dict()
+provider_info = {}
 
 APP_NAME = "tempor"
 APP_AUTHOR = "wh1t3fox"

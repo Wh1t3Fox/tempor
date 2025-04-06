@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
+"""DigitalOcean API."""
 
-from typing import Dict
 import requests
-import json
-
-
-API_URL = "https://api.digitalocean.com/v2"
-
 
 class digitalocean:
-    def get_account(token: str) -> Dict:
+    """DO API Class."""
+
+    API_URL = "https://api.digitalocean.com/v2"
+
+    @staticmethod
+    def get_account(token: str) -> dict:
+        """"Get account information."""
         return requests.get(
-            f"{API_URL}/account",
+            f"{digitalocean.API_URL}/account",
             headers={
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
@@ -20,6 +21,7 @@ class digitalocean:
 
     @staticmethod
     def authorized(token: str) -> bool:
+        """Check if API token is valid."""
         resp = digitalocean.get_account(token)
 
         if "id" in resp and resp["id"] == "Unauthorized":
@@ -28,13 +30,14 @@ class digitalocean:
         return True
 
     @staticmethod
-    def get_images(token: str) -> Dict:
-        images = dict()
+    def get_images(token: str) -> dict:
+        """Get types of images."""
+        images = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/images?per_page=500&page={page}",
+                f"{digitalocean.API_URL}/images?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -52,13 +55,14 @@ class digitalocean:
         return images
 
     @staticmethod
-    def get_regions(token: str) -> Dict:
-        regions = dict()
+    def get_regions(token: str) -> dict:
+        """Get possible regions."""
+        regions = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/regions?per_page=500&page={page}",
+                f"{digitalocean.API_URL}/regions?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -66,7 +70,7 @@ class digitalocean:
             ).json()
 
             for region in resp["regions"]:
-                if region["available"] == True:
+                if region["available"] is True:
                     regions[region["slug"]] = region["name"]
 
             if not resp["links"] or "last" not in resp["links"]["pages"]:
@@ -77,13 +81,14 @@ class digitalocean:
         return regions
 
     @staticmethod
-    def get_resources(token: str) -> Dict:
-        sizes = dict()
+    def get_resources(token: str) -> dict:
+        """Get possible resource types."""
+        sizes = {}
 
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/sizes?per_page=500&page={page}",
+                f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -91,7 +96,7 @@ class digitalocean:
             ).json()
 
             for size in resp["sizes"]:
-                if size["available"] == True:
+                if size["available"] is True:
                     sizes[size["slug"]] = {
                         "description": size["description"],
                         "price": f"${size['price_hourly']}/hr",
@@ -106,10 +111,11 @@ class digitalocean:
 
     @staticmethod
     def valid_image_in_region(image: str, region: str, token: str) -> bool:
+        """Check if the image/region combination is valid."""
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/images?per_page=500&page={page}",
+                f"{digitalocean.API_URL}/images?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -130,10 +136,11 @@ class digitalocean:
 
     @staticmethod
     def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+        """Check if the resource type is available in the region."""
         page = 1
         while True:
             resp = requests.get(
-                f"{API_URL}/sizes?per_page=500&page={page}",
+                f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -143,7 +150,7 @@ class digitalocean:
             for size in resp["sizes"]:
                 if size["slug"] == resource:
                     # resource is in region and available
-                    return region in size["regions"] and size["available"] == True
+                    return region in size["regions"] and size["available"] is True
 
             if not resp["links"] or "last" not in resp["links"]["pages"]:
                 break
@@ -152,7 +159,7 @@ class digitalocean:
 
         return False
 
-
     @staticmethod
     def get_user(image: str, region: str) -> str:
-        return 'root'
+        """Return the SSH user."""
+        return "root"

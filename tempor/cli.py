@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""Main CLI interface."""
 
 from rich.prompt import Confirm
 from rich.table import Table
@@ -20,16 +20,19 @@ from .utils import (
     get_config,
     get_hosts,
     image_region_choices,
-    save_hosts
+    save_hosts,
 )
 from .tf import TF
-from .apis import *
+from .apis import * # noqa
 
 
 def print_subparser_help(parser: argparse.ArgumentParser, provider: str) -> None:
+    """Find the correct subparser to print help."""
     subparsers_actions = [
-        action for action in parser._actions 
-        if isinstance(action, argparse._SubParsersAction)]
+        action
+        for action in parser._actions
+        if isinstance(action, argparse._SubParsersAction)
+    ]
 
     for subparsers_action in subparsers_actions:
         for choice, subparser in subparsers_action.choices.items():
@@ -39,7 +42,7 @@ def print_subparser_help(parser: argparse.ArgumentParser, provider: str) -> None
 
 
 def get_args() -> argparse.Namespace:
-
+    """Parse cli arguments and setup env."""
     cfg = get_config()
 
     if not cfg:
@@ -47,7 +50,11 @@ def get_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        "-t", "--teardown", default=None, choices=get_all_hostnames(), help="Name of VPS Image to Tear down"
+        "-t",
+        "--teardown",
+        default=None,
+        choices=get_all_hostnames(),
+        help="Name of VPS Image to Tear down",
     )
     parser.add_argument("-u", "--update", action="store_true", help="Check for Upates")
     parser.add_argument("--version", action="store_true", help="Print current version")
@@ -57,16 +64,16 @@ def get_args() -> argparse.Namespace:
     providers_failed_auth = []
     for entry in cfg.get("providers", []):
         provider = entry.get("name")
-        if provider == 'aws':
+        if provider == "aws":
             api_token = entry.get("api_token", {})
         else:
             api_token = entry.get("api_token", "")
 
-        provider_info[provider] = dict()
+        provider_info[provider] = {}
         provider_info[provider]["api_token"] = api_token
 
         # validate API creds
-        if not getattr(globals()[provider], "authorized")(api_token):
+        if not getattr(globals()[provider], "authorized")(api_token): # noqa
             providers_failed_auth.append(provider)
 
         prov_parser = subparsers.add_parser(provider, add_help=False)
@@ -146,7 +153,8 @@ def get_args() -> argparse.Namespace:
             "--custom",
             type=str,
             default=False,
-            help="Specify Ansible playbook for custom configuration (Path to main.yml file)",
+            help="Specify Ansible playbook for custom configuration "
+                    "(Path to main.yml file)",
         )
         prov_parser.add_argument(
             "--additional-info",
@@ -158,9 +166,9 @@ def get_args() -> argparse.Namespace:
 
     if providers_failed_auth:
         for provider in providers_failed_auth:
-                console.print(
-                    f"[red bold] Invalid {provider} API Token. Fix or remove provider."
-                )
+            console.print(
+                f"[red bold] Invalid {provider} API Token. Fix or remove provider."
+            )
         sys.exit(1)
 
     if args.version:
@@ -179,11 +187,13 @@ def get_args() -> argparse.Namespace:
             res = res[offset:]
             _name, _, c_ver, _, _, l_ver, _ = res.split(" ", 6)
             console.print(f"[green]Version {l_ver} available!")
-            if (choice := Confirm.ask("Would you like to update? (Y/n)")):
+            if choice := Confirm.ask("Would you like to update? (Y/n)"):
                 try:
                     assert choice
-                    subprocess.check_output(["python3", "-m", "pip", "install", "-U", "tempor"],
-                        stderr=subprocess.DEVNULL)
+                    subprocess.check_output(
+                        ["python3", "-m", "pip", "install", "-U", "tempor"],
+                        stderr=subprocess.DEVNULL,
+                    )
                 except AssertionError:
                     pass
         else:
@@ -192,7 +202,6 @@ def get_args() -> argparse.Namespace:
 
     elif args.teardown:
         return args
-
 
     # not specifying anything other than setup parse config
     if args.setup and not (args.minimal or args.full or args.custom):
@@ -205,7 +214,7 @@ def get_args() -> argparse.Namespace:
             # first set is mutually exclusive, but custom can be used with any
             if config.get("none") is True:
                 args.no_config = True
-            elif  config.get("bare") is True:
+            elif config.get("bare") is True:
                 args.minimal = False
                 args.full = False
             elif config.get("minimal") is True:
@@ -215,9 +224,9 @@ def get_args() -> argparse.Namespace:
                 args.minimal = False
                 args.full = True
             elif (
-                (config.get("bare") is False) and \
-                (config.get("minimal") is False) and \
-                (config.get("full") is False)
+                (config.get("bare") is False)
+                and (config.get("minimal") is False)
+                and (config.get("full") is False)
             ):
                 args.no_config = True
 
@@ -236,7 +245,7 @@ def get_args() -> argparse.Namespace:
     for p in cfg.get("providers", {}):
         if p.get("name") == args.provider:
 
-            if image := p.get("image"): 
+            if image := p.get("image"):
                 if not args.image:
                     args.image = image
 
@@ -255,27 +264,35 @@ def get_args() -> argparse.Namespace:
 
             if api_token := p.get("api_token"):
                 args.api_token = api_token
+
+                # AWS specific
+                if api_token.get("profile") is None and \
+                        args.profile is not None:
+                            args.api_token["profile"] = args.profile
+
+
+
             break
     else:
         parser.print_help()
         sys.exit(1)
 
-    provider_info[args.provider]["regions"] = getattr(
+    provider_info[args.provider]["regions"] = getattr( # noqa
         globals()[args.provider], "get_regions"
     )(args.api_token)
 
     if args.provider == "azure" or args.provider == "aws":
-        provider_info[args.provider]["images"] = getattr(
+        provider_info[args.provider]["images"] = getattr( # noqa
             globals()[args.provider], "get_images"
         )(args.api_token, args.region)
 
-        provider_info[args.provider]["resources"] = getattr(
+        provider_info[args.provider]["resources"] = getattr( # noqa
             globals()[args.provider], "get_resources"
         )(args.api_token, args.region)
 
     elif args.provider == "gcp":
         # make sure the image/region combo is allowed
-        valid_zone = getattr(globals()[args.provider], "valid_zone")(
+        valid_zone = getattr(globals()[args.provider], "valid_zone")( # noqa
             args.api_token, args.zone
         )
         try:
@@ -284,19 +301,19 @@ def get_args() -> argparse.Namespace:
             console.print(f"[red]{args.zone} is not valid[/red]")
             sys.exit(1)
 
-        provider_info[args.provider]["images"] = getattr(
+        provider_info[args.provider]["images"] = getattr( # noqa
             globals()[args.provider], "get_images"
         )(args.api_token)
 
-        provider_info[args.provider]["resources"] = getattr(
+        provider_info[args.provider]["resources"] = getattr( # noqa
             globals()[args.provider], "get_resources"
         )(args.api_token, args.zone)
     else:
-        provider_info[args.provider]["images"] = getattr(
+        provider_info[args.provider]["images"] = getattr( # noqa
             globals()[args.provider], "get_images"
         )(args.api_token)
 
-        provider_info[args.provider]["resources"] = getattr(
+        provider_info[args.provider]["resources"] = getattr( # noqa
             globals()[args.provider], "get_resources"
         )(args.api_token)
 
@@ -306,9 +323,7 @@ def get_args() -> argparse.Namespace:
         image_region_choices(args.provider)
         parser.exit(0)
 
-    args.user =  getattr(globals()[args.provider], "get_user")(
-        args.image, args.region
-    )
+    args.user = getattr(globals()[args.provider], "get_user")(args.image, args.region) # noqa
 
     # this needs to come after populating the info above
     if args.help:
@@ -319,7 +334,7 @@ def get_args() -> argparse.Namespace:
 
     # make sure the image/region combo is allowed
     try:
-        assert getattr(globals()[args.provider], "valid_image_in_region")(
+        assert getattr(globals()[args.provider], "valid_image_in_region")( # noqa
             args.image, args.region, args.api_token
         )
     except AssertionError:
@@ -328,7 +343,7 @@ def get_args() -> argparse.Namespace:
 
     # make sure the CPU RAM resources are allowed in this region
     try:
-        assert getattr(globals()[args.provider], "valid_resource_in_region")(
+        assert getattr(globals()[args.provider], "valid_resource_in_region")( # noqa
             args.resources, args.region, args.api_token
         )
     except AssertionError:
@@ -338,7 +353,8 @@ def get_args() -> argparse.Namespace:
     return args
 
 
-def main(args: argparse.Namespace = None, override_teardown: bool = False) -> None:
+def main(args = None, override_teardown: bool = False) -> None:
+    """Start Program."""
     if not args:
         args = get_args()
 
@@ -351,7 +367,9 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             console.print(f"[red bold]{args.teardown} is not a valid hostname")
             return None
 
-        _provider, _, _image, _ = _host.get("workspace", "").replace("+", "/").split("_")
+        _provider, _, _image, _ = (
+            _host.get("workspace", "").replace("+", "/").split("_")
+        )
         args.provider = _provider
         args.region = _host.get("region", "")
         args.image = _image
@@ -359,7 +377,14 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         args.api_token = provider_info.get(args.provider, {}).get("api_token", "")
         args.hostname = args.teardown
 
-    tf = TF(args.provider, args.region, args.image, args.resources, args.hostname, args.api_token)
+    tf = TF(
+        args.provider,
+        args.region,
+        args.image,
+        args.resources,
+        args.hostname,
+        args.api_token,
+    )
 
     tf_workspace_name = tf.get_workspace_name()
 
@@ -373,7 +398,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     elif not (args.teardown or args.list):
         # Only 1 provider/region/image at a time
         console.print(
-            "[red bold]Provider/Region/Image/Hostname Combination taken. Chose a different provider, region, image, or hostname."
+            "[red bold]Provider/Region/Image/Hostname Combination taken. "
+                    "Chose a different provider, region, image, or hostname."
         )
         return
 
@@ -400,7 +426,9 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
                     region = values.get("region", "UNK")
                     try:
                         image = (
-                            values.get("workspace", "UNK").split("_")[-2].replace("+", "/")
+                            values.get("workspace", "UNK")
+                            .split("_")[-2]
+                            .replace("+", "/")
                         )
                     except IndexError:
                         image = "UNK"
@@ -410,15 +438,17 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
             console.print(table)
         return
 
-
     # prevent accidental creations
     if not args.setup:
-        console.print('[red]Specify -s/--setup to create an instance.[/red]')
+        console.print("[red]Specify -s/--setup to create an instance.[/red]")
         return
 
     console.print("Configuring SSH Keys...", end="", style="bold italic")
     # Creates new key pair
-    if check_sshkeys(args.provider, args.region, args.image, tf.get_vps_name()) is False:
+    if (
+        check_sshkeys(args.provider, args.region, args.image, tf.get_vps_name())
+        is False
+    ):
         return
     console.print("Done.")
 
@@ -429,7 +459,6 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         main(args, True)
     console.print("Done.")
 
-
     # now apply the config
     console.print("Creating VPS...", end="", style="bold italic")
     if not tf.apply():
@@ -437,16 +466,17 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
         main(args, True)
     console.print("Done.")
 
+    hostname = ""
     for hostname, val in tf.get_new_hosts().items():
         install_ssh_keys(
             args.provider,
-            val.get('region'), 
-            val.get('image'), 
+            val.get("region"),
+            val.get("image"),
             hostname,
-            val.get('ip'), 
-            args.user
+            val.get("ip"),
+            args.user,
         )
-        save_hosts(args.provider,{hostname: val})
+        save_hosts(args.provider, {hostname: val})
 
     if args.no_config:
         pass
@@ -461,7 +491,8 @@ def main(args: argparse.Namespace = None, override_teardown: bool = False) -> No
     if args.custom:
         run_custom_playbook(args.custom, args.user)
 
-    console.print(f"\nVPS {hostname} now available!\n", style="bold italic green")
+    if hostname:
+        console.print(f"\nVPS {hostname} now available!\n", style="bold italic green")
 
 
 if __name__ == "__main__":

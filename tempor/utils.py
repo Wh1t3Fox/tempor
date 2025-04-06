@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""Utility helper functions."""
 
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
-from typing import Dict, List
 from rich.table import Table
 from pathlib import Path
 import jsonschema
@@ -19,21 +18,22 @@ import stat
 import os
 
 from .constant import (
-    ANSIBLE_HOSTS, 
-    BIN_DIR, 
-    CONFIG_DIR, 
-    HOSTS_FILE, 
-    provider_info, 
-    ROOT_DIR, 
-    TF_VER, 
-    TF_ZIP_HASH, 
-    TF_FILE_HASH
+    ANSIBLE_HOSTS,
+    BIN_DIR,
+    CONFIG_DIR,
+    HOSTS_FILE,
+    provider_info,
+    ROOT_DIR,
+    TF_VER,
+    TF_ZIP_HASH,
+    TF_FILE_HASH,
 )
 from .ssh import remove_config_entry
 from .console import console
 
 
 def image_region_choices(provider: str) -> None:
+    """Print information for `--aditional-info` arg."""
     if provider is None:
         return
 
@@ -65,32 +65,35 @@ def image_region_choices(provider: str) -> None:
     console.print(res_table)
 
 
-def get_config() -> Dict:
+def get_config() -> dict:
+    """Parse config file."""
     fpath = f"{CONFIG_DIR}/config.yml"
 
     if not os.path.exists(fpath):
         console.print(f"Creating New Config File: {fpath}")
         shutil.copy(f"{ROOT_DIR}/config/config.yml", fpath)
-        return dict()
+        return {}
 
     with open(fpath) as fr, open(f"{ROOT_DIR}/config/schema.yml") as fr2:
         try:
             cfg = yaml.safe_load(fr)
             schema = yaml.safe_load(fr2)
             jsonschema.validate(cfg, schema)
-        except jsonschema.exceptions.ValidationError as e:
+        except jsonschema.ValidationError as e:
             console.print(f"[red bold]Invalid Config File: {fpath}")
             if "api_token" in str(e):
                 console.print(
-                    "[red bold]All Values are required. Remove Providers without an API Token"
+                    "[red bold]All Values are required. "
+                            "Remove Providers without an API Token"
                 )
             else:
                 console.print(f"[red bold]{e}")
-            return dict()
+            return {}
         return cfg
 
 
 def terraform_installed() -> str:
+    """Makesure Terraform is installed."""
     updated = True
     out_file = shutil.which("terraform")
 
@@ -124,7 +127,8 @@ def terraform_installed() -> str:
     if not os.path.exists(out_file) or not updated:
         out_file = f"{BIN_DIR}/terraform"
         console.print(
-            f"Terraform not in Path or Out-of-Date. Installing v{TF_VER} to {out_file} ..."
+            "Terraform not in Path or Out-of-Date. "
+                    f"Installing v{TF_VER} to {out_file} ..."
         )
 
         with urlopen(url) as zipresp:
@@ -143,6 +147,7 @@ def terraform_installed() -> str:
 
 
 def rm_hosts(provider: str, vps_name: str = "") -> None:
+    """Remove SSH Host entry."""
     hostnames = []
     hosts = get_hosts()
 
@@ -150,7 +155,7 @@ def rm_hosts(provider: str, vps_name: str = "") -> None:
         return
 
     for idx, host in enumerate(hosts[provider]):
-        for hostname, values in host.items():
+        for hostname, _ in host.items():
             if vps_name:
                 if hostname == vps_name:
                     hostnames.append(hostname)
@@ -172,7 +177,8 @@ def rm_hosts(provider: str, vps_name: str = "") -> None:
                 fw.write(line)
 
 
-def get_hosts() -> Dict:
+def get_hosts() -> dict:
+    """Get all available hosts."""
     hosts = {}
     try:
         if os.path.exists(HOSTS_FILE):
@@ -183,16 +189,18 @@ def get_hosts() -> Dict:
     return hosts
 
 
-def get_all_hostnames() -> List:
+def get_all_hostnames() -> list:
+    """Get a list of all hostnames."""
     hostnames = []
-    for provider, servers in get_hosts().items():
+    for _, servers in get_hosts().items():
         for vps in servers:
             for hostname in vps.keys():
                 hostnames.append(hostname)
     return hostnames
 
 
-def find_hostname(name: str) -> Dict:
+def find_hostname(name: str) -> dict:
+    """Return information on a hostname."""
     all_hosts = get_hosts()
 
     for provider in all_hosts:
@@ -202,19 +210,8 @@ def find_hostname(name: str) -> Dict:
     return {}
 
 
-"""
-{
-    '<provider>': [
-        '<hostname>': {
-            'ip': '<ip>',
-            'workspace': '<workspace>'
-        },
-    ]
-}
-"""
-
-
 def save_hosts(provider: str, new_hosts: dict) -> None:
+    """Save host to file."""
     hosts = {}
 
     if not isinstance(new_hosts, dict):
@@ -226,7 +223,7 @@ def save_hosts(provider: str, new_hosts: dict) -> None:
 
     # combine 2 dictionaries
     if provider not in hosts:
-        hosts[provider] = list()
+        hosts[provider] = []
 
     hosts[provider].append(new_hosts)
 
@@ -235,21 +232,24 @@ def save_hosts(provider: str, new_hosts: dict) -> None:
 
     with open(ANSIBLE_HOSTS, "a+") as fw:
         for host in hosts[provider]:
-            for hostname, values in host.items():
+            for hostname, _ in host.items():
                 fw.write(f"{hostname}\n")
 
 
 def random_line(f: Path) -> str:
+    """Return random line from file."""
     with open(f) as fr:
         lines = fr.read().splitlines()
         return random.choice(lines).replace("'", "").lower()
 
 
 def random_number(min_val: int = 0, max_val: int = 100) -> str:
+    """Generate a random number."""
     return str(random.randint(min_val, max_val))
 
 
 def random_str(min_val: int = 5, max_val: int = 10) -> str:
+    """Generate a random string."""
     return "".join(
         [
             random.choice(string.ascii_lowercase)
@@ -259,6 +259,7 @@ def random_str(min_val: int = 5, max_val: int = 10) -> str:
 
 
 def random_name() -> str:
+    """Return a random name for hostname."""
     try:
         wordlist = Path("/usr/share/dict/american-english")
         if not wordlist.is_file():

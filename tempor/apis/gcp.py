@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
+"""GCP API."""
 
 from googleapiclient import discovery
 import google.auth
 
-from typing import List, Dict
-
 
 class gcp:
+    """GCP API Class."""
+
     @staticmethod
     def authorized(api_token: dict) -> bool:
+        """Check if API token is valid."""
         try:
             auth_file = api_token["auth_file"]
 
@@ -20,8 +22,9 @@ class gcp:
             return False
 
     @staticmethod
-    def get_images(api_token: dict) -> Dict:
-        images = dict()
+    def get_images(api_token: dict) -> dict:
+        """Get possible image types."""
+        images = {}
 
         auth_file = api_token["auth_file"]
         proj = api_token["project"]
@@ -57,26 +60,27 @@ class gcp:
                     continue
 
                 """
-                The image from which to initialize this disk. 
-                This can be one of: the image's self_link, 
-                projects/{project}/global/images/{image}, 
-                projects/{project}/global/images/family/{family}, 
-                global/images/{image}, global/images/family/{family}, 
-                family/{family}, {project}/{family}, 
+                The image from which to initialize this disk.
+                This can be one of: the image's self_link,
+                projects/{project}/global/images/{image},
+                projects/{project}/global/images/family/{family},
+                global/images/{image}, global/images/family/{family},
+                family/{family}, {project}/{family},
                 {project}/{image}, {family}, or {image}
                 """
                 try:
                     _image = f'{project}/{image["family"]}'
                     images[_image] = image["description"]
-                except:
+                except Exception:
                     _image = f'{project}/{image["name"]}'
                     images[_image] = image["name"]
 
         return images
 
     @staticmethod
-    def get_regions(api_token: dict) -> List:
-        regions = dict()
+    def get_regions(api_token: dict) -> dict:
+        """Get possible regions."""
+        regions = {}
 
         auth_file = api_token["auth_file"]
         project = api_token["project"]
@@ -94,8 +98,9 @@ class gcp:
         return regions
 
     @staticmethod
-    def get_resources(api_token: dict, zone: str) -> List:
-        machine_types = dict()
+    def get_resources(api_token: dict, zone: str) -> dict:
+        """Get possible resource types."""
+        machine_types = {}
 
         auth_file = api_token["auth_file"]
         project = api_token["project"]
@@ -114,7 +119,8 @@ class gcp:
         return machine_types
 
     @staticmethod
-    def get_zones(api_token: dict) -> List:
+    def get_zones(api_token: dict) -> list:
+        """Get available zones."""
         auth_file = api_token["auth_file"]
         project = api_token["project"]
 
@@ -127,6 +133,7 @@ class gcp:
 
     @staticmethod
     def valid_zone(api_token: dict, name: str) -> bool:
+        """Get available zones."""
         auth_file = api_token["auth_file"]
         project = api_token["project"]
 
@@ -142,14 +149,16 @@ class gcp:
         return False
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
+    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+        """All images types are in all regions."""
         return True
 
     @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> Dict:
+    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+        """All resources exist in all regions."""
         return True
-
 
     @staticmethod
     def get_user(image: str, region: str) -> str:
-        return 'root'
+        """Get SSH user."""
+        return "root"

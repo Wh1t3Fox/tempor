@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""Terraform Class."""
 
 from python_terraform import Terraform
 from pathlib import Path
@@ -9,23 +9,15 @@ import os
 
 from .constant import ROOT_DIR
 from .console import console
-from .workspaces import (
-    get_current_workspace,
-    get_all_workspace,
-    create_new_workspace,
-    select_workspace
-)
-from .utils import (
-    terraform_installed, 
-    rm_hosts, 
-    random_line, 
-    random_number,
-    random_str
-)
+from .utils import terraform_installed, rm_hosts, random_line, random_number, random_str
 
 
 class TF:
-    def __init__(self, provider, region, image, resources, vps_name=None, api_token=None, tags=dict()):
+    """Handler for all of the Terraform functionality."""
+
+    def __init__(
+        self, provider, region, image, resources, vps_name=None, api_token=None, tags={}
+    ):
         self.provider = provider
         self.region = region
         self.image = image
@@ -45,34 +37,41 @@ class TF:
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
         # ENV set here are only accessible to the child processes
-        if self.provider == 'aws':
+        if self.provider == "aws":
             self.api_token = {} if self.api_token is None else self.api_token
-            # Do we have env vars being passed!?, assume the use is competent and setup all the envs
-            if (os.environ.get('AWS_ACCESS_KEY_ID') and os.environ.get('AWS_SECRET_ACCESS_KEY')):
-                # just make sure our region is set
-                if os.environ.get('AWS_REGION', None) is None:
-                    os.environ['AWS_REGION'] = self.region
-                    
-                # does the user want to run as a different profile?
-                if (profile := self.api_token.get('profile', None)):
-                    os.environ['AWS_PROFILE'] = profile
-
-            # do we have a profile specified?
-            elif (profile := self.api_token.get('profile', None)):
-                # don't override the set env
-                if os.environ.get('AWS_PROFILE', None) is None:
-                    os.environ['AWS_PROFILE'] = profile
 
             # if the API tokens in the config are populated set them to env variables
-            elif (self.api_token.get('access_key', None) is not None and \
-                self.api_token.get('secret_key', None) is not None):
-                os.environ['AWS_ACCESS_KEY_ID'] = self.api_token['access_key']
-                os.environ['AWS_SECRET_ACCESS_KEY'] = self.api_token['secret_key']
-                os.environ['AWS_REGION'] = self.region
+            if (
+                self.api_token.get("access_key", None) is not None
+                and self.api_token.get("secret_key", None) is not None
+            ):
+                os.environ["AWS_ACCESS_KEY_ID"] = self.api_token["access_key"]
+                os.environ["AWS_SECRET_ACCESS_KEY"] = self.api_token["secret_key"]
+
+            # Do we have env vars being passed!?,
+            # assume the use is competent and setup all the envs
+            elif os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get(
+                "AWS_SECRET_ACCESS_KEY"
+            ):
+                pass # don't need to do anything :)
+
+            # do we only have a profile specified?
+            elif profile := self.api_token.get("profile", None):
+                pass # don't have to do anything here either :)
+
 
             else:
-                console.print('[red]No AWS API Tokens detected.[/red]')
+                console.print("[red]No AWS API Tokens detected.[/red]")
                 sys.exit(1)
+
+            # does the user want to run as a different profile?
+            if profile := self.api_token.get("profile", None):
+                os.environ["AWS_PROFILE"] = profile
+
+            # just make sure our region is set
+            if os.environ.get("AWS_REGION", None) is None:
+                os.environ["AWS_REGION"] = self.region
+
 
         # Create the Object
         self.t = Terraform(
@@ -89,17 +88,21 @@ class TF:
             print(stderr)
             return
 
-
     def get_vps_name(self) -> str:
+        """Return VPS name."""
         return self.vps_name
 
-
     def get_output(self) -> dict:
-        return self.t.output()
-
+        """Return output from Terraform."""
+        output =  self.t.output()
+        if output is None:
+            return {}
+        return output
 
     def get_plan_path(self) -> str:
-        plan_path =  f"{ROOT_DIR}/providers/{self.provider}/files/plans/{self.region}/{self.image}/{self.vps_name}/plan"
+        """Return fullpath of the Terraform Plan."""
+        plan_path = (f"{ROOT_DIR}/providers/{self.provider}/files/"
+                     f"plans/{self.region}/{self.image}/{self.vps_name}/plan")
 
         # Create dirs if needed
         plan_parent_path = Path(plan_path).parent.absolute()
@@ -108,73 +111,103 @@ class TF:
 
         return plan_path
 
-
     def get_active_workspace(self) -> str:
-        return get_current_workspace(self.t)
+        """Return active workspace."""
+        return self.get_current_workspace()
 
+    def get_current_workspace(self) -> str:
+        """Get the current workspace."""
+        ret, stdout, stderr = self.t.cmd("workspace", "show")
+        if ret != 0 and stderr:
+            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
+            print(stderr)
+
+        if stdout:
+            return stdout.strip()
+        return ""
+
+    def get_all_workspace(self) -> list[str]:
+        """Get all the workspaces."""
+        ret, stdout, stderr = self.t.cmd("workspace", "list")
+        if ret != 0 and stderr:
+            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
+            print(stderr)
+
+        if stdout:
+            return [s.strip("* ").strip() for s in stdout.split("\n")]
+        return []
+
+    def create_new_workspace(self, name: str) -> bool:
+        """Create a new workspace."""
+        ret, stdout, stderr = self.t.cmd("workspace", "new", name)
+        if ret != 0 and stderr:
+            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
+            print(stderr)
+
+            return False
+
+        return True
+
+    def select_workspace(self, name: str) -> bool:
+        """Change to the correct workspace."""
+        ret, stdout, stderr = self.t.cmd("workspace", "select", name)
+        if ret != 0 and stderr:
+            stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
+            print(stderr)
+
+            return False
+
+        return True
 
     def get_workspace_name(self) -> str:
+        """Return the name of the active workspace."""
         # The name must contain only URL safe characters, and no path separators.
-        return f"{self.provider}_{self.region}_{self.image}_{self.vps_name}".replace("/", "+")
-
+        return f"{self.provider}_{self.region}_{self.image}_{self.vps_name}".replace(
+            "/", "+"
+        )
 
     def correct_workspace(self) -> bool:
+        """Check if the active workspace is our current."""
         return self.get_active_workspace() == self.workspace_name
 
-
     def setup_workspace(self) -> None:
+        """Setup/Configure new workspace."""
         # Is the current workspace different than the one we should be using?
         # listing is irrelevant for workspaces
         if self.get_active_workspace() != self.workspace_name:
-            workspaces = get_all_workspace(self.t)
+            workspaces = self.get_all_workspace()
 
             if self.workspace_name not in workspaces:
-                create_new_workspace(self.t, self.workspace_name)
+                self.create_new_workspace(self.workspace_name)
             else:
-                select_workspace(self.t, self.workspace_name)
-
+                self.select_workspace(self.workspace_name)
 
     def get_new_hosts(self) -> dict:
-        new_hosts = dict()
+        """Parse the Terraform setup and save the new hosts."""
+        new_hosts = {}
 
         # figure out which provider we are
         output = self.get_output()
-        # digitalocean
-        if "droplet_ip_address" in output:
-            for hostname, ip_address in output.get("droplet_ip_address", {}).get("value").items():
-                new_hosts[hostname] = {
-                    "ip": ip_address,
-                    "region": self.region,
-                    "image": self.image,
-                    "resources": self.resources,
-                    "workspace": self.get_workspace_name(),
-                }
-
-        # linode, aws
-        elif "instance_ip_address" in output:
-            for hostname, ip_address in output.get("instance_ip_address", {}).get("value").items():
-                new_hosts[hostname] = {
-                    "ip": ip_address,
-                    "region": self.region,
-                    "image": self.image,
-                    "resources": self.resources,
-                    "workspace": self.get_workspace_name(),
-                }
-
-        # vultr
-        elif "server_ip_address" in output:
-            for hostname, ip_address in output.get("server_ip_address", {}).get("value").items():
-                new_hosts[hostname] = {
-                    "ip": ip_address,
-                    "region": self.region,
-                    "image": self.image,
-                    "resources": self.resources,
-                    "workspace": self.get_workspace_name(),
-                }
+        for instance_type in [
+                'droplet_ip_address',
+                'instance_ip_address',
+                'server_ip_address'
+                ]:
+            if instance := output.get(instance_type, None): # noqa
+                for hostname, ip_address in (
+                    instance.get("value").items()
+                ):
+                    new_hosts[hostname] = {
+                        "ip": ip_address,
+                        "region": self.region,
+                        "image": self.image,
+                        "resources": self.resources,
+                        "workspace": self.get_workspace_name(),
+                    }
         return new_hosts
 
-
-    def plan(self, count = 1) -> bool:
+    def plan(self, count=1) -> bool:
+        """Terraform plan."""
         ret, stdout, stderr = self.t.cmd(
             "plan",
             f"-out={self.get_plan_path()}",
@@ -185,7 +218,7 @@ class TF:
                 "resources": self.resources,
                 "num": count,
                 "vps_name": self.vps_name,
-                "tags": self.tags
+                "tags": self.tags,
             },
         )
         if ret != 0 and stderr:
@@ -195,8 +228,8 @@ class TF:
             return False
         return True
 
-
     def apply(self) -> bool:
+        """Terraform apply."""
         ret, stdout, stderr = self.t.cmd("apply", self.get_plan_path())
         if ret != 0 and stderr:
             # Fix the color escape sequences
@@ -205,28 +238,27 @@ class TF:
             return False
         return True
 
-
-    def teardown(self, hostname: str) ->  None:
-        '''
-        If therer are more than 1, remove just this instance, else remove everything
-        '''
-
+    def teardown(self, hostname: str) -> None:
+        """If there are more than 1, remove just this instance.
+        else remove everything."""
         ret, stdout, stderr = self.t.cmd("show")
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
             print(stderr)
-        output = self.t.output()
 
-        if "droplet_ip_address" in output:
-            num_instances = len(output["droplet_ip_address"]["value"])
-        elif "instance_ip_address" in output:
-            num_instances = len(output["instance_ip_address"]["value"])
-        elif "server_ip_address" in output:
-            num_instances = len(output["server_ip_address"]["value"])
+        output = self.get_output()
+        for instance_type in [
+                'droplet_ip_address',
+                'instance_ip_address',
+                'server_ip_address'
+            ]:
+            if instance := output.get(instance_type, None):
+                num_instances = len(instance.get("value", []))
+                break
         else:
             num_instances = 0
 
-        if num_instances > 1:
+        if num_instances > 1 and stdout is not None:
             # find resources we want to teardown
             stdout = stdout[: stdout.find(hostname)]
             # search right to left for vps resource
@@ -245,7 +277,7 @@ class TF:
                     "region": self.region,
                     "resources": self.resources,
                     "vps_name": self.vps_name,
-                    "tags": self.tags
+                    "tags": self.tags,
                 },
             )
             if ret != 0 and stderr:
@@ -264,7 +296,7 @@ class TF:
                     "region": self.region,
                     "resources": self.resources,
                     "vps_name": self.vps_name,
-                    "tags": self.tags
+                    "tags": self.tags,
                 },
             )
             if ret != 0 and stderr:
@@ -287,8 +319,8 @@ class TF:
         console.print("Done.")
         return
 
-
     def generate_vps_name(self) -> str:
+        """Generate random VPS name."""
         try:
             wordlist = Path("/usr/share/dict/american-english")
             if not wordlist.is_file():
@@ -298,3 +330,5 @@ class TF:
             name = f"{random_str()}{random_number()}"
 
         return name
+
+

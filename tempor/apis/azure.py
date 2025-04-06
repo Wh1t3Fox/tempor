@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
+"""Azure API."""
 
-from typing import Dict, List
 import requests
-import json
-
-
-API_URL = "https://management.azure.com"
-
 
 class azure:
-    def get_auth_token(token: str) -> Dict:
+    """Azure API Class."""
+
+    API_URL = "https://management.azure.com"
+
+    @staticmethod
+    def get_auth_token(token: dict) -> dict:
+        """Return auth token."""
         return requests.post(
             f'https://login.microsoftonline.com/{token["tenant_id"]}/oauth2/token',
             data={
                 "grant_type": "client_credentials",
                 "client_id": token["client_id"],
                 "client_secret": token["client_secret"],
-                "resource": API_URL,
+                "resource": azure.API_URL,
             },
         ).json()
 
     @staticmethod
-    def authorized(token: str) -> bool:
+    def authorized(token: dict) -> bool:
+        """Check if API token is valid."""
         resp = azure.get_auth_token(token)
 
         if "error" in resp:
@@ -29,13 +31,15 @@ class azure:
 
         return True
 
+    @staticmethod
     def get_offers(
         oauth_token: str, subscription: str, publisher: str, location: str
-    ) -> List:
-        offers = list()
+    ) -> list:
+        """Get available offers."""
+        offers = []
 
         resp = requests.get(
-            f"{API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
+            f"{azure.API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
             headers={
                 "Authorization": f"Bearer {oauth_token}",
                 "Content-Type": "application/json",
@@ -51,16 +55,18 @@ class azure:
                 # 0001-com-ubuntu-confidential-vm-test-focal
                 int(offer["name"].split("-")[0])
 
-            except:
+            except Exception:
                 offers.append(offer["name"])
 
         return offers
 
+    @staticmethod
     def get_skus(
         oauth_token: str, subscription: str, publisher: str, location: str, offer: str
-    ) -> List:
+    ) -> list:
+        """Get available SKUs."""
         resp = requests.get(
-            f"{API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
+            f"{azure.API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
             headers={
                 "Authorization": f"Bearer {oauth_token}",
                 "Content-Type": "application/json",
@@ -70,8 +76,9 @@ class azure:
         return [sku["name"] for sku in resp]
 
     @staticmethod
-    def get_images(token: str, location="eastus") -> Dict:
-        images = dict()
+    def get_images(token: dict, location="eastus") -> dict:
+        """Get available images."""
+        images = {}
 
         oauth_token = azure.get_auth_token(token)["access_token"]
 
@@ -95,13 +102,14 @@ class azure:
         return images
 
     @staticmethod
-    def get_regions(token: str) -> Dict:
-        regions = dict()
+    def get_regions(token: dict) -> dict:
+        """Get available regions."""
+        regions = {}
 
         oauth_token = azure.get_auth_token(token)["access_token"]
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{API_URL}/subscriptions/{token["subscription_id"]}/locations?api-version=2022-01-01',
+            f'{azure.API_URL}/subscriptions/{token["subscription_id"]}/locations?api-version=2022-01-01',
             headers={
                 "Authorization": f"Bearer {oauth_token}",
                 "Content-Type": "application/json",
@@ -111,16 +119,18 @@ class azure:
         for region in resp["value"]:
             try:
                 regions[region["name"]] = region["displayName"]
-            except:
+            except Exception:
                 pass
 
         return regions
 
-    def get_price(region: str) -> float:
-        prices = dict()
+    @staticmethod
+    def get_price(region: str) -> dict:
+        """Get price."""
+        prices = {}
 
         res = requests.get(
-            f"https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20%27eastus%27%20and%20serviceFamily%20eq%20%27Compute%27%20and%20tierMinimumUnits%20eq%200"
+            "https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20%27eastus%27%20and%20serviceFamily%20eq%20%27Compute%27%20and%20tierMinimumUnits%20eq%200"
         ).json()
 
         # TODO there are multiple skunames with different prices :/
@@ -130,8 +140,9 @@ class azure:
         return prices
 
     @staticmethod
-    def get_resources(token: str, region: str) -> Dict:
-        sizes = dict()
+    def get_resources(token: dict, region: str) -> dict:
+        """Get available resources."""
+        sizes = {}
 
         oauth_token = azure.get_auth_token(token)["access_token"]
 
@@ -139,7 +150,7 @@ class azure:
 
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{API_URL}/subscriptions/{token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
+            f'{azure.API_URL}/subscriptions/{token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
             headers={
                 "Authorization": f"Bearer {oauth_token}",
                 "Content-Type": "application/json",
@@ -157,7 +168,8 @@ class azure:
         return sizes
 
     @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> Dict:
+    def valid_image_in_region(image: str, region: str, token: dict) -> bool:
+        """Check if image is in the correct region."""
         images = azure.get_images(token, region)
 
         if image in images:
@@ -166,7 +178,8 @@ class azure:
         return False
 
     @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> Dict:
+    def valid_resource_in_region(resource: str, region: str, token: dict) -> bool:
+        """Is  the resource type in the correct region."""
         resources = azure.get_resources(token, region)
 
         if resource in resources:
@@ -176,4 +189,5 @@ class azure:
 
     @staticmethod
     def get_user(image: str, region: str) -> str:
-        return 'root'
+        """Return user."""
+        return "root"

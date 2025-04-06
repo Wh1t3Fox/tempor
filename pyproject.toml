@@ -83,7 +83,7 @@ exclude = [
 [tool.ruff.lint]
 select = ["D", "E", "F", "W", "B", "ISC", "C4", "UP"]
 fixable = ["D", "E", "F", "W", "B", "ISC", "C4", "UP"]
-ignore = ["B024", "B027", "D205", "D209"]
+ignore = ["B006", "B024", "B027", "D205", "D209"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
