@@ -73,7 +73,7 @@ def get_args() -> argparse.Namespace:
         provider_info[provider]["api_token"] = api_token
 
         # validate API creds
-        if not getattr(globals()[provider], "authorized")(api_token): # noqa
+        if not getattr(globals()[provider], "authorized")(api_token):
             providers_failed_auth.append(provider)
 
         prov_parser = subparsers.add_parser(provider, add_help=False)
@@ -147,6 +147,7 @@ def get_args() -> argparse.Namespace:
         prov_parser.add_argument(
             "--no-config",
             action="store_true",
+            default=True,
             help="Do not run any configuration (except custom)",
         )
         prov_parser.add_argument(
@@ -203,32 +204,27 @@ def get_args() -> argparse.Namespace:
     elif args.teardown:
         return args
 
-    # not specifying anything other than setup parse config
+    # This is default behavior
     if args.setup and not (args.minimal or args.full or args.custom):
-        if args.no_config:
-            args.minimal = False
-            args.full = False
-
+        # update args based upon config
         if config := cfg.get("config"):
-            # This is default behavior so don't really have to do this
             # first set is mutually exclusive, but custom can be used with any
             if config.get("none") is True:
                 args.no_config = True
+                args.minimal = False
+                args.full = False
             elif config.get("bare") is True:
+                args.no_config = False
                 args.minimal = False
                 args.full = False
             elif config.get("minimal") is True:
+                args.no_config = False
                 args.minimal = True
                 args.full = False
             elif config.get("full") is True:
+                args.no_config = False
                 args.minimal = False
                 args.full = True
-            elif (
-                (config.get("bare") is False)
-                and (config.get("minimal") is False)
-                and (config.get("full") is False)
-            ):
-                args.no_config = True
 
             if custom := config.get("custom"):
                 args.minimal = False
@@ -266,33 +262,31 @@ def get_args() -> argparse.Namespace:
                 args.api_token = api_token
 
                 # AWS specific
+                # override config with cli arg
                 if api_token.get("profile") is None and \
                         args.profile is not None:
                             args.api_token["profile"] = args.profile
-
-
-
             break
     else:
         parser.print_help()
         sys.exit(1)
 
-    provider_info[args.provider]["regions"] = getattr( # noqa
+    provider_info[args.provider]["regions"] = getattr(
         globals()[args.provider], "get_regions"
     )(args.api_token)
 
     if args.provider == "azure" or args.provider == "aws":
-        provider_info[args.provider]["images"] = getattr( # noqa
+        provider_info[args.provider]["images"] = getattr(
             globals()[args.provider], "get_images"
         )(args.api_token, args.region)
 
-        provider_info[args.provider]["resources"] = getattr( # noqa
+        provider_info[args.provider]["resources"] = getattr(
             globals()[args.provider], "get_resources"
         )(args.api_token, args.region)
 
     elif args.provider == "gcp":
         # make sure the image/region combo is allowed
-        valid_zone = getattr(globals()[args.provider], "valid_zone")( # noqa
+        valid_zone = getattr(globals()[args.provider], "valid_zone")(
             args.api_token, args.zone
         )
         try:
@@ -301,19 +295,19 @@ def get_args() -> argparse.Namespace:
             console.print(f"[red]{args.zone} is not valid[/red]")
             sys.exit(1)
 
-        provider_info[args.provider]["images"] = getattr( # noqa
+        provider_info[args.provider]["images"] = getattr(
             globals()[args.provider], "get_images"
         )(args.api_token)
 
-        provider_info[args.provider]["resources"] = getattr( # noqa
+        provider_info[args.provider]["resources"] = getattr(
             globals()[args.provider], "get_resources"
         )(args.api_token, args.zone)
     else:
-        provider_info[args.provider]["images"] = getattr( # noqa
+        provider_info[args.provider]["images"] = getattr(
             globals()[args.provider], "get_images"
         )(args.api_token)
 
-        provider_info[args.provider]["resources"] = getattr( # noqa
+        provider_info[args.provider]["resources"] = getattr(
             globals()[args.provider], "get_resources"
         )(args.api_token)
 
@@ -323,7 +317,7 @@ def get_args() -> argparse.Namespace:
         image_region_choices(args.provider)
         parser.exit(0)
 
-    args.user = getattr(globals()[args.provider], "get_user")(args.image, args.region) # noqa
+    args.user = getattr(globals()[args.provider], "get_user")(args.image, args.region)
 
     # this needs to come after populating the info above
     if args.help:
@@ -334,7 +328,7 @@ def get_args() -> argparse.Namespace:
 
     # make sure the image/region combo is allowed
     try:
-        assert getattr(globals()[args.provider], "valid_image_in_region")( # noqa
+        assert getattr(globals()[args.provider], "valid_image_in_region")(
             args.image, args.region, args.api_token
         )
     except AssertionError:
@@ -343,7 +337,7 @@ def get_args() -> argparse.Namespace:
 
     # make sure the CPU RAM resources are allowed in this region
     try:
-        assert getattr(globals()[args.provider], "valid_resource_in_region")( # noqa
+        assert getattr(globals()[args.provider], "valid_resource_in_region")(
             args.resources, args.region, args.api_token
         )
     except AssertionError:
