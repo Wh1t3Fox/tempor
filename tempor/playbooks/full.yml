@@ -8,7 +8,7 @@
     - packages
     - configurations
     - firewall
-    - ssh_hardening 
-    - os_hardening 
+    - ssh_hardening
+    - os_hardening
     - geerlingguy.docker
     - geerlingguy.pip

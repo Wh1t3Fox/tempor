@@ -6,4 +6,4 @@
     - devsec.hardening
   roles:
     - firewall
-    - ssh_hardening 
+    - ssh_hardening

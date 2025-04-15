@@ -5,6 +5,5 @@
   collections:
     - devsec.hardening
   roles:
-    - configurations
     - firewall
-    - ssh_hardening 
+    - ssh_hardening
