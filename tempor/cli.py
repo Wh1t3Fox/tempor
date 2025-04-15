@@ -21,6 +21,7 @@ from .utils import (
     get_hosts,
     image_region_choices,
     save_hosts,
+    log_table
 )
 from .tf import TF
 from .apis import * # noqa
@@ -430,7 +431,7 @@ def main(args = None, override_teardown: bool = False) -> None:
                     resources = values.get("resources", "UNK")
 
                     table.add_row(hostname, ip, region, image, resources)
-            logger.info(table)
+            logger.info(log_table(table))
         return
 
     # prevent accidental creations

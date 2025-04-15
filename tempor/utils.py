@@ -5,6 +5,8 @@ from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 from rich.table import Table
+from rich.console import Console
+from rich.text import Text
 from pathlib import Path
 import jsonschema
 import platform
@@ -32,6 +34,17 @@ from .constant import (
 from .ssh import remove_config_entry
 
 logger = logging.getLogger(__name__)
+
+def log_table(rich_table):
+    """Generate an ascii formatted presentation of a Rich table.
+
+    Eliminates any column styling
+    """
+    console = Console()
+    with console.capture() as capture:
+        console.print(rich_table)
+    return Text.from_ansi(capture.get())
+
 
 def image_region_choices(provider: str) -> None:
     """Print information for `--aditional-info` arg."""
@@ -61,9 +74,9 @@ def image_region_choices(provider: str) -> None:
     for k, v in provider_info.get(provider, {}).get("resources", {}).items():
         res_table.add_row(str(k), str(v["price"]), str(v["description"]))
 
-    logger.info(reg_table)
-    logger.info(img_table)
-    logger.info(res_table)
+    logger.info(log_table(reg_table))
+    logger.info(log_table(img_table))
+    logger.info(log_table(res_table))
 
 
 def get_config() -> dict:
