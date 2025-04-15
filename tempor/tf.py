@@ -3,12 +3,12 @@
 
 from python_terraform import Terraform
 from pathlib import Path
+import logging
 import sys
 import re
 import os
 
 from .constant import ROOT_DIR
-from .console import console
 from .utils import terraform_installed, rm_hosts, random_line, random_number, random_str
 
 
@@ -18,6 +18,7 @@ class TF:
     def __init__(
         self, provider, region, image, resources, vps_name=None, api_token=None, tags={}
     ):
+        self.logger = logging.getLogger(__name__)
         self.provider = provider
         self.region = region
         self.image = image
@@ -31,7 +32,7 @@ class TF:
         # check if terraform is installed
         terr_path = terraform_installed()
         if terr_path is None:
-            console.print("[red bold]Platform not Supported")
+            self.logger.error("[red bold]Platform not Supported")
             sys.exit(1)
 
         # pass tokens for AWS thourh ENV
@@ -61,7 +62,7 @@ class TF:
 
 
             else:
-                console.print("[red]No AWS API Tokens detected.[/red]")
+                self.logger.error("[red]No AWS API Tokens detected.[/red]")
                 sys.exit(1)
 
             # does the user want to run as a different profile?
@@ -83,9 +84,9 @@ class TF:
         # Initialize
         ret, stdout, stderr = self.t.init()
         if ret != 0 and stderr:
-            console.print("[red bold]Failed during initialization")
+            self.logger.error("[red bold]Failed during initialization")
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
             return
 
     def get_vps_name(self) -> str:
@@ -120,7 +121,7 @@ class TF:
         ret, stdout, stderr = self.t.cmd("workspace", "show")
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
 
         if stdout:
             return stdout.strip()
@@ -131,7 +132,7 @@ class TF:
         ret, stdout, stderr = self.t.cmd("workspace", "list")
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
 
         if stdout:
             return [s.strip("* ").strip() for s in stdout.split("\n")]
@@ -142,7 +143,7 @@ class TF:
         ret, stdout, stderr = self.t.cmd("workspace", "new", name)
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
 
             return False
 
@@ -153,7 +154,7 @@ class TF:
         ret, stdout, stderr = self.t.cmd("workspace", "select", name)
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
 
             return False
 
@@ -224,7 +225,7 @@ class TF:
         if ret != 0 and stderr:
             # Fix the color escape sequences
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
             return False
         return True
 
@@ -234,7 +235,7 @@ class TF:
         if ret != 0 and stderr:
             # Fix the color escape sequences
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
             return False
         return True
 
@@ -244,7 +245,7 @@ class TF:
         ret, stdout, stderr = self.t.cmd("show")
         if ret != 0 and stderr:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-            print(stderr)
+            self.logger.error(stderr)
 
         output = self.get_output()
         for instance_type in [
@@ -282,7 +283,7 @@ class TF:
             )
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
+                self.logger.error(stderr)
             rm_hosts(self.provider, hostname)
         else:
             # destroy all the resources (1 running instance)
@@ -301,22 +302,21 @@ class TF:
             )
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
+                self.logger.error(stderr)
 
             # switch to default workspace
             ret, stdout, stderr = self.t.cmd("workspace", "select", "default")
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
+                self.logger.error(stderr)
 
             # delete old workspace
             ret, stdout, stderr = self.t.cmd("workspace", "delete", self.workspace_name)
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
-                print(stderr)
+                self.logger.error(stderr)
 
             rm_hosts(self.provider)
-        console.print("Done.")
         return
 
     def generate_vps_name(self) -> str:

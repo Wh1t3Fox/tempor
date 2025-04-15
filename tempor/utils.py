@@ -8,6 +8,7 @@ from rich.table import Table
 from pathlib import Path
 import jsonschema
 import platform
+import logging
 import hashlib
 import random
 import string
@@ -29,8 +30,8 @@ from .constant import (
     TF_FILE_HASH,
 )
 from .ssh import remove_config_entry
-from .console import console
 
+logger = logging.getLogger(__name__)
 
 def image_region_choices(provider: str) -> None:
     """Print information for `--aditional-info` arg."""
@@ -60,9 +61,9 @@ def image_region_choices(provider: str) -> None:
     for k, v in provider_info.get(provider, {}).get("resources", {}).items():
         res_table.add_row(str(k), str(v["price"]), str(v["description"]))
 
-    console.print(reg_table)
-    console.print(img_table)
-    console.print(res_table)
+    logger.info(reg_table)
+    logger.info(img_table)
+    logger.info(res_table)
 
 
 def get_config() -> dict:
@@ -70,7 +71,7 @@ def get_config() -> dict:
     fpath = f"{CONFIG_DIR}/config.yml"
 
     if not os.path.exists(fpath):
-        console.print(f"Creating New Config File: {fpath}")
+        logger.info(f"Creating New Config File: {fpath}")
         shutil.copy(f"{ROOT_DIR}/config/config.yml", fpath)
         return {}
 
@@ -80,14 +81,14 @@ def get_config() -> dict:
             schema = yaml.safe_load(fr2)
             jsonschema.validate(cfg, schema)
         except jsonschema.ValidationError as e:
-            console.print(f"[red bold]Invalid Config File: {fpath}")
+            logger.error(f"[red bold]Invalid Config File: {fpath}[/]")
             if "api_token" in str(e):
-                console.print(
+                logger.error(
                     "[red bold]All Values are required. "
-                            "Remove Providers without an API Token"
+                            "Remove Providers without an API Token[/]"
                 )
             else:
-                console.print(f"[red bold]{e}")
+                logger.error(f"[red bold]{e}[/]")
             return {}
         return cfg
 
@@ -126,7 +127,7 @@ def terraform_installed() -> str:
 
     if not os.path.exists(out_file) or not updated:
         out_file = f"{BIN_DIR}/terraform"
-        console.print(
+        logger.info(
             "Terraform not in Path or Out-of-Date. "
                     f"Installing v{TF_VER} to {out_file} ..."
         )
@@ -134,11 +135,11 @@ def terraform_installed() -> str:
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
 
-            console.print(f"Validating Hash: {TF_ZIP_HASH[arch]}")
+            logger.debug(f"Validating Hash: {TF_ZIP_HASH[arch]}")
             assert (
                 TF_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
             ), "Invalid SHA256 Hash of Zip File!"
-            console.print("Passed!")
+            logger.debug("Passed!")
             with ZipFile(zipfile) as zfile:
                 zfile.extractall(f"{BIN_DIR}")
             st = os.stat(out_file)
@@ -215,7 +216,7 @@ def save_hosts(provider: str, new_hosts: dict) -> None:
     hosts = {}
 
     if not isinstance(new_hosts, dict):
-        console.print("[red bold]Cannot save new hosts")
+        logger.error("[red bold]Cannot save new hosts[/]")
         return
 
     # load in what's there

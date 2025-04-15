@@ -4,12 +4,13 @@
 from ssh_config import SSHConfig, Host
 from os import path
 import subprocess
+import logging
 import shutil
 import os
 
 from .constant import ROOT_DIR, DATA_DIR, SSH_CONFIG_PATH
-from .console import console
 
+logger = logging.getLogger(__name__)
 
 def add_config_entry(hostname: str, attr: dict) -> None:
     """Add entry to SSH config."""
@@ -61,7 +62,7 @@ def check_sshkeys(provider: str, region: str, image: str, hostname: str) -> bool
 
     prog = shutil.which("ssh-keygen")
     if not prog:
-        console.print("[red bold]ssh-keygen not available. Is OpenSSH installed?")
+        logger.info("[red bold]ssh-keygen not available. Is OpenSSH installed?[/]")
         return False
 
     out_dir = f"{ROOT_DIR}/providers/{provider}/files/{region}/{image}/{hostname}/.ssh"
@@ -70,13 +71,13 @@ def check_sshkeys(provider: str, region: str, image: str, hostname: str) -> bool
 
     out_file = f"{out_dir}/id_{key_type}"
     if not os.path.exists(out_file):
-        console.print("Generating new key pair...", end="", style="bold italic")
+        logger.info("[bold italic]Generating new key pair...[/]")
         subprocess.call(
             f'yes | ssh-keygen -t {key_type} -N "" -C "" -f {out_file}',
             stdout=subprocess.DEVNULL,
             shell=True,
         )
-        console.print("Done.")
+        logger.info("Done")
 
     return True
 

@@ -7,13 +7,13 @@ from os import access, R_OK
 from os.path import isfile
 import subprocess
 import argparse
+import logging
 import json
 import sys
 
 from .constant import __version__, provider_info
 from .playbook import run_playbook, run_custom_playbook
 from .ssh import check_sshkeys, install_ssh_keys
-from .console import console
 from .utils import (
     find_hostname,
     get_all_hostnames,
@@ -25,6 +25,7 @@ from .utils import (
 from .tf import TF
 from .apis import * # noqa
 
+logger = logging.getLogger(__name__)
 
 def print_subparser_help(parser: argparse.ArgumentParser, provider: str) -> None:
     """Find the correct subparser to print help."""
@@ -167,17 +168,17 @@ def get_args() -> argparse.Namespace:
 
     if providers_failed_auth:
         for provider in providers_failed_auth:
-            console.print(
+            logger.info(
                 f"[red bold] Invalid {provider} API Token. Fix or remove provider."
             )
         sys.exit(1)
 
     if args.version:
-        print(__version__)
+        logger.info(__version__)
         sys.exit(0)
 
     elif args.update:
-        console.print("Checking for updates...")
+        logger.info("Checking for updates...")
         res = subprocess.check_output(
             ["python3", "-m", "pip", "list", "--outdated", "--not-required"],
             stderr=subprocess.DEVNULL,
@@ -187,7 +188,7 @@ def get_args() -> argparse.Namespace:
             offset = res.find(parser.prog)
             res = res[offset:]
             _name, _, c_ver, _, _, l_ver, _ = res.split(" ", 6)
-            console.print(f"[green]Version {l_ver} available!")
+            logger.info(f"[green]Version {l_ver} available!")
             if choice := Confirm.ask("Would you like to update? (Y/n)"):
                 try:
                     assert choice
@@ -198,7 +199,7 @@ def get_args() -> argparse.Namespace:
                 except AssertionError:
                     pass
         else:
-            console.print("Running latest version.")
+            logger.info("Running latest version.")
         sys.exit(0)
 
     elif args.teardown:
@@ -292,7 +293,7 @@ def get_args() -> argparse.Namespace:
         try:
             assert valid_zone
         except AssertionError:
-            console.print(f"[red]{args.zone} is not valid[/red]")
+            logger.info(f"[red]{args.zone} is not valid[/red]")
             sys.exit(1)
 
         provider_info[args.provider]["images"] = getattr(
@@ -312,7 +313,7 @@ def get_args() -> argparse.Namespace:
         )(args.api_token)
 
     if args.region not in provider_info.get(args.provider, {}).get("regions", []):
-        console.print(f"[red bold]{args.region} is not a supported region")
+        logger.info(f"[red bold]{args.region} is not a supported region")
         print_subparser_help(parser, args.provider)
         image_region_choices(args.provider)
         parser.exit(0)
@@ -332,7 +333,7 @@ def get_args() -> argparse.Namespace:
             args.image, args.region, args.api_token
         )
     except AssertionError:
-        console.print(f"[red]{args.image} is not available in {args.region}[/red]")
+        logger.info(f"[red]{args.image} is not available in {args.region}[/red]")
         sys.exit(1)
 
     # make sure the CPU RAM resources are allowed in this region
@@ -341,7 +342,7 @@ def get_args() -> argparse.Namespace:
             args.resources, args.region, args.api_token
         )
     except AssertionError:
-        console.print(f"[red]{args.resources} is not available in {args.region}[/red]")
+        logger.info(f"[red]{args.resources} is not available in {args.region}[/red]")
         sys.exit(1)
 
     return args
@@ -358,7 +359,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         _host = find_hostname(args.teardown)
 
         if not _host:
-            console.print(f"[red bold]{args.teardown} is not a valid hostname")
+            logger.info(f"[red bold]{args.teardown} is not a valid hostname")
             return None
 
         _provider, _, _image, _ = (
@@ -391,7 +392,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         tf.setup_workspace()
     elif not (args.teardown or args.list):
         # Only 1 provider/region/image at a time
-        console.print(
+        logger.info(
             "[red bold]Provider/Region/Image/Hostname Combination taken. "
                     "Chose a different provider, region, image, or hostname."
         )
@@ -399,7 +400,7 @@ def main(args = None, override_teardown: bool = False) -> None:
 
     # now what do we want to do?
     if args.teardown:
-        console.print(f"Tearing down {args.teardown}...", end="", style="bold italic")
+        logger.info(f"[bold italic]Tearing down {args.teardown}...[/]")
         tf.teardown(args.teardown)
         return
 
@@ -429,36 +430,33 @@ def main(args = None, override_teardown: bool = False) -> None:
                     resources = values.get("resources", "UNK")
 
                     table.add_row(hostname, ip, region, image, resources)
-            console.print(table)
+            logger.info(table)
         return
 
     # prevent accidental creations
     if not args.setup:
-        console.print("[red]Specify -s/--setup to create an instance.[/red]")
+        logger.info("[red]Specify -s/--setup to create an instance.[/red]")
         return
 
-    console.print("Configuring SSH Keys...", end="", style="bold italic")
+    logger.info("[bold italic]Configuring SSH Keys...[/]")
     # Creates new key pair
     if (
         check_sshkeys(args.provider, args.region, args.image, tf.get_vps_name())
         is False
     ):
         return
-    console.print("Done.")
 
     # lets plan the config
-    console.print("Preparing Configuration...", end="", style="bold italic")
+    logger.info("[bold italic]Preparing Configuration...[/]")
     if not tf.plan(args.count):
         # if plan fails -- teardown
         main(args, True)
-    console.print("Done.")
 
     # now apply the config
-    console.print("Creating VPS...", end="", style="bold italic")
+    logger.info("[bold italic]Creating VPS...[/]")
     if not tf.apply():
         # if apply fails -- teardown
         main(args, True)
-    console.print("Done.")
 
     hostname = ""
     for hostname, val in tf.get_new_hosts().items():
@@ -486,7 +484,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         run_custom_playbook(args.custom, args.user)
 
     if hostname:
-        console.print(f"\nVPS {hostname} now available!\n", style="bold italic green")
+        logger.info(f"[bold italic green]VPS {hostname} now available![/]")
 
 
 if __name__ == "__main__":
