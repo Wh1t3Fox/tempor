@@ -13,32 +13,19 @@
 **tempor** is a tool used for creating ephemeral infrastructure in the cloud. tempor has the ability to create an arbitrary number of servers via Terraform, ideal for penetration testers and bug hunters.
 
 VPS configuration is performed via Ansible roles after creation. Currently the following roles are supported:
- * [dev-sec.os)hardening](https://github.com/dev-sec/ansible-collection-hardening)
- * [dev-sec.ssh_hardening](https://github.com/dev-sec/ansible-collection-hardening)
- * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)
- * [geerlingguy.pip](https://github.com/geerlingguy/ansible-role-pip)
-   * docker
-   * hashcrack-jtr
-   * impacket
- * IPv4 and IPv6 iptables lockdown
-   * INPUT only allow SSH
-   * OUTUT only allow DNS, HTTP/S, DoT
- * More to come...
 
 <p>
-Bare Setup:
   
-  * IPv4 and IPV6 iptables lock down
-  * ssh_hardening
-  
+No Config (Default)
+
 </p>
 
 <p>
 Minimal Setup:
-
-  * Configuration files loaded
+  
   * IPv4 and IPV6 iptables lock down
   * ssh_hardening
+    
 </p>
 
 <p>
@@ -51,33 +38,31 @@ Full Setup:
   * os_hardening
   * Install Docker
   * Install pip
+    
 </p>
-
-Custom Ansible playbook supported with all 3 setups using `--custom` flag!
 
 <p>
-Supports most images on AWS, Azure, Digital Ocean, GCP, Linode, and Vultr!  
+Built-in Ansible Modules
+  
+ * [dev-sec.os)hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * [dev-sec.ssh_hardening](https://github.com/dev-sec/ansible-collection-hardening)
+ * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)
+ * [geerlingguy.pip](https://github.com/geerlingguy/ansible-role-pip)
+   * docker
+   * hashcrack-jtr
+   * impacket
+ * IPv4 and IPv6 iptables lockdown
+   * INPUT only allow SSH
+   * OUTUT only allow DNS, HTTP/S, DoT
+     
 </p>
+
+Custom Ansible playbook supported using `--custom` flag!
   
 <p>
-AWS supports authenticated through ENV variables or API tokens in the config file.
+AWS supports authentication through ENV variables, profile or API tokens in the config file.
 </p>
 
-#### Total Setup Times
-```
-# bare setup
-tempor aws -s  10.54s user 1.15s system 26% cpu 44.542 total
-
-# minimal  setup
-tempor aws -s -m  37.36s user 4.22s system 18% cpu 3:42.71 total
-  
-# full setup
-tempor aws -s -f 96.83s user 15.69s system 22% cpu 8:20.32 total
-
-# teardown
-tempor --teardown rzcphs100 8.25s user 1.15s system 23% cpu 39.431 total
-
-```
   
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
 
@@ -87,16 +72,16 @@ tempor --teardown rzcphs100 8.25s user 1.15s system 23% cpu 39.431 total
 [<img alt="Linode" src="https://refermehappy.com/static/img/deals/300x150/linode.png" height="65" />](https://www.linode.com/?r=94d58b46cdd9ef8ee607abb44a87eb204fa05940)  
 
 
-###  :heavy_plus_sign: Install :heavy_plus_sign:
+###  :heavy_plus_sign: Install
 ```
 python3 -m pip install --user tempor
 ```
 
-#### :wrench: Dependencies :wrench:
+#### :wrench: Dependencies
 - Python >= 3.11
 - Windows - WSL only
 
-### :gear: Configuration :gear:
+### :gear: Configuration
 ```
 # ~/.config/tempor/config.yml
 
@@ -156,7 +141,7 @@ config:
   custom: /path/to/playbook.yml
 ```
 
-### :interrobang: Usage :interrobang:
+### :interrobang: Usage
 ```
 ❯ tempor --help
 usage: tempor [-h] {digitalocean,linode,vultr,aws,gcp,azure} ...
