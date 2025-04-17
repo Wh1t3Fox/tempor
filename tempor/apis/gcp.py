@@ -8,26 +8,27 @@ import google.auth
 class gcp:
     """GCP API Class."""
 
-    @staticmethod
-    def authorized(api_token: dict) -> bool:
+    def __init__(self, api_token: dict, region: str = ''):
+        self.api_token = api_token
+        self.region = region
+
+    def is_authorized(self) -> bool:
         """Check if API token is valid."""
         try:
-            auth_file = api_token["auth_file"]
+            auth_file = self.api_token["auth_file"]
 
             google.auth.load_credentials_from_file(auth_file)
 
             return True
         except Exception as e:
-            print(e)
             return False
 
-    @staticmethod
-    def get_images(api_token: dict) -> dict:
+    def get_images(self, region: str = "") -> dict:
         """Get possible image types."""
         images = {}
 
-        auth_file = api_token["auth_file"]
-        proj = api_token["project"]
+        auth_file = self.api_token["auth_file"]
+        proj = self.api_token["project"]
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
@@ -77,13 +78,12 @@ class gcp:
 
         return images
 
-    @staticmethod
-    def get_regions(api_token: dict) -> dict:
+    def get_regions(self) -> dict:
         """Get possible regions."""
         regions = {}
 
-        auth_file = api_token["auth_file"]
-        project = api_token["project"]
+        auth_file = self.api_token["auth_file"]
+        project = self.api_token["project"]
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
@@ -97,13 +97,12 @@ class gcp:
 
         return regions
 
-    @staticmethod
-    def get_resources(api_token: dict, zone: str) -> dict:
+    def get_resources(self, zone: str) -> dict:
         """Get possible resource types."""
         machine_types = {}
 
-        auth_file = api_token["auth_file"]
-        project = api_token["project"]
+        auth_file = self.api_token["auth_file"]
+        project = self.api_token["project"]
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
@@ -118,11 +117,10 @@ class gcp:
 
         return machine_types
 
-    @staticmethod
-    def get_zones(api_token: dict) -> list:
+    def get_zones(self) -> list:
         """Get available zones."""
-        auth_file = api_token["auth_file"]
-        project = api_token["project"]
+        auth_file = self.api_token["auth_file"]
+        project = self.api_token["project"]
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
@@ -131,11 +129,10 @@ class gcp:
 
         return [zone["name"] for zone in resp["items"]]
 
-    @staticmethod
-    def valid_zone(api_token: dict, name: str) -> bool:
+    def valid_zone(self, name: str) -> bool:
         """Get available zones."""
-        auth_file = api_token["auth_file"]
-        project = api_token["project"]
+        auth_file = self.api_token["auth_file"]
+        project = self.api_token["project"]
 
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
@@ -148,13 +145,11 @@ class gcp:
 
         return False
 
-    @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+    def valid_image_in_region(self, image: str, region: str) -> bool:
         """All images types are in all regions."""
         return True
 
-    @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+    def valid_resource_in_region(self,resource: str, region: str) -> bool:
         """All resources exist in all regions."""
         return True
 

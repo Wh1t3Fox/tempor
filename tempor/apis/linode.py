@@ -8,29 +8,30 @@ class linode:
 
     API_URL = "https://api.linode.com/v4"
 
-    @staticmethod
-    def get_account(token: str) -> dict:
+    def __init__(self, api_token: str, region: str = ''):
+        self.api_token = api_token
+        self.region = region
+
+    def get_account(self) -> dict:
         """Get account information."""
         return requests.get(
             f"{linode.API_URL}/account",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json",
             },
         ).json()
 
-    @staticmethod
-    def authorized(token: str) -> bool:
+    def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = linode.get_account(token)
+        resp = self.get_account()
 
         if "errors" in resp:
             return False
 
         return True
 
-    @staticmethod
-    def get_images(token: str) -> dict:
+    def get_images(self, region: str = "") -> dict:
         """Get available images."""
         images = {}
 
@@ -39,7 +40,7 @@ class linode:
             resp = requests.get(
                 f"{linode.API_URL}/images?page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -53,8 +54,7 @@ class linode:
 
         return images
 
-    @staticmethod
-    def get_regions(token: str) -> dict:
+    def get_regions(self) -> dict:
         """Get available regions."""
         regions = {}
 
@@ -63,7 +63,7 @@ class linode:
             resp = requests.get(
                 f"{linode.API_URL}/regions?page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -78,8 +78,7 @@ class linode:
 
         return regions
 
-    @staticmethod
-    def get_resources(token: str) -> dict:
+    def get_resources(self, region: str = "") -> dict:
         """Get available resource types."""
         types = {}
 
@@ -88,7 +87,7 @@ class linode:
             resp = requests.get(
                 f"{linode.API_URL}/linode/types?page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -105,13 +104,11 @@ class linode:
 
         return types
 
-    @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+    def valid_image_in_region(self, image: str, region: str) -> bool:
         """Linode does not restrict images in regions."""
         return True
 
-    @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+    def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Linode does not restrict types in regions."""
         return True
 

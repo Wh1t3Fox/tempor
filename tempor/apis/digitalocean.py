@@ -8,29 +8,30 @@ class digitalocean:
 
     API_URL = "https://api.digitalocean.com/v2"
 
-    @staticmethod
-    def get_account(token: str) -> dict:
+    def __init__(self, api_token: str, region: str = ''):
+        self.api_token = api_token
+        self.region = region
+
+    def get_account(self) -> dict:
         """"Get account information."""
         return requests.get(
             f"{digitalocean.API_URL}/account",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json",
             },
         ).json()
 
-    @staticmethod
-    def authorized(token: str) -> bool:
+    def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = digitalocean.get_account(token)
+        resp = self.get_account()
 
         if "id" in resp and resp["id"] == "Unauthorized":
             return False
 
         return True
 
-    @staticmethod
-    def get_images(token: str) -> dict:
+    def get_images(self, region: str = "") -> dict:
         """Get types of images."""
         images = {}
 
@@ -39,7 +40,7 @@ class digitalocean:
             resp = requests.get(
                 f"{digitalocean.API_URL}/images?per_page=500&page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -54,8 +55,7 @@ class digitalocean:
 
         return images
 
-    @staticmethod
-    def get_regions(token: str) -> dict:
+    def get_regions(self) -> dict:
         """Get possible regions."""
         regions = {}
 
@@ -64,7 +64,7 @@ class digitalocean:
             resp = requests.get(
                 f"{digitalocean.API_URL}/regions?per_page=500&page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -80,8 +80,7 @@ class digitalocean:
 
         return regions
 
-    @staticmethod
-    def get_resources(token: str) -> dict:
+    def get_resources(self, region: str = "") -> dict:
         """Get possible resource types."""
         sizes = {}
 
@@ -90,7 +89,7 @@ class digitalocean:
             resp = requests.get(
                 f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -109,15 +108,14 @@ class digitalocean:
 
         return sizes
 
-    @staticmethod
-    def valid_image_in_region(image: str, region: str, token: str) -> bool:
+    def valid_image_in_region(self, image: str, region: str) -> bool:
         """Check if the image/region combination is valid."""
         page = 1
         while True:
             resp = requests.get(
                 f"{digitalocean.API_URL}/images?per_page=500&page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()
@@ -134,15 +132,14 @@ class digitalocean:
 
         return False
 
-    @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: str) -> bool:
+    def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Check if the resource type is available in the region."""
         page = 1
         while True:
             resp = requests.get(
                 f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
-                    "Authorization": f"Bearer {token}",
+                    "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
                 },
             ).json()

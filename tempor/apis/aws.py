@@ -2,73 +2,48 @@
 """AWS API."""
 
 import importlib.resources
+import logging
 import boto3
 import json
 
+# Change logging levels
+logging.getLogger('boto3').setLevel(logging.CRITICAL)
+logging.getLogger('botocore').setLevel(logging.ERROR)
 
 class aws:
     """AWS API Class."""
 
-    # Translate region code to region name. Even though the API data contains
-    # regionCode field, it will not return accurate data. However using the location
-    # field will, but then we need to translate the region code into a region name.
-    # You could skip this by using the region names in your code directly, but most
-    # other APIs are using the region code.
-    @staticmethod
-    def get_region_name(region_code: str) -> str:
-        """Translate region name."""
-        default_region = "US East (N. Virginia)"
-        ref = importlib.resources.files("botocore") / "data/endpoints.json"
-        with importlib.resources.as_file(ref) as endpoint_file:
-            try:
-                with open(endpoint_file) as f:
-                    data = json.load(f)
-                # Botocore is using Europe while Pricing API using EU...sigh...
-                return data["partitions"][0]["regions"][region_code][
-                    "description"
-                ].replace("Europe", "EU")
-            except OSError:
-                return default_region
+    def __init__(self, api_token: dict, region: str = 'us-east-1'):
+        self.logger = logging.getLogger(__name__)
+        self.api_token = api_token
+        self.access_key = self.api_token.get("access_key", None)
+        self.secret_key = self.api_token.get("secret_key", None)
+        self.profile = self.api_token.get("profile", None)
 
-    @staticmethod
-    def authorized(api_token: dict = {}) -> bool:
+        self.region = region
+
+        self.session = boto3.Session(
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            profile_name=self.profile,
+            region_name=self.region,
+        )
+
+    def is_authorized(self) -> bool:
         """Check if API tokens are valid."""
         try:
-            # None is the default value for these in the boto3 Session classs
-            access_key = api_token.get("access_key", None)
-            secret_key = api_token.get("secret_key", None)
-            profile = api_token.get("profile", None)
-
-            sess = boto3.Session(
-                aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key,
-                profile_name=profile,
-                region_name="us-east-1",
-            )
-            client = sess.client("sts")
+            client = self.session.client("sts")
             client.get_caller_identity()
             return True
         except Exception as e:
-            print(e)
+            self.logger.error(e)
             return False
 
-    @staticmethod
-    def get_images(api_token: dict = {}, region: str = "us-east-1") -> dict:
+    def get_images(self, region: str = "us-east-1") -> dict:
         """Return available AMI images for the region."""
         images = {}
 
-        # None is the default value for these in the boto3 Session classs
-        access_key = api_token.get("access_key", None)
-        secret_key = api_token.get("secret_key", None)
-        profile = api_token.get("profile", None)
-
-        sess = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region,
-        )
-        client = sess.client("ec2")
+        client = self.session.client("ec2")
         resp = client.describe_images(
             Owners=["amazon", "aws-marketplace"],
             Filters=[
@@ -92,8 +67,7 @@ class aws:
 
         return images
 
-    @staticmethod
-    def get_resources(api_token: dict = {}, region: str = "us-east-1") -> dict:
+    def get_resources(self, region: str = "us-east-1") -> dict:
         """Return available EC2 hardware types ."""
         instances = {}
 
@@ -105,17 +79,7 @@ class aws:
             '{{"Field": "capacitystatus", "Value": "Used", "Type": "TERM_MATCH"}}]'
         )
 
-        access_key = api_token.get("access_key", None)
-        secret_key = api_token.get("secret_key", None)
-        profile = api_token.get("profile", None)
-
-        sess = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region,
-        )
-        client = sess.client("pricing")
+        client = boto3.client("pricing")
 
         f = FLT.format(r=aws.get_region_name(region))
 
@@ -123,7 +87,8 @@ class aws:
         try:
             resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
         except Exception:
-            return aws.get_resources(api_token, 'us-east-1')
+            self.logger.debug(f'Region {region} not supported... using us-east-1.')
+            return self.get_resources('us-east-1')
 
         for instance in resp["PriceList"]:
             instance = json.loads(instance)
@@ -144,46 +109,25 @@ class aws:
                     "price": price,
                 }
             except KeyError:
-                print(instance)
+                self.logger.error(instance)
                 exit()
 
         return instances
 
-    @staticmethod
-    def get_regions(api_token: dict = {}) -> dict:
+    def get_regions(self) -> dict:
         """Return all possible regions."""
-        access_key = api_token.get("access_key", None)
-        secret_key = api_token.get("secret_key", None)
-        profile = api_token.get("profile", None)
-
         regions = {}
 
-        sess = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-        )
-        resp = sess.get_available_regions("ec2")
+        resp = self.session.get_available_regions("ec2")
 
         for region in resp:
             regions[region] = region
 
         return regions
 
-    @staticmethod
-    def valid_image_in_region(image: str, region: str, api_token: dict = {}) -> bool:
+    def valid_image_in_region(self, image: str, region: str) -> bool:
         """Validate if the AMI is in the correct region."""
-        access_key = api_token.get("access_key", None)
-        secret_key = api_token.get("secret_key", None)
-        profile = api_token.get("profile", None)
-
-        sess = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region,
-        )
-        client = sess.client("ec2")
+        client = self.session.client("ec2")
 
         try:
             # Exception is thrown if the image is not in this region
@@ -193,31 +137,19 @@ class aws:
                     {"Name": "state", "Values": ["available"]},
                 ],
             )
-        except Exception:
+        except Exception as e:
+            self.logger.error(e)
             return False
         return True
 
-    @staticmethod
-    def valid_resource_in_region(
-        resource: str, region: str, api_token: dict = {}
-    ) -> bool:
+    def valid_resource_in_region(self,resource: str, region: str) -> bool:
         """All resources exist in all regions."""
         return True
 
     @staticmethod
-    def get_user(image: str, region: str, api_token: dict = {}) -> str:
+    def get_user(image: str, region: str) -> str:
         """Try to determine the correct SSH user for the AMI."""
-        access_key = api_token.get("access_key", None)
-        secret_key = api_token.get("secret_key", None)
-        profile = api_token.get("profile", None)
-
-        sess = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            profile_name=profile,
-            region_name=region,
-        )
-        client = sess.client("ec2")
+        client = boto3.client("ec2")
 
         try:
             # Exception is thrown if the image is not in this region
@@ -255,3 +187,28 @@ class aws:
         except Exception:
             return "ec2-user"
         return "ec2-user"
+
+    @staticmethod
+    def get_region_name(region_code: str) -> str:
+        """Translate region name.
+
+        Translate region code to region name. Even though the API data contains
+        regionCode field, it will not return accurate data. However using the location
+        field will, but then we need to translate the region code into a region name.
+        You could skip this by using the region names in your code directly, but most
+        other APIs are using the region code.
+
+        """
+        default_region = "US East (N. Virginia)"
+        ref = importlib.resources.files("botocore") / "data/endpoints.json"
+        with importlib.resources.as_file(ref) as endpoint_file:
+            try:
+                with open(endpoint_file) as f:
+                    data = json.load(f)
+                # Botocore is using Europe while Pricing API using EU...sigh...
+                return data["partitions"][0]["regions"][region_code][
+                    "description"
+                ].replace("Europe", "EU")
+            except OSError:
+                return default_region
+

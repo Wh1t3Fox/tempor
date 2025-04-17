@@ -63,7 +63,6 @@ def get_args() -> argparse.Namespace:
 
     # build args for each provider
     subparsers = parser.add_subparsers(dest="provider")
-    providers_failed_auth = []
     for entry in cfg.get("providers", []):
         provider = entry.get("name")
         if provider == "aws":
@@ -73,10 +72,6 @@ def get_args() -> argparse.Namespace:
 
         provider_info[provider] = {}
         provider_info[provider]["api_token"] = api_token
-
-        # validate API creds
-        if not getattr(globals()[provider], "authorized")(api_token):
-            providers_failed_auth.append(provider)
 
         prov_parser = subparsers.add_parser(provider, add_help=False)
         prov_parser.add_argument("-h", "--help", action="store_true")
@@ -166,13 +161,6 @@ def get_args() -> argparse.Namespace:
         )
 
     args = parser.parse_args()
-
-    if providers_failed_auth:
-        for provider in providers_failed_auth:
-            logger.info(
-                f"[red bold] Invalid {provider} API Token. Fix or remove provider."
-            )
-        sys.exit(1)
 
     if args.version:
         logger.info(__version__)
@@ -273,45 +261,28 @@ def get_args() -> argparse.Namespace:
         parser.print_help()
         sys.exit(1)
 
-    provider_info[args.provider]["regions"] = getattr(
-        globals()[args.provider], "get_regions"
-    )(args.api_token)
-
-    if args.provider == "azure" or args.provider == "aws":
-        provider_info[args.provider]["images"] = getattr(
-            globals()[args.provider], "get_images"
-        )(args.api_token, args.region)
-
-        provider_info[args.provider]["resources"] = getattr(
-            globals()[args.provider], "get_resources"
-        )(args.api_token, args.region)
-
-    elif args.provider == "gcp":
-        # make sure the image/region combo is allowed
-        valid_zone = getattr(globals()[args.provider], "valid_zone")(
-            args.api_token, args.zone
+    API = globals()[args.provider](api_token, args.region)
+    # validate API creds
+    if not API.is_authorized():
+        logger.info(
+                f"[red bold] Invalid {args.provider} API Token. Fix or remove provider."
         )
+        sys.exit(1)
+
+
+    if args.provider == "gcp":
+        # make sure the image/region combo is allowed
+        valid_zone = API.valid_zone(args.zone)
         try:
             assert valid_zone
         except AssertionError:
             logger.info(f"[red]{args.zone} is not valid[/red]")
             sys.exit(1)
+        args.region = args.zone
 
-        provider_info[args.provider]["images"] = getattr(
-            globals()[args.provider], "get_images"
-        )(args.api_token)
-
-        provider_info[args.provider]["resources"] = getattr(
-            globals()[args.provider], "get_resources"
-        )(args.api_token, args.zone)
-    else:
-        provider_info[args.provider]["images"] = getattr(
-            globals()[args.provider], "get_images"
-        )(args.api_token)
-
-        provider_info[args.provider]["resources"] = getattr(
-            globals()[args.provider], "get_resources"
-        )(args.api_token)
+    provider_info[args.provider]["regions"] = API.get_regions()
+    provider_info[args.provider]["images"] = API.get_images(args.region)
+    provider_info[args.provider]["resources"] = API.get_resources(args.region)
 
     if args.region not in provider_info.get(args.provider, {}).get("regions", []):
         logger.info(f"[red bold]{args.region} is not a supported region")
@@ -319,7 +290,7 @@ def get_args() -> argparse.Namespace:
         image_region_choices(args.provider)
         parser.exit(0)
 
-    args.user = getattr(globals()[args.provider], "get_user")(args.image, args.region)
+    args.user = globals()[args.provider].get_user(args.image, args.region)
 
     # this needs to come after populating the info above
     if args.help:
@@ -330,18 +301,14 @@ def get_args() -> argparse.Namespace:
 
     # make sure the image/region combo is allowed
     try:
-        assert getattr(globals()[args.provider], "valid_image_in_region")(
-            args.image, args.region, args.api_token
-        )
+        assert API.valid_image_in_region(args.image, args.region)
     except AssertionError:
         logger.info(f"[red]{args.image} is not available in {args.region}[/red]")
         sys.exit(1)
 
     # make sure the CPU RAM resources are allowed in this region
     try:
-        assert getattr(globals()[args.provider], "valid_resource_in_region")(
-            args.resources, args.region, args.api_token
-        )
+        assert API.valid_resource_in_region(args.resources, args.region)
     except AssertionError:
         logger.info(f"[red]{args.resources} is not available in {args.region}[/red]")
         sys.exit(1)

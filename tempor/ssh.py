@@ -77,8 +77,6 @@ def check_sshkeys(provider: str, region: str, image: str, hostname: str) -> bool
             stdout=subprocess.DEVNULL,
             shell=True,
         )
-        logger.info("Done")
-
     return True
 
 

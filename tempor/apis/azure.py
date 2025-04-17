@@ -8,40 +8,43 @@ class azure:
 
     API_URL = "https://management.azure.com"
 
-    @staticmethod
-    def get_auth_token(token: dict) -> dict:
+    def __init__(self, api_token: dict, region: str = ''):
+        self.api_token = api_token
+        self.oauth_token = self.get_auth_token().get("access_token", "")
+
+        self.region = region
+
+    def get_auth_token(self) -> dict:
         """Return auth token."""
         return requests.post(
-            f'https://login.microsoftonline.com/{token["tenant_id"]}/oauth2/token',
+            f'https://login.microsoftonline.com/{self.api_token["tenant_id"]}/oauth2/token',
             data={
                 "grant_type": "client_credentials",
-                "client_id": token["client_id"],
-                "client_secret": token["client_secret"],
+                "client_id": self.api_token["client_id"],
+                "client_secret": self.api_token["client_secret"],
                 "resource": azure.API_URL,
             },
         ).json()
 
-    @staticmethod
-    def authorized(token: dict) -> bool:
+    def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = azure.get_auth_token(token)
+        resp = self.get_auth_token()
 
         if "error" in resp:
             return False
 
+        self.oauth_token = resp["access_token"]
+
         return True
 
-    @staticmethod
-    def get_offers(
-        oauth_token: str, subscription: str, publisher: str, location: str
-    ) -> list:
+    def get_offers(self, publisher: str, location: str) -> list:
         """Get available offers."""
         offers = []
 
         resp = requests.get(
-            f"{azure.API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
+            f"{azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
             headers={
-                "Authorization": f"Bearer {oauth_token}",
+                "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
             },
         ).json()
@@ -60,39 +63,30 @@ class azure:
 
         return offers
 
-    @staticmethod
-    def get_skus(
-        oauth_token: str, subscription: str, publisher: str, location: str, offer: str
-    ) -> list:
+    def get_skus(self, publisher: str, location: str, offer: str) -> list:
         """Get available SKUs."""
         resp = requests.get(
-            f"{azure.API_URL}/subscriptions/{subscription}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
+            f"{azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
             headers={
-                "Authorization": f"Bearer {oauth_token}",
+                "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
             },
         ).json()
 
         return [sku["name"] for sku in resp]
 
-    @staticmethod
-    def get_images(token: dict, location="eastus") -> dict:
+    def get_images(self, location="eastus") -> dict:
         """Get available images."""
         images = {}
 
-        oauth_token = azure.get_auth_token(token)["access_token"]
-
         for publisher in ["Canonical", "Debian"]:
             # Gets Offers
-            offers = azure.get_offers(
-                oauth_token, token["subscription_id"], publisher, location
-            )
+            offers = self.get_offers(publisher, location)
+
 
             # Query skus
             for offer in offers:
-                skus = azure.get_skus(
-                    oauth_token, token["subscription_id"], publisher, location, offer
-                )
+                skus = self.get_skus(publisher, location, offer)
 
                 # populate images: {publisher}/{offer}/{sku}
                 for sku in skus:
@@ -101,17 +95,15 @@ class azure:
 
         return images
 
-    @staticmethod
-    def get_regions(token: dict) -> dict:
+    def get_regions(self) -> dict:
         """Get available regions."""
         regions = {}
 
-        oauth_token = azure.get_auth_token(token)["access_token"]
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{azure.API_URL}/subscriptions/{token["subscription_id"]}/locations?api-version=2022-01-01',
+            f'{azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/locations?api-version=2022-01-01',
             headers={
-                "Authorization": f"Bearer {oauth_token}",
+                "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
             },
         ).json()
@@ -124,8 +116,7 @@ class azure:
 
         return regions
 
-    @staticmethod
-    def get_price(region: str) -> dict:
+    def get_price(self, region: str) -> dict:
         """Get price."""
         prices = {}
 
@@ -139,20 +130,17 @@ class azure:
 
         return prices
 
-    @staticmethod
-    def get_resources(token: dict, region: str) -> dict:
+    def get_resources(self, region: str) -> dict:
         """Get available resources."""
         sizes = {}
 
-        oauth_token = azure.get_auth_token(token)["access_token"]
-
-        prices = azure.get_price(region)
+        prices = self.get_price(region)
 
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{azure.API_URL}/subscriptions/{token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
+            f'{azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
             headers={
-                "Authorization": f"Bearer {oauth_token}",
+                "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
             },
         ).json()
@@ -167,20 +155,18 @@ class azure:
 
         return sizes
 
-    @staticmethod
-    def valid_image_in_region(image: str, region: str, token: dict) -> bool:
+    def valid_image_in_region(self, image: str, region: str) -> bool:
         """Check if image is in the correct region."""
-        images = azure.get_images(token, region)
+        images = self.get_images(region)
 
         if image in images:
             return True
 
         return False
 
-    @staticmethod
-    def valid_resource_in_region(resource: str, region: str, token: dict) -> bool:
+    def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Is  the resource type in the correct region."""
-        resources = azure.get_resources(token, region)
+        resources = self.get_resources(region)
 
         if resource in resources:
             return True
