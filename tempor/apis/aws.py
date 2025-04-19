@@ -7,7 +7,7 @@ import boto3
 import json
 
 # Change logging levels
-logging.getLogger('boto3').setLevel(logging.CRITICAL)
+logging.getLogger('boto3').setLevel(logging.ERROR)
 logging.getLogger('botocore').setLevel(logging.ERROR)
 
 class aws:
@@ -127,7 +127,7 @@ class aws:
 
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Validate if the AMI is in the correct region."""
-        client = self.session.client("ec2")
+        client = boto3.client("ec2", region_name=region)
 
         try:
             # Exception is thrown if the image is not in this region
@@ -138,7 +138,7 @@ class aws:
                 ],
             )
         except Exception as e:
-            self.logger.error(e)
+            self.logger.debug(e)
             return False
         return True
 

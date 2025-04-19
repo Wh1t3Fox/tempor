@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """SSH Handler Functions."""
 
-from ssh_config import SSHConfig, Host
 from os import path
+import ssh_config
 import subprocess
 import logging
 import shutil
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def add_config_entry(hostname: str, attr: dict) -> None:
     """Add entry to SSH config."""
-    new_host = Host(hostname, attr)
+    new_host = ssh_config.Host(hostname, attr)
 
     # does ~/.ssh/config exist?
     if not path.isfile(SSH_CONFIG_PATH):
@@ -22,11 +22,14 @@ def add_config_entry(hostname: str, attr: dict) -> None:
         if not path.exists(os.path.dirname(SSH_CONFIG_PATH)):
             os.makedirs(os.path.dirname(SSH_CONFIG_PATH))
         # create ~/.ssh/config
-        cfg = SSHConfig.create(SSH_CONFIG_PATH)
+        cfg = ssh_config.SSHConfig.create(SSH_CONFIG_PATH)
     else:
-        cfg = SSHConfig(SSH_CONFIG_PATH)
+        cfg = ssh_config.SSHConfig(SSH_CONFIG_PATH)
 
-    cfg.add(new_host)
+    try:
+        cfg.add(new_host)
+    except ssh_config.errors.HostExistsError:
+        cfg.update(hostname, attr)
     cfg.write()
 
 
@@ -36,7 +39,7 @@ def remove_config_entry(hostname: str) -> None:
     if not path.isfile(SSH_CONFIG_PATH):
         return
 
-    cfg = SSHConfig(SSH_CONFIG_PATH)
+    cfg = ssh_config.SSHConfig(SSH_CONFIG_PATH)
 
     try:
         cfg.remove(hostname)
