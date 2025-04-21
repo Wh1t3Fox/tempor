@@ -261,6 +261,11 @@ def get_args() -> argparse.Namespace:
         parser.print_help()
         sys.exit(1)
 
+    # don't need API auth to print normal help
+    if args.additional_info is False and args.help is True:
+        print_subparser_help(parser, args.provider)
+        parser.exit(0)
+
     API = globals()[args.provider](api_token, args.region)
     # validate API creds
     if not API.is_authorized():
@@ -293,11 +298,11 @@ def get_args() -> argparse.Namespace:
     args.user = globals()[args.provider].get_user(args.image, args.region)
 
     # this needs to come after populating the info above
-    if args.help:
+    if args.additional_info is True and args.help is True:
         print_subparser_help(parser, args.provider)
-        if args.additional_info:
-            image_region_choices(args.provider)
+        image_region_choices(args.provider)
         parser.exit(0)
+
 
     # make sure the image/region combo is allowed
     try:
