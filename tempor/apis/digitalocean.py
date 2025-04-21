@@ -3,19 +3,20 @@
 
 import requests
 
-class digitalocean:
+from .api import API
+
+class DigitalOcean(API):
     """DO API Class."""
 
     API_URL = "https://api.digitalocean.com/v2"
 
     def __init__(self, api_token: str, region: str = ''):
-        self.api_token = api_token
-        self.region = region
+        super().__init__(api_token, region)
 
     def get_account(self) -> dict:
         """"Get account information."""
         return requests.get(
-            f"{digitalocean.API_URL}/account",
+            f"{DigitalOcean.API_URL}/account",
             headers={
                 "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json",
@@ -38,7 +39,7 @@ class digitalocean:
         page = 1
         while True:
             resp = requests.get(
-                f"{digitalocean.API_URL}/images?per_page=500&page={page}",
+                f"{DigitalOcean.API_URL}/images?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -62,7 +63,7 @@ class digitalocean:
         page = 1
         while True:
             resp = requests.get(
-                f"{digitalocean.API_URL}/regions?per_page=500&page={page}",
+                f"{DigitalOcean.API_URL}/regions?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -87,7 +88,7 @@ class digitalocean:
         page = 1
         while True:
             resp = requests.get(
-                f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
+                f"{DigitalOcean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -113,7 +114,7 @@ class digitalocean:
         page = 1
         while True:
             resp = requests.get(
-                f"{digitalocean.API_URL}/images?per_page=500&page={page}",
+                f"{DigitalOcean.API_URL}/images?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -137,7 +138,7 @@ class digitalocean:
         page = 1
         while True:
             resp = requests.get(
-                f"{digitalocean.API_URL}/sizes?per_page=500&page={page}",
+                f"{DigitalOcean.API_URL}/sizes?per_page=500&page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",

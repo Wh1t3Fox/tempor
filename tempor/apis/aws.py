@@ -6,21 +6,21 @@ import logging
 import boto3
 import json
 
+from .api import API
+
 # Change logging levels
 logging.getLogger('boto3').setLevel(logging.ERROR)
 logging.getLogger('botocore').setLevel(logging.ERROR)
 
-class aws:
+class AWS(API):
     """AWS API Class."""
 
     def __init__(self, api_token: dict, region: str = 'us-east-1'):
-        self.logger = logging.getLogger(__name__)
-        self.api_token = api_token
+        super().__init__(api_token, region)
+
         self.access_key = self.api_token.get("access_key", None)
         self.secret_key = self.api_token.get("secret_key", None)
         self.profile = self.api_token.get("profile", None)
-
-        self.region = region
 
         self.session = boto3.Session(
             aws_access_key_id=self.access_key,
@@ -43,7 +43,7 @@ class aws:
         """Return available AMI images for the region."""
         images = {}
 
-        client = self.session.client("ec2")
+        client = self.session.client("ec2", region_name=region)
         resp = client.describe_images(
             Owners=["amazon", "aws-marketplace"],
             Filters=[
@@ -79,9 +79,9 @@ class aws:
             '{{"Field": "capacitystatus", "Value": "Used", "Type": "TERM_MATCH"}}]'
         )
 
-        client = boto3.client("pricing")
+        client = boto3.client("pricing", region_name=region)
 
-        f = FLT.format(r=aws.get_region_name(region))
+        f = FLT.format(r=AWS.get_region_name(region))
 
         # this only works with cerain regions apparently
         try:
@@ -149,7 +149,7 @@ class aws:
     @staticmethod
     def get_user(image: str, region: str) -> str:
         """Try to determine the correct SSH user for the AMI."""
-        client = boto3.client("ec2")
+        client = boto3.client("ec2", region_name=region)
 
         try:
             # Exception is thrown if the image is not in this region

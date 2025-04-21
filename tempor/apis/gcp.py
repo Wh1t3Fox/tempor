@@ -4,13 +4,13 @@
 from googleapiclient import discovery
 import google.auth
 
+from .api import API
 
-class gcp:
+class GCP(API):
     """GCP API Class."""
 
     def __init__(self, api_token: dict, region: str = ''):
-        self.api_token = api_token
-        self.region = region
+        super().__init__(api_token, region)
 
     def is_authorized(self) -> bool:
         """Check if API token is valid."""
@@ -20,7 +20,7 @@ class gcp:
             google.auth.load_credentials_from_file(auth_file)
 
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def get_images(self, region: str = "") -> dict:
@@ -97,7 +97,7 @@ class gcp:
 
         return regions
 
-    def get_resources(self, zone: str) -> dict:
+    def get_resources(self, region: str) -> dict:
         """Get possible resource types."""
         machine_types = {}
 
@@ -107,7 +107,7 @@ class gcp:
         creds, _ = google.auth.load_credentials_from_file(auth_file)
         service = discovery.build("compute", "v1", credentials=creds)
 
-        resp = service.machineTypes().list(project=project, zone=zone).execute()
+        resp = service.machineTypes().list(project=project, zone=region).execute()
 
         for machine_type in resp["items"]:
             machine_types[machine_type["name"]] = {

@@ -3,16 +3,16 @@
 
 import requests
 
-class azure:
+from .api import API
+
+class Azure(API):
     """Azure API Class."""
 
     API_URL = "https://management.azure.com"
 
     def __init__(self, api_token: dict, region: str = ''):
-        self.api_token = api_token
+        super().__init__(api_token, region)
         self.oauth_token = self.get_auth_token().get("access_token", "")
-
-        self.region = region
 
     def get_auth_token(self) -> dict:
         """Return auth token."""
@@ -22,7 +22,7 @@ class azure:
                 "grant_type": "client_credentials",
                 "client_id": self.api_token["client_id"],
                 "client_secret": self.api_token["client_secret"],
-                "resource": azure.API_URL,
+                "resource": Azure.API_URL,
             },
         ).json()
 
@@ -42,7 +42,7 @@ class azure:
         offers = []
 
         resp = requests.get(
-            f"{azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
+            f"{Azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers?api-version=2022-03-01",
             headers={
                 "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
@@ -66,7 +66,7 @@ class azure:
     def get_skus(self, publisher: str, location: str, offer: str) -> list:
         """Get available SKUs."""
         resp = requests.get(
-            f"{azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
+            f"{Azure.API_URL}/subscriptions/{self.api_token['subscription']}/providers/Microsoft.Compute/locations/{location}/publishers/{publisher}/artifacttypes/vmimage/offers/{offer}/skus?api-version=2022-03-01",
             headers={
                 "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
@@ -101,7 +101,7 @@ class azure:
 
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/locations?api-version=2022-01-01',
+            f'{Azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/locations?api-version=2022-01-01',
             headers={
                 "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",
@@ -138,7 +138,7 @@ class azure:
 
         # Need to figure out pagination, but in sample test it was a single page
         resp = requests.get(
-            f'{azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
+            f'{Azure.API_URL}/subscriptions/{self.api_token["subscription_id"]}/providers/Microsoft.Compute/locations/{region}/vmSizes?api-version=2022-03-01',
             headers={
                 "Authorization": f"Bearer {self.oauth_token}",
                 "Content-Type": "application/json",

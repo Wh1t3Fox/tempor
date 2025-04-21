@@ -3,19 +3,20 @@
 
 import requests
 
-class linode:
+from .api import API
+
+class Linode(API):
     """Linode API Class."""
 
     API_URL = "https://api.linode.com/v4"
 
     def __init__(self, api_token: str, region: str = ''):
-        self.api_token = api_token
-        self.region = region
+        super().__init__(api_token, region)
 
     def get_account(self) -> dict:
         """Get account information."""
         return requests.get(
-            f"{linode.API_URL}/account",
+            f"{Linode.API_URL}/account",
             headers={
                 "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json",
@@ -38,7 +39,7 @@ class linode:
         page = 1
         while True:
             resp = requests.get(
-                f"{linode.API_URL}/images?page={page}",
+                f"{Linode.API_URL}/images?page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -61,7 +62,7 @@ class linode:
         page = 1
         while True:
             resp = requests.get(
-                f"{linode.API_URL}/regions?page={page}",
+                f"{Linode.API_URL}/regions?page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -85,7 +86,7 @@ class linode:
         page = 1
         while True:
             resp = requests.get(
-                f"{linode.API_URL}/linode/types?page={page}",
+                f"{Linode.API_URL}/linode/types?page={page}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",

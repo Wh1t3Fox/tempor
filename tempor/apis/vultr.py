@@ -3,19 +3,20 @@
 
 import requests
 
-class vultr:
+from .api import API
+
+class Vultr(API):
     """Vultr API Class."""
 
     API_URL = "https://api.vultr.com/v2"
 
     def __init__(self, api_token: str, region: str = ''):
-        self.api_token = api_token
-        self.region = region
+        super().__init__(api_token, region)
 
     def get_account(self) -> dict:
         """Get account information."""
         return requests.get(
-            f"{vultr.API_URL}/account",
+            f"{Vultr.API_URL}/account",
             headers={
                 "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json",
@@ -38,7 +39,7 @@ class vultr:
         cursor = ""
         while True:
             resp = requests.get(
-                f"{vultr.API_URL}/os{cursor}",
+                f"{Vultr.API_URL}/os{cursor}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -62,7 +63,7 @@ class vultr:
         cursor = ""
         while True:
             resp = requests.get(
-                f"{vultr.API_URL}/regions{cursor}",
+                f"{Vultr.API_URL}/regions{cursor}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -98,7 +99,7 @@ class vultr:
         cursor = ""
         while True:
             resp = requests.get(
-                f"{vultr.API_URL}/plans{cursor}",
+                f"{Vultr.API_URL}/plans{cursor}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
@@ -127,7 +128,7 @@ class vultr:
         cursor = ""
         while True:
             resp = requests.get(
-                f"{vultr.API_URL}/plans{cursor}",
+                f"{Vultr.API_URL}/plans{cursor}",
                 headers={
                     "Authorization": f"Bearer {self.api_token}",
                     "Content-Type": "application/json",
