@@ -4,6 +4,7 @@
 import requests
 
 from .api import API
+from .helpers import authorized
 
 class Linode(API):
     """Linode API Class."""
@@ -25,13 +26,17 @@ class Linode(API):
 
     def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = self.get_account()
+        try:
+            resp = self.get_account()
+        except Exception:
+            return False
 
         if "errors" in resp:
             return False
 
         return True
 
+    @authorized
     def get_images(self, region: str = "") -> dict:
         """Get available images."""
         images = {}
@@ -55,6 +60,7 @@ class Linode(API):
 
         return images
 
+    @authorized
     def get_regions(self) -> dict:
         """Get available regions."""
         regions = {}
@@ -79,6 +85,7 @@ class Linode(API):
 
         return regions
 
+    @authorized
     def get_resources(self, region: str = "") -> dict:
         """Get available resource types."""
         types = {}
@@ -105,10 +112,12 @@ class Linode(API):
 
         return types
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Linode does not restrict images in regions."""
         return True
 
+    @authorized
     def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Linode does not restrict types in regions."""
         return True

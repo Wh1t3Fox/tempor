@@ -9,6 +9,7 @@ import json
 import sys
 
 from .api import API
+from .helpers import authorized
 
 # Change logging levels
 logging.getLogger('boto3').setLevel(logging.ERROR)
@@ -49,6 +50,7 @@ class AWS(API):
         else:
             return True
 
+    @authorized
     def get_images(self, region: str = "us-east-1") -> dict:
         """Return available AMI images for the region."""
         images = {}
@@ -81,6 +83,7 @@ class AWS(API):
 
         return images
 
+    @authorized
     def get_resources(self, region: str = "us-east-1") -> dict:
         """Return available EC2 hardware types ."""
         instances = {}
@@ -131,6 +134,7 @@ class AWS(API):
 
         return instances
 
+    @authorized
     def get_regions(self) -> dict:
         """Return all possible regions."""
         regions = {}
@@ -146,6 +150,7 @@ class AWS(API):
 
         return regions
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Validate if the AMI is in the correct region."""
         client = self.session.client("ec2", region_name=region)
@@ -166,6 +171,7 @@ class AWS(API):
             return False
         return True
 
+    @authorized
     def valid_resource_in_region(self,resource: str, region: str) -> bool:
         """All resources exist in all regions."""
         return True

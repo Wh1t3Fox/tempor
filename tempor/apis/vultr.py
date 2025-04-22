@@ -4,6 +4,7 @@
 import requests
 
 from .api import API
+from .helpers import authorized
 
 class Vultr(API):
     """Vultr API Class."""
@@ -23,15 +24,19 @@ class Vultr(API):
             },
         ).json()
 
-    def authorized(self) -> bool:
+    def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = self.get_account()
+        try:
+            resp = self.get_account()
+        except Exception:
+            return False
 
         if "error" in resp:
             return False
 
         return True
 
+    @authorized
     def get_images(self, region: str = "") -> dict:
         """Get available images."""
         images = {}
@@ -56,6 +61,7 @@ class Vultr(API):
 
         return images
 
+    @authorized
     def get_regions(self) -> dict:
         """Get available regions."""
         regions = {}
@@ -80,6 +86,7 @@ class Vultr(API):
 
         return regions
 
+    @authorized
     def get_resources(self, region: str = "") -> dict:
         """Get available resource types."""
         types = {
@@ -119,10 +126,12 @@ class Vultr(API):
 
         return plans
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Vultr does not restrict images in regions."""
         return True
 
+    @authorized
     def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Check if the resource/region combination is valid."""
         cursor = ""

@@ -4,6 +4,7 @@
 import requests
 
 from .api import API
+from .helpers import authorized
 
 class Azure(API):
     """Azure API Class."""
@@ -28,7 +29,10 @@ class Azure(API):
 
     def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = self.get_auth_token()
+        try:
+            resp = self.get_auth_token()
+        except Exception:
+            return False
 
         if "error" in resp:
             return False
@@ -37,6 +41,7 @@ class Azure(API):
 
         return True
 
+    @authorized
     def get_offers(self, publisher: str, location: str) -> list:
         """Get available offers."""
         offers = []
@@ -63,6 +68,7 @@ class Azure(API):
 
         return offers
 
+    @authorized
     def get_skus(self, publisher: str, location: str, offer: str) -> list:
         """Get available SKUs."""
         resp = requests.get(
@@ -75,18 +81,19 @@ class Azure(API):
 
         return [sku["name"] for sku in resp]
 
-    def get_images(self, location="eastus") -> dict:
+    @authorized
+    def get_images(self, region="eastus") -> dict:
         """Get available images."""
         images = {}
 
         for publisher in ["Canonical", "Debian"]:
             # Gets Offers
-            offers = self.get_offers(publisher, location)
+            offers = self.get_offers(publisher, region)
 
 
             # Query skus
             for offer in offers:
-                skus = self.get_skus(publisher, location, offer)
+                skus = self.get_skus(publisher, region, offer)
 
                 # populate images: {publisher}/{offer}/{sku}
                 for sku in skus:
@@ -95,6 +102,7 @@ class Azure(API):
 
         return images
 
+    @authorized
     def get_regions(self) -> dict:
         """Get available regions."""
         regions = {}
@@ -116,6 +124,7 @@ class Azure(API):
 
         return regions
 
+    @authorized
     def get_price(self, region: str) -> dict:
         """Get price."""
         prices = {}
@@ -130,6 +139,7 @@ class Azure(API):
 
         return prices
 
+    @authorized
     def get_resources(self, region: str) -> dict:
         """Get available resources."""
         sizes = {}
@@ -155,6 +165,7 @@ class Azure(API):
 
         return sizes
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Check if image is in the correct region."""
         images = self.get_images(region)
@@ -164,6 +175,7 @@ class Azure(API):
 
         return False
 
+    @authorized
     def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Is  the resource type in the correct region."""
         resources = self.get_resources(region)

@@ -4,6 +4,7 @@
 import requests
 
 from .api import API
+from .helpers import authorized
 
 class DigitalOcean(API):
     """DO API Class."""
@@ -25,13 +26,17 @@ class DigitalOcean(API):
 
     def is_authorized(self) -> bool:
         """Check if API token is valid."""
-        resp = self.get_account()
+        try:
+            resp = self.get_account()
+        except Exception:
+            return False
 
-        if "id" in resp and resp["id"] == "Unauthorized":
+        if resp.get("id") == "Unauthorized":
             return False
 
         return True
 
+    @authorized
     def get_images(self, region: str = "") -> dict:
         """Get types of images."""
         images = {}
@@ -56,6 +61,7 @@ class DigitalOcean(API):
 
         return images
 
+    @authorized
     def get_regions(self) -> dict:
         """Get possible regions."""
         regions = {}
@@ -81,6 +87,7 @@ class DigitalOcean(API):
 
         return regions
 
+    @authorized
     def get_resources(self, region: str = "") -> dict:
         """Get possible resource types."""
         sizes = {}
@@ -109,6 +116,7 @@ class DigitalOcean(API):
 
         return sizes
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Check if the image/region combination is valid."""
         page = 1
@@ -133,6 +141,7 @@ class DigitalOcean(API):
 
         return False
 
+    @authorized
     def valid_resource_in_region(self, resource: str, region: str) -> bool:
         """Check if the resource type is available in the region."""
         page = 1

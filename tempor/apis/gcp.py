@@ -5,6 +5,7 @@ from googleapiclient import discovery
 import google.auth
 
 from .api import API
+from .helpers import authorized
 
 class GCP(API):
     """GCP API Class."""
@@ -23,6 +24,7 @@ class GCP(API):
         except Exception:
             return False
 
+    @authorized
     def get_images(self, region: str = "") -> dict:
         """Get possible image types."""
         images = {}
@@ -78,6 +80,7 @@ class GCP(API):
 
         return images
 
+    @authorized
     def get_regions(self) -> dict:
         """Get possible regions."""
         regions = {}
@@ -97,6 +100,7 @@ class GCP(API):
 
         return regions
 
+    @authorized
     def get_resources(self, region: str) -> dict:
         """Get possible resource types."""
         machine_types = {}
@@ -117,6 +121,7 @@ class GCP(API):
 
         return machine_types
 
+    @authorized
     def get_zones(self) -> list:
         """Get available zones."""
         auth_file = self.api_token["auth_file"]
@@ -129,6 +134,7 @@ class GCP(API):
 
         return [zone["name"] for zone in resp["items"]]
 
+    @authorized
     def valid_zone(self, name: str) -> bool:
         """Get available zones."""
         auth_file = self.api_token["auth_file"]
@@ -145,10 +151,12 @@ class GCP(API):
 
         return False
 
+    @authorized
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """All images types are in all regions."""
         return True
 
+    @authorized
     def valid_resource_in_region(self,resource: str, region: str) -> bool:
         """All resources exist in all regions."""
         return True
