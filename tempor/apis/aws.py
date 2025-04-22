@@ -2,9 +2,11 @@
 """AWS API."""
 
 import importlib.resources
+import botocore
 import logging
 import boto3
 import json
+import sys
 
 from .api import API
 
@@ -44,20 +46,24 @@ class AWS(API):
         images = {}
 
         client = self.session.client("ec2", region_name=region)
-        resp = client.describe_images(
-            Owners=["amazon", "aws-marketplace"],
-            Filters=[
-                {"Name": "state", "Values": ["available"]},
-                {
-                    "Name": "name",
-                    "Values": [
-                        "al2023-ami-2023.7.20250331.0-kernel-6.1-x86_64",
-                        "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250305",
-                        "debian-12-amd64-20250316-2053",
-                    ],
-                },
-            ],
-        )
+        try:
+            resp = client.describe_images(
+                Owners=["amazon", "aws-marketplace"],
+                Filters=[
+                    {"Name": "state", "Values": ["available"]},
+                    {
+                        "Name": "name",
+                        "Values": [
+                            "al2023-ami-2023.7.20250331.0-kernel-6.1-x86_64",
+                            "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250305",
+                            "debian-12-amd64-20250316-2053",
+                        ],
+                    },
+                ],
+            )
+        except botocore.exceptions.ClientError: # pyright: ignore
+            self.logger.error('[red]Invalid Auth Token[/]')
+            sys.exit(1)
 
         for image in resp["Images"]:
             try:
@@ -86,6 +92,9 @@ class AWS(API):
         # this only works with cerain regions apparently
         try:
             resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
+        except botocore.exceptions.ClientError: # pyright: ignore
+            self.logger.error('[red]Invalid Auth Token[/]')
+            sys.exit(1)
         except Exception:
             self.logger.debug(f'Region {region} not supported... using us-east-1.')
             return self.get_resources('us-east-1')
@@ -118,7 +127,11 @@ class AWS(API):
         """Return all possible regions."""
         regions = {}
 
-        resp = self.session.get_available_regions("ec2")
+        try:
+            resp = self.session.get_available_regions("ec2")
+        except botocore.exceptions.ClientError: # pyright: ignore
+            self.logger.error('[red]Invalid Auth Token[/]')
+            sys.exit(1)
 
         for region in resp:
             regions[region] = region
@@ -137,6 +150,9 @@ class AWS(API):
                     {"Name": "state", "Values": ["available"]},
                 ],
             )
+        except botocore.exceptions.ClientError: # pyright: ignore
+            self.logger.error('[red]Invalid Auth Token[/]')
+            sys.exit(1)
         except Exception as e:
             self.logger.debug(e)
             return False
