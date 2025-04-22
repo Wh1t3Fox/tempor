@@ -3,8 +3,6 @@
 
 from rich.prompt import Confirm
 from rich.table import Table
-from os import access, R_OK
-from os.path import isfile
 import subprocess
 import argparse
 import logging
@@ -132,7 +130,7 @@ def get_args() -> argparse.Namespace:
             "--minimal",
             action="store_true",
             default=False,
-            help="Minimal Configuration (just configs)",
+            help="Minimal Configuration (iptables & SSH hardening)",
         )
         prov_parser.add_argument(
             "-f",
@@ -148,9 +146,9 @@ def get_args() -> argparse.Namespace:
             help="Do not run any configuration (except custom)",
         )
         prov_parser.add_argument(
-            "--custom",
-            type=str,
-            default=False,
+            "--custom-playbook",
+            metavar="custom_playbook",
+            type=argparse.FileType('r', encoding='UTF-8'),
             help="Specify Ansible playbook for custom configuration "
                     "(Path to main.yml file)",
         )
@@ -195,16 +193,11 @@ def get_args() -> argparse.Namespace:
         return args
 
     # This is default behavior
-    if args.setup and not (args.minimal or args.full or args.custom):
+    if args.setup and not (args.minimal or args.full):
         # update args based upon config
         if config := cfg.get("config"):
-            # first set is mutually exclusive, but custom can be used with any
             if config.get("none") is True:
                 args.no_config = True
-                args.minimal = False
-                args.full = False
-            elif config.get("bare") is True:
-                args.no_config = False
                 args.minimal = False
                 args.full = False
             elif config.get("minimal") is True:
@@ -215,17 +208,6 @@ def get_args() -> argparse.Namespace:
                 args.no_config = False
                 args.minimal = False
                 args.full = True
-
-            if custom := config.get("custom"):
-                args.minimal = False
-                args.full = False
-                args.custom = custom
-
-    if args.custom:
-        file = args.custom
-        assert isfile(file) and access(
-            file, R_OK
-        ), f"File {file} doesn't exist or isn't readable"
 
     # check options for this provider
     for p in cfg.get("providers", {}):
@@ -454,11 +436,9 @@ def main(args = None, override_teardown: bool = False) -> None:
         run_playbook("full.yml", args.user)
     elif args.minimal:
         run_playbook("minimal.yml", args.user)
-    else:
-        run_playbook("bare.yml", args.user)
 
-    if args.custom:
-        run_custom_playbook(args.custom, args.user)
+    if args.custom_playbook:
+        run_custom_playbook(args.custom_playbook, args.user)
 
     if hostname:
         logger.info(f"[bold italic green]VPS {hostname} now available![/]")
