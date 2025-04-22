@@ -270,7 +270,7 @@ def get_args() -> argparse.Namespace:
     # validate API creds
     if not API.is_authorized():
         logger.info(
-                f"[red bold] Invalid {args.provider} API Token. Fix or remove provider."
+                f"[red bold] Invalid {args.provider} API Token."
         )
         sys.exit(1)
 
