@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Main function."""
+from rich.highlighter import NullHighlighter
 from rich.logging import RichHandler
 import logging
 
@@ -15,7 +16,8 @@ logging.basicConfig(
             markup=True,
             show_level=False,
             show_path=False,
-            show_time=False
+            show_time=False,
+            highlighter=NullHighlighter()
         )
     ],
 )

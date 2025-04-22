@@ -251,11 +251,12 @@ def get_args() -> argparse.Namespace:
             if api_token := p.get("api_token"):
                 args.api_token = api_token
 
-                # AWS specific
-                # override config with cli arg
-                if api_token.get("profile") is None and \
-                        args.profile is not None:
-                            args.api_token["profile"] = args.profile
+            # AWS specific
+            if args.profile is not None:
+                if args.api_token is None:
+                    args.api_token = {}
+                args.api_token["profile"] = args.profile
+
             break
     else:
         parser.print_help()

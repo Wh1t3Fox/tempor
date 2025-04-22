@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """AWS API."""
 
+from botocore.exceptions import ClientError, ProfileNotFound
 import importlib.resources
-import botocore
 import logging
 import boto3
 import json
@@ -24,22 +24,30 @@ class AWS(API):
         self.secret_key = self.api_token.get("secret_key", None)
         self.profile = self.api_token.get("profile", None)
 
-        self.session = boto3.Session(
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            profile_name=self.profile,
-            region_name=self.region,
-        )
+        try:
+            self.session = boto3.Session(
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                profile_name=self.profile,
+                region_name=self.region,
+            )
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
+            sys.exit(1)
 
     def is_authorized(self) -> bool:
         """Check if API tokens are valid."""
+        client = self.session.client("sts")
         try:
-            client = self.session.client("sts")
             client.get_caller_identity()
-            return True
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
+            return False
         except Exception as e:
             self.logger.error(e)
-            return False
+            sys.exit(1)
+        else:
+            return True
 
     def get_images(self, region: str = "us-east-1") -> dict:
         """Return available AMI images for the region."""
@@ -61,8 +69,8 @@ class AWS(API):
                     },
                 ],
             )
-        except botocore.exceptions.ClientError: # pyright: ignore
-            self.logger.error('[red]Invalid Auth Token[/]')
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
             sys.exit(1)
 
         for image in resp["Images"]:
@@ -92,8 +100,8 @@ class AWS(API):
         # this only works with cerain regions apparently
         try:
             resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
-        except botocore.exceptions.ClientError: # pyright: ignore
-            self.logger.error('[red]Invalid Auth Token[/]')
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
             sys.exit(1)
         except Exception:
             self.logger.debug(f'Region {region} not supported... using us-east-1.')
@@ -129,8 +137,8 @@ class AWS(API):
 
         try:
             resp = self.session.get_available_regions("ec2")
-        except botocore.exceptions.ClientError: # pyright: ignore
-            self.logger.error('[red]Invalid Auth Token[/]')
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
             sys.exit(1)
 
         for region in resp:
@@ -150,8 +158,8 @@ class AWS(API):
                     {"Name": "state", "Values": ["available"]},
                 ],
             )
-        except botocore.exceptions.ClientError: # pyright: ignore
-            self.logger.error('[red]Invalid Auth Token[/]')
+        except (ClientError, ProfileNotFound):
+            self.logger.error('[red]Invalid AWS Auth Token[/]')
             sys.exit(1)
         except Exception as e:
             self.logger.debug(e)
