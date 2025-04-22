@@ -251,11 +251,14 @@ def get_args() -> argparse.Namespace:
             if api_token := p.get("api_token"):
                 args.api_token = api_token
 
-            # AWS specific
-            if args.profile is not None:
-                if args.api_token is None:
-                    args.api_token = {}
-                args.api_token["profile"] = args.profile
+            try:
+                # AWS specific
+                if args.profile is not None:
+                    if args.api_token is None:
+                        args.api_token = {}
+                    args.api_token["profile"] = args.profile
+            except AttributeError:
+                pass
 
             break
     else:
