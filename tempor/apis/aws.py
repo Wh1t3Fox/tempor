@@ -79,7 +79,7 @@ class AWS(API):
             '{{"Field": "capacitystatus", "Value": "Used", "Type": "TERM_MATCH"}}]'
         )
 
-        client = boto3.client("pricing", region_name=region)
+        client = self.session.client("pricing", region_name=region)
 
         f = FLT.format(r=AWS.get_region_name(region))
 
@@ -127,7 +127,7 @@ class AWS(API):
 
     def valid_image_in_region(self, image: str, region: str) -> bool:
         """Validate if the AMI is in the correct region."""
-        client = boto3.client("ec2", region_name=region)
+        client = self.session.client("ec2", region_name=region)
 
         try:
             # Exception is thrown if the image is not in this region
