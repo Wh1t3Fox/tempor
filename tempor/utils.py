@@ -191,15 +191,24 @@ def get_arch() -> str:
     uname = platform.uname()
     if "linux" in uname.system.lower():
         if "aarch64" in uname.machine:
-            arch = "arm64"
+            arch = "linux_arm64"
+        elif "arm64" in uname.machine:
+            arch = "linux_arm64"
         elif "64" in uname.machine:
-            arch = "amd64"
+            arch = "linux_amd64"
         elif "386" in uname.machine:
-            arch = "386"
+            arch = "linux_386"
         else:
-            arch = "arm"
+            arch = "linux_arm"
     elif "darwin" in uname.system.lower():
-        arch = "darwin"
+        if "x86_64" in uname.machine:
+            arch = "darwin_amd64"
+        elif "aarch64" in uname.machine:
+            arch = "darwin_arm64"
+        elif "arm64" in uname.machine:
+            arch = "darwin_arm64"
+        else:
+            arch = ""
     else:
         return ""
     return arch

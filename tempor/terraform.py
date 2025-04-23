@@ -6,7 +6,6 @@ from zipfile import ZipFile
 from pathlib import Path
 import python_terraform
 from io import BytesIO
-import platform
 import logging
 import hashlib
 import stat
@@ -126,15 +125,10 @@ class Terraform:
 
     def install_latest(self) -> None:
         """Install latest version of Terraform."""
-        uname = platform.uname()
-        arch = get_arch()
-
-        if "linux" in uname.system.lower():
-            url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_linux_{arch}.zip"
-        elif "darwin" in uname.system.lower():
-            url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
-        else:
+        if not (arch := get_arch()):
             return
+
+        url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_{arch}.zip"
 
         out_file = self.get_terraform_path()
         self.logger.debug(f"Installing v{TF_VER}...")
