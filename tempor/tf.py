@@ -9,7 +9,6 @@ from io import BytesIO
 import platform
 import logging
 import hashlib
-import shutil
 import stat
 import sys
 import re
