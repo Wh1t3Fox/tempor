@@ -438,7 +438,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         run_playbook("minimal.yml", args.user)
 
     if args.custom_playbook:
-        run_custom_playbook(args.custom_playbook, args.user)
+        run_playbook(args.custom_playbook, args.user, True)
 
     if hostname:
         logger.info(f"[bold italic green]VPS {hostname} now available![/]")
