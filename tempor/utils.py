@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """Utility helper functions."""
 
-from io import BytesIO
-from urllib.request import urlopen
-from zipfile import ZipFile
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
@@ -11,25 +8,19 @@ from pathlib import Path
 import jsonschema
 import platform
 import logging
-import hashlib
 import random
 import string
 import shutil
 import json
 import yaml
-import stat
 import os
 
 from .constant import (
     ANSIBLE_HOSTS,
-    BIN_DIR,
     CONFIG_DIR,
     HOSTS_FILE,
     provider_info,
     ROOT_DIR,
-    TF_VER,
-    TF_ZIP_HASH,
-    TF_FILE_HASH,
 )
 from .ssh import remove_config_entry
 
@@ -104,60 +95,6 @@ def get_config() -> dict:
                 logger.error(f"[red bold]{e}[/]")
             return {}
         return cfg
-
-
-def terraform_installed() -> str:
-    """Makesure Terraform is installed."""
-    updated = True
-    out_file = shutil.which("terraform")
-
-    uname = platform.uname()
-    if "linux" in uname.system.lower():
-        if "aarch64" in uname.machine:
-            arch = "arm64"
-        elif "64" in uname.machine:
-            arch = "amd64"
-        elif "386" in uname.machine:
-            arch = "386"
-        else:
-            arch = "arm"
-        url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_linux_{arch}.zip"
-    elif "darwin" in uname.system.lower():
-        arch = "darwin"
-        url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
-    else:
-        return ""
-
-    # Check if we've already installed
-    if not out_file:
-        out_file = f"{BIN_DIR}/terraform"
-    else:  # check version
-        with open(out_file, "rb") as fr:
-            tf = BytesIO(fr.read())
-
-            if TF_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
-                updated = False
-
-    if not os.path.exists(out_file) or not updated:
-        out_file = f"{BIN_DIR}/terraform"
-        logger.info(
-            "Terraform not in Path or Out-of-Date. "
-                    f"Installing v{TF_VER} to {out_file} ..."
-        )
-
-        with urlopen(url) as zipresp:
-            zipfile = BytesIO(zipresp.read())
-
-            logger.debug(f"Validating Hash: {TF_ZIP_HASH[arch]}")
-            assert (
-                TF_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
-            ), "Invalid SHA256 Hash of Zip File!"
-            logger.debug("Passed!")
-            with ZipFile(zipfile) as zfile:
-                zfile.extractall(f"{BIN_DIR}")
-            st = os.stat(out_file)
-            os.chmod(out_file, st.st_mode | stat.S_IXUSR)
-    return out_file
 
 
 def rm_hosts(provider: str, vps_name: str = "") -> None:
@@ -248,6 +185,24 @@ def save_hosts(provider: str, new_hosts: dict) -> None:
         for host in hosts[provider]:
             for hostname, _ in host.items():
                 fw.write(f"{hostname}\n")
+
+def get_arch() -> str:
+    """Get system architecture."""
+    uname = platform.uname()
+    if "linux" in uname.system.lower():
+        if "aarch64" in uname.machine:
+            arch = "arm64"
+        elif "64" in uname.machine:
+            arch = "amd64"
+        elif "386" in uname.machine:
+            arch = "386"
+        else:
+            arch = "arm"
+    elif "darwin" in uname.system.lower():
+        arch = "darwin"
+    else:
+        return ""
+    return arch
 
 
 def random_line(f: Path) -> str:

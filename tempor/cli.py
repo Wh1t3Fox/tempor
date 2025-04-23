@@ -10,8 +10,8 @@ import json
 import sys
 
 from .constant import __version__, provider_info
-from .playbook import run_playbook, run_custom_playbook
 from .ssh import check_sshkeys, install_ssh_keys
+from .playbook import run_playbook
 from .utils import (
     find_hostname,
     get_all_hostnames,

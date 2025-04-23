@@ -2,14 +2,33 @@
 """Terraform Class."""
 
 from python_terraform import Terraform
+from urllib.request import urlopen
+from zipfile import ZipFile
 from pathlib import Path
+from io import BytesIO
+import platform
 import logging
+import hashlib
+import shutil
+import stat
 import sys
 import re
 import os
 
-from .constant import ROOT_DIR
-from .utils import terraform_installed, rm_hosts, random_line, random_number, random_str
+from .constant import (
+    ROOT_DIR,
+    BIN_DIR,
+    TF_VER,
+    TF_ZIP_HASH,
+    TF_FILE_HASH,
+)
+from .utils import (
+    rm_hosts,
+    random_line,
+    random_number,
+    random_str,
+    get_arch
+)
 
 
 class TF:
@@ -30,10 +49,8 @@ class TF:
         self.workspace_name = self.get_workspace_name()
 
         # check if terraform is installed
-        terr_path = terraform_installed()
-        if terr_path is None:
-            self.logger.error("[red bold]Platform not Supported")
-            sys.exit(1)
+        if not self.is_installed():
+            self.install_latest()
 
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
@@ -75,11 +92,15 @@ class TF:
 
 
         # Create the Object
-        self.t = Terraform(
-            working_dir=f"{ROOT_DIR}/providers/{self.provider}",
-            variables={"api_token": self.api_token},
-            terraform_bin_path=terr_path,
-        )
+        try:
+            self.t = Terraform(
+                working_dir=f"{ROOT_DIR}/providers/{self.provider}",
+                variables={"api_token": self.api_token},
+                terraform_bin_path=self.get_terraform_path(),
+            )
+        except FileNotFoundError:
+            self.logger.error('Terraform not in path')
+            sys.exit(1)
 
         # Initialize
         ret, stdout, stderr = self.t.init()
@@ -88,6 +109,57 @@ class TF:
             stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
             self.logger.error(stderr)
             return
+
+    def is_installed(self) -> bool:
+        """Check if Terraform is installed and Updated."""
+        if arch := get_arch():
+            if out_file := self.get_terraform_path():
+                with open(out_file, "rb") as fr:
+                    tf = BytesIO(fr.read())
+                    if TF_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
+                        return False
+                    return True
+            else:
+                return False
+        else:
+            return False
+
+    def install_latest(self) -> None:
+        """Install latest version of Terraform."""
+        uname = platform.uname()
+        if "linux" in uname.system.lower():
+            arch = get_arch()
+            url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_linux_{arch}.zip"
+        elif "darwin" in uname.system.lower():
+            arch = get_arch()
+            url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
+        else:
+            return
+
+        out_file = self.get_terraform_path()
+        if not out_file:
+            out_file = f"{BIN_DIR}/terraform"
+        self.logger.debug(
+            "Terraform not in Path or Out-of-Date. "
+                    f"Installing v{TF_VER} to {out_file} ..."
+        )
+
+        with urlopen(url) as zipresp:
+            zipfile = BytesIO(zipresp.read())
+
+            self.logger.debug(f"Validating Hash: {TF_ZIP_HASH[arch]}")
+            assert (
+                TF_ZIP_HASH[arch] == hashlib.sha256(zipfile.getvalue()).hexdigest()
+            ), "Invalid SHA256 Hash of Zip File!"
+            self.logger.debug("Passed!")
+            with ZipFile(zipfile) as zfile:
+                zfile.extractall(f"{BIN_DIR}")
+            st = os.stat(out_file)
+            os.chmod(out_file, st.st_mode | stat.S_IXUSR)
+
+    def get_terraform_path(self) -> str:
+        """Get the full file path of the Terraform executable."""
+        return shutil.which("terraform")  #pyright: ignore
 
     def get_vps_name(self) -> str:
         """Return VPS name."""
