@@ -127,11 +127,11 @@ class TF:
     def install_latest(self) -> None:
         """Install latest version of Terraform."""
         uname = platform.uname()
+        arch = get_arch()
+
         if "linux" in uname.system.lower():
-            arch = get_arch()
             url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_linux_{arch}.zip"
         elif "darwin" in uname.system.lower():
-            arch = get_arch()
             url = f"https://releases.hashicorp.com/terraform/{TF_VER}/terraform_{TF_VER}_darwin_amd64.zip"
         else:
             return
