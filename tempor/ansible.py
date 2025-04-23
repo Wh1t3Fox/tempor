@@ -5,7 +5,7 @@ from pathlib import Path
 import ansible_runner
 import os
 
-from .constant import ROOT_DIR
+from .constants import ROOT_DIR
 
 
 def run_playbook(playbook: str = "full.yml",

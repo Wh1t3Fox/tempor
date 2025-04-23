@@ -8,7 +8,7 @@ import logging
 import shutil
 import os
 
-from .constant import ROOT_DIR, DATA_DIR, SSH_CONFIG_PATH
+from .constants import ROOT_DIR, DATA_DIR, SSH_CONFIG_PATH
 
 logger = logging.getLogger(__name__)
 

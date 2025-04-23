@@ -15,7 +15,7 @@ import json
 import yaml
 import os
 
-from .constant import (
+from .constants import (
     ANSIBLE_HOSTS,
     CONFIG_DIR,
     HOSTS_FILE,

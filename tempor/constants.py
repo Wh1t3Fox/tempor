@@ -4,6 +4,7 @@
 from appdirs import user_config_dir, user_data_dir
 from os.path import expanduser
 import site
+import sys
 import os
 
 provider_info = {}
@@ -11,11 +12,26 @@ provider_info = {}
 APP_NAME = "tempor"
 APP_AUTHOR = "wh1t3fox"
 
+SSH_CONFIG_PATH = expanduser("~/.ssh/config")
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 CONFIG_DIR = user_config_dir(APP_NAME)
 DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)
-BIN_DIR = site.getusersitepackages().split("lib")[0] + "bin"
-SSH_CONFIG_PATH = expanduser("~/.ssh/config")
+
+HOSTS_FILE = f"{DATA_DIR}/hosts"
+ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
+
+# if we are in a virtualenv place it with the binaries
+if os.environ.get('VIRTUAL_ENV') is not None:
+    BIN_DIR = f"{sys.prefix}/bin"
+else:
+    # $HOME/.local/bin -- add to path if it's not (some dumb OS')
+    BIN_DIR = site.getusersitepackages().split("lib")[0] + "bin"
+    env_paths = os.environ.get("PATH", "").split(os.pathsep)
+
+    # add to path -- only shows up for self and child processes
+    if BIN_DIR not in env_paths:
+        os.environ["PATH"] += os.pathsep + BIN_DIR
+
 
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
@@ -23,9 +39,11 @@ if not os.path.exists(CONFIG_DIR):
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
+if not os.path.exists(BIN_DIR):
+    os.makedirs(BIN_DIR)
+
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as fr:
     __version__ = fr.read().strip()
-
 
 TF_VER = "1.11.3"
 TF_ZIP_HASH = {
@@ -42,6 +60,3 @@ TF_FILE_HASH = {
     "arm64": "c9652d71628df086d486c6d07609aae2f08a00c62cfb27a605a490ff71c19581",
     "darwin": "551e00959094b15424596a8786ad278c7b257c43c534cb1c5f2d2565ab142583",
 }
-
-HOSTS_FILE = f"{DATA_DIR}/hosts"
-ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"

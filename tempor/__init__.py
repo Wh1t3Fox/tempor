@@ -2,9 +2,9 @@
 """Quick and Easy Infrastructure."""
 import os
 
-from . import playbook, ssh, tf, utils
+from . import ansible, ssh, terraform, utils
 
-__all__ = ["playbook", "ssh", "tf", "utils"]
+__all__ = ["ansible", "ssh", "terraform", "utils"]
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as fr:
     __version__ = fr.read().strip()

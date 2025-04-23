@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Terraform Class."""
 
-from python_terraform import Terraform
 from urllib.request import urlopen
 from zipfile import ZipFile
 from pathlib import Path
+import python_terraform
 from io import BytesIO
 import platform
 import logging
@@ -14,7 +14,7 @@ import sys
 import re
 import os
 
-from .constant import (
+from .constants import (
     ROOT_DIR,
     BIN_DIR,
     TF_VER,
@@ -30,7 +30,7 @@ from .utils import (
 )
 
 
-class TF:
+class Terraform:
     """Handler for all of the Terraform functionality."""
 
     def __init__(
@@ -92,7 +92,7 @@ class TF:
 
         # Create the Object
         try:
-            self.t = Terraform(
+            self.t = python_terraform.Terraform(
                 working_dir=f"{ROOT_DIR}/providers/{self.provider}",
                 variables={"api_token": self.api_token},
                 terraform_bin_path=self.get_terraform_path(),
@@ -148,7 +148,7 @@ class TF:
             ), "Invalid SHA256 Hash of Zip File!"
             self.logger.debug("Passed!")
             with ZipFile(zipfile) as zfile:
-                zfile.extractall(f"{BIN_DIR}")
+                zfile.extractall(BIN_DIR)
             st = os.stat(out_file)
             os.chmod(out_file, st.st_mode | stat.S_IXUSR)
 
@@ -158,7 +158,7 @@ class TF:
         This is in the same dir as tempor, and this way it will not
         mess with any user installed terraform binaries.
         """
-        return f"{BIN_DIR}/terraforom"
+        return f"{BIN_DIR}/terraform"
 
     def get_vps_name(self) -> str:
         """Return VPS name."""

@@ -9,9 +9,9 @@ import logging
 import json
 import sys
 
-from .constant import __version__, provider_info
+from .constants import __version__, provider_info
 from .ssh import check_sshkeys, install_ssh_keys
-from .playbook import run_playbook
+from .ansible import run_playbook
 from .utils import (
     find_hostname,
     get_all_hostnames,
@@ -21,7 +21,7 @@ from .utils import (
     save_hosts,
     log_table
 )
-from .tf import TF
+from .terraform import Terraform
 from .apis import * # noqa
 
 logger = logging.getLogger(__name__)
@@ -331,7 +331,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.api_token = provider_info.get(args.provider, {}).get("api_token", "")
         args.hostname = args.teardown
 
-    tf = TF(
+    tf = Terraform(
         args.provider,
         args.region,
         args.image,
