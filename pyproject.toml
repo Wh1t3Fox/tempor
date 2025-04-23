@@ -23,17 +23,17 @@ classifiers=[
     "Environment :: Console",
 ]
 dependencies = [
-        "ansible==11.4.0",
-        "appdirs==1.4.4",
+        "ansible==11.5.0",
         "ansible_runner==2.4.1",
+        "appdirs==1.4.4",
+        "boto3==1.38.0",
+        "google-api-python-client==2.167.0",
         "jsonschema==4.23.0",
-        "python-terraform==0.10.1",
-        "rich==14.0.0",
-        "ssh-config==0.1.5",
         "PyYAML==6.0.2",
-        "boto3==1.37.23",
+        "python-terraform==0.10.1",
         "requests==2.32.3",
-        "google-api-python-client==2.166.0"
+        "rich==14.0.0",
+        "ssh-config==0.1.5"
 ]
 
 [project.urls]
