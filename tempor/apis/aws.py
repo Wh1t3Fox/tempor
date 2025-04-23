@@ -88,6 +88,10 @@ class AWS(API):
         """Return available EC2 hardware types ."""
         instances = {}
 
+        # us-east-1 & ap-south-1 are supported
+        if region not in ["us-east-1", "ap-south-1"]:
+            region = "us-east-1"
+
         # get_products function of the Pricing API
         FLT = (
             '[{{"Field": "tenancy", "Value": "shared", "Type": "TERM_MATCH"}},'
@@ -95,20 +99,15 @@ class AWS(API):
             '{{"Field": "location", "Value": "{r}", "Type": "TERM_MATCH"}},'
             '{{"Field": "capacitystatus", "Value": "Used", "Type": "TERM_MATCH"}}]'
         )
-
-        client = self.session.client("pricing", region_name=region)
-
         f = FLT.format(r=AWS.get_region_name(region))
 
-        # this only works with cerain regions apparently
+        # this only works with cerain regions
+        client = self.session.client("pricing", region_name=region)
         try:
             resp = client.get_products(ServiceCode="AmazonEC2", Filters=json.loads(f))
         except (ClientError, ProfileNotFound):
             self.logger.error('[red]Invalid AWS Auth Token[/]')
             sys.exit(1)
-        except Exception:
-            self.logger.debug(f'Region {region} not supported... using us-east-1.')
-            return self.get_resources('us-east-1')
 
         for instance in resp["PriceList"]:
             instance = json.loads(instance)
@@ -130,7 +129,7 @@ class AWS(API):
                 }
             except KeyError:
                 self.logger.error(instance)
-                exit()
+                sys.exit(1)
 
         return instances
 
