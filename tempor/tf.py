@@ -112,9 +112,10 @@ class TF:
 
     def is_installed(self) -> bool:
         """Check if Terraform is installed and Updated."""
+        tf_path = self.get_terraform_path()
         if arch := get_arch():
-            if out_file := self.get_terraform_path():
-                with open(out_file, "rb") as fr:
+            if os.path.isfile(tf_path):
+                with open(tf_path, "rb") as fr:
                     tf = BytesIO(fr.read())
                     if TF_FILE_HASH[arch] != hashlib.sha256(tf.getvalue()).hexdigest():
                         return False
@@ -137,12 +138,7 @@ class TF:
             return
 
         out_file = self.get_terraform_path()
-        if not out_file:
-            out_file = f"{BIN_DIR}/terraform"
-        self.logger.debug(
-            "Terraform not in Path or Out-of-Date. "
-                    f"Installing v{TF_VER} to {out_file} ..."
-        )
+        self.logger.debug(f"Installing v{TF_VER}...")
 
         with urlopen(url) as zipresp:
             zipfile = BytesIO(zipresp.read())
@@ -158,8 +154,12 @@ class TF:
             os.chmod(out_file, st.st_mode | stat.S_IXUSR)
 
     def get_terraform_path(self) -> str:
-        """Get the full file path of the Terraform executable."""
-        return shutil.which("terraform")  #pyright: ignore
+        """Return the full file path of the Terraform executable.
+
+        This is in the same dir as tempor, and this way it will not
+        mess with any user installed terraform binaries.
+        """
+        return f"{BIN_DIR}/terraforom"
 
     def get_vps_name(self) -> str:
         """Return VPS name."""
