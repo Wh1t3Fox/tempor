@@ -62,3 +62,21 @@ TF_FILE_HASH = {
     "darwin_amd64": "4ffae9d5e9429aa0c3ee96053eaea6770f1fe1886cc508f3c70e54c629aa4245",
     "darwin_arm64": "a451c0fbbb7cd5004e9aadf9ba6e2f5083a4530da99da1a460ee176ee9308c47",
 }
+
+PACKER_VER = "1.12.0"
+PACKER_ZIP_HASH = {
+    "linux_amd64": "e859a76659570d1e29fa55396d5d908091bacacd4567c17770e616c4b58c9ace",
+    "linux_386": "2fba1a4d61386805069416764da34bb7af1d48747530be570a9452b28f6d99fa",
+    "linux_arm": "29c8cb058b6d0d68c84e4a322c4abb1b11bdfe926d9a16ccbf4e026b8df75e49",
+    "linux_arm64": "a9ea40e7757cd000836b650bd2ed825dc3af9a7d73f4e19119df4c1aa13d0fe6",
+    "darwin_amd64": "2cdaa91b640974ad65fa95b112f4604a9c272e38f7e9f9d853aa33774aa4feeb",
+    "darwin_arm64": "448bebeb5741eebd5fdc92609e75213665366970cd607ec57e7a5516d7067b3d"
+}
+PACKER_FILE_HASH = {
+    "linux_amd64": "dce0dab683b9f4bc447b53ebfa1fedf0f0620d702af66d8b0b36f9cc8ecf1369",
+    "linux_386": "bf945d31731323f89fbc173317d30adcf9604bb25335153d2a6ca2ed46f23d71",
+    "linux_arm": "bef1ca5d81eeaa1210af99875101107d0a529e3acd35015e776d64c0ee786227",
+    "linux_arm64": "7a47088a35d87af5a6cd298b974971144dc1a3dca717c6a35aaa813940476997",
+    "darwin_amd64": "254d6fb20679eb5aaa18dfcdfb35b980c3a399b7c4c241167da1bce8cdc63281",
+    "darwin_arm64": "a2c3a143560c5f17b5d7c819f6d505ebaf87ba6faffcd30cbde43a6773a2112a",
+}
