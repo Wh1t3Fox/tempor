@@ -5,5 +5,8 @@ class AuthorizationError(Exception):
 
     pass
 
+class PackerConfigurationError(Exception):
+    """Throw Config related error for Packer."""
 
+    pass
 

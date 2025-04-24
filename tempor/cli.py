@@ -22,6 +22,7 @@ from .utils import (
     log_table
 )
 from .terraform import Terraform
+from .packer import Packer
 from .apis import * # noqa
 
 logger = logging.getLogger(__name__)
@@ -151,6 +152,13 @@ def get_args() -> argparse.Namespace:
             type=argparse.FileType('r', encoding='UTF-8'),
             help="Specify Ansible playbook for custom configuration "
                     "(Path to main.yml file)",
+        )
+        prov_parser.add_argument(
+            "--packer",
+            metavar="packer",
+            type=argparse.FileType('r', encoding='UTF-8'),
+            help="Specify Packer config for custom configuration "
+                    "(Path to *.pkr.hcl file)",
         )
         prov_parser.add_argument(
             "--additional-info",
@@ -330,6 +338,24 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.resources = _host.get("resources", "")
         args.api_token = provider_info.get(args.provider, {}).get("api_token", "")
         args.hostname = args.teardown
+
+    # need to build our image for Terraform
+    if args.packer:
+        packer_vars = {
+          'region':args.region,
+          'resources': args.resources
+        }
+        # if we have a non-AWS provider this doesn't exist
+        try:
+            packer_vars['profile'] = args.profile
+        except Exception:
+            pass
+
+        p = Packer(args.packer,var=packer_vars)
+        p.init()
+        p.validate()
+        p.build()
+        args.image = p.get_image_id()
 
     tf = Terraform(
         args.provider,
