@@ -28,7 +28,7 @@ def add_config_entry(hostname: str, attr: dict) -> None:
 
     try:
         cfg.add(new_host)
-    except ssh_config.errors.HostExistsError:
+    except ssh_config.errors.HostExistsError:  #pyright: ignore
         cfg.update(hostname, attr)
     cfg.write()
 

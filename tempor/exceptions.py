@@ -5,5 +5,12 @@ class AuthorizationError(Exception):
 
     pass
 
+class PackerConfigurationError(Exception):
+    """Throw Config related error for Packer."""
 
+    pass
 
+class UnsupportedProviderError(Exception):
+    """Thrown when the provider is not supported."""
+
+    pass

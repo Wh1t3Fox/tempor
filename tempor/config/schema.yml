@@ -4,8 +4,6 @@ properties:
     type: array
     items:
       $ref: '#/definitions/provider'
-  config:
-    type: object
 definitions:
   provider:
     type: object

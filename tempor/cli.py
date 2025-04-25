@@ -3,16 +3,19 @@
 
 from rich.prompt import Confirm
 from rich.table import Table
+from os import access, R_OK
+from os.path import isfile
 import subprocess
 import argparse
 import logging
 import json
 import sys
 
-from .constants import __version__, provider_info
-from .ssh import check_sshkeys, install_ssh_keys
-from .ansible import run_playbook
-from .utils import (
+from tempor.constants import pkg_version, provider_info
+from tempor.exceptions import UnsupportedProviderError
+from tempor.ssh import check_sshkeys, install_ssh_keys
+from tempor.ansible import run_playbook
+from tempor.utils import (
     find_hostname,
     get_all_hostnames,
     get_config,
@@ -21,8 +24,9 @@ from .utils import (
     save_hosts,
     log_table
 )
-from .terraform import Terraform
-from .apis import * # noqa
+from tempor.terraform import Terraform
+from tempor.packer import Packer
+from tempor.apis import * # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -126,31 +130,18 @@ def get_args() -> argparse.Namespace:
             help="List Available VPS'",
         )
         prov_parser.add_argument(
-            "-m",
-            "--minimal",
-            action="store_true",
-            default=False,
-            help="Minimal Configuration (iptables & SSH hardening)",
-        )
-        prov_parser.add_argument(
-            "-f",
-            "--full",
-            action="store_true",
-            default=False,
-            help="Full Configuration with hardening",
-        )
-        prov_parser.add_argument(
-            "--no-config",
-            action="store_true",
-            default=True,
-            help="Do not run any configuration (except custom)",
-        )
-        prov_parser.add_argument(
-            "--custom-playbook",
-            metavar="custom_playbook",
-            type=argparse.FileType('r', encoding='UTF-8'),
+            "--ansible",
+            metavar="ansible",
+            type=str,
             help="Specify Ansible playbook for custom configuration "
                     "(Path to main.yml file)",
+        )
+        prov_parser.add_argument(
+            "--packer",
+            metavar="packer",
+            type=str,
+            help="Specify Packer config for custom configuration "
+                    "(Path to *.pkr.hcl file)",
         )
         prov_parser.add_argument(
             "--additional-info",
@@ -160,8 +151,19 @@ def get_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
+    # check for files access
+    if args.__contains__('packer') and args.packer is not None:
+        assert isfile(args.packer) and access(
+            args.packer, R_OK
+        ), f"File '{args.packer}' doesn't exist or isn't readable"
+
+    if args.__contains__('ansible') and args.ansible is not None:
+        assert isfile(args.ansible) and access(
+            args.ansible, R_OK
+        ), f"File '{args.ansible}' doesn't exist or isn't readable"
+
     if args.version:
-        logger.info(__version__)
+        logger.info(pkg_version)
         sys.exit(0)
 
     elif args.update:
@@ -191,23 +193,6 @@ def get_args() -> argparse.Namespace:
 
     elif args.teardown:
         return args
-
-    # This is default behavior
-    if args.setup and not (args.minimal or args.full):
-        # update args based upon config
-        if config := cfg.get("config"):
-            if config.get("none") is True:
-                args.no_config = True
-                args.minimal = False
-                args.full = False
-            elif config.get("minimal") is True:
-                args.no_config = False
-                args.minimal = True
-                args.full = False
-            elif config.get("full") is True:
-                args.no_config = False
-                args.minimal = False
-                args.full = True
 
     # check options for this provider
     for p in cfg.get("providers", {}):
@@ -331,6 +316,25 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.api_token = provider_info.get(args.provider, {}).get("api_token", "")
         args.hostname = args.teardown
 
+    # need to build our image for Terraform
+    if args.__contains__('packer') and args.packer is not None:
+        if args.provider not in ['aws', 'digitalocean', 'linode']:
+            raise UnsupportedProviderError
+
+        p = Packer(
+            args.provider,
+            args.packer,
+            args.region,
+            args.resources,
+            args.api_token
+        )
+        p.init()
+        p.validate()
+        p.build()
+        args.image = p.get_image_id()
+        if ssh_username := p.get_ssh_user():
+            args.user = ssh_username
+
     tf = Terraform(
         args.provider,
         args.region,
@@ -429,16 +433,8 @@ def main(args = None, override_teardown: bool = False) -> None:
         )
         save_hosts(args.provider, {hostname: val})
 
-    if args.no_config:
-        pass
-    # Ansible configuration
-    elif args.full:
-        run_playbook("full.yml", args.user)
-    elif args.minimal:
-        run_playbook("minimal.yml", args.user)
-
-    if args.custom_playbook:
-        run_playbook(args.custom_playbook, args.user, True)
+    if args.ansible:
+        run_playbook(args.ansible, args.user)
 
     if hostname:
         logger.info(f"[bold italic green]VPS {hostname} now available![/]")
