@@ -111,7 +111,7 @@ options:
   -u, --update          Check for Upates
   --version             Print current version
 
-❯ tempor linode --help
+❯ tempor linode --help --additional-info
 
 usage: tempor linode [-h] [--image image] [--region region] [-s] [-l] [-b] [-m] [--teardown]
 
