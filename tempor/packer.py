@@ -261,8 +261,12 @@ class Packer:
         """Return the username for SSH."""
         username = ''
         with open(self.packer_fpath) as fr:
-            user = [line.strip() for line in fr.readlines() if 'ssh_username' in line]
-            if user and len(user) == 1:
-                # ['ssh_username = "ubuntu"']
-                username = user[0].split('=')[1].translate(str.maketrans("","",' "'))
+            # ['ssh_username = "ubuntu"']
+            users = [line.strip().split('=')[1].translate(str.maketrans("","",' "')) \
+                    for line in fr.readlines() if 'ssh_username' in line]
+            users = list(set(users)) # remove dups
+            # this can be more than 1, not sure what to do then
+            # maybe just return them all with the image_id (image_id, username)
+            if users:
+                username = users[0]
         return username
