@@ -130,28 +130,8 @@ def get_args() -> argparse.Namespace:
             help="List Available VPS'",
         )
         prov_parser.add_argument(
-            "-m",
-            "--minimal",
-            action="store_true",
-            default=False,
-            help="Minimal Configuration (iptables & SSH hardening)",
-        )
-        prov_parser.add_argument(
-            "-f",
-            "--full",
-            action="store_true",
-            default=False,
-            help="Full Configuration with hardening",
-        )
-        prov_parser.add_argument(
-            "--no-config",
-            action="store_true",
-            default=True,
-            help="Do not run any configuration (except custom)",
-        )
-        prov_parser.add_argument(
-            "--custom-playbook",
-            metavar="custom_playbook",
+            "--ansible",
+            metavar="ansible",
             type=str,
             help="Specify Ansible playbook for custom configuration "
                     "(Path to main.yml file)",
@@ -177,10 +157,10 @@ def get_args() -> argparse.Namespace:
             args.packer, R_OK
         ), f"File '{args.packer}' doesn't exist or isn't readable"
 
-    if args.__contains__('custom_playbook') and args.custom_playbook is not None:
-        assert isfile(args.custom_playbook) and access(
-            args.custom_playbook, R_OK
-        ), f"File '{args.custom_playbook}' doesn't exist or isn't readable"
+    if args.__contains__('ansible') and args.ansible is not None:
+        assert isfile(args.ansible) and access(
+            args.ansible, R_OK
+        ), f"File '{args.ansible}' doesn't exist or isn't readable"
 
     if args.version:
         logger.info(pkg_version)
@@ -213,23 +193,6 @@ def get_args() -> argparse.Namespace:
 
     elif args.teardown:
         return args
-
-    # This is default behavior
-    if args.setup and not (args.minimal or args.full):
-        # update args based upon config
-        if config := cfg.get("config"):
-            if config.get("none") is True:
-                args.no_config = True
-                args.minimal = False
-                args.full = False
-            elif config.get("minimal") is True:
-                args.no_config = False
-                args.minimal = True
-                args.full = False
-            elif config.get("full") is True:
-                args.no_config = False
-                args.minimal = False
-                args.full = True
 
     # check options for this provider
     for p in cfg.get("providers", {}):
@@ -470,16 +433,8 @@ def main(args = None, override_teardown: bool = False) -> None:
         )
         save_hosts(args.provider, {hostname: val})
 
-    if args.no_config:
-        pass
-    # Ansible configuration
-    elif args.full:
-        run_playbook("full.yml", args.user)
-    elif args.minimal:
-        run_playbook("minimal.yml", args.user)
-
-    if args.custom_playbook:
-        run_playbook(args.custom_playbook, args.user, True)
+    if args.ansible:
+        run_playbook(args.ansible, args.user)
 
     if hostname:
         logger.info(f"[bold italic green]VPS {hostname} now available![/]")

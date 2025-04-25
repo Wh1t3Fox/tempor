@@ -10,59 +10,25 @@
 [![Pypi Downloads](https://img.shields.io/pypi/dm/tempor?style=for-the-badge)](https://pypi.org/project/tempor)
 [![Twitter](https://img.shields.io/twitter/follow/_wh1t3fox_?style=for-the-badge)](https://twitter.com/_wh1t3fox_)
 
-**tempor** is a tool used for creating ephemeral infrastructure in the cloud. tempor has the ability to create an arbitrary number of servers via Terraform, ideal for penetration testers and bug hunters.
+**tempor** is a tool used for creating ephemeral infrastructure in the cloud. 
+tempor has the ability to create an arbitrary number of servers via Terraform, 
+ideal for penetration testers and bug hunters.
 
-VPS configuration is performed via Ansible roles after creation. Currently the following roles are supported:
-
-<p>
-  
-No Config (Default)
-
-</p>
-
-<p>
-Minimal Setup:
-  
-  * IPv4 and IPV6 iptables lock down
-  * ssh_hardening
-    
-</p>
-
-<p>
-Full Setup:
-    
-  * Install packages
-  * Configuration files loaded
-  * IPv4 and IPV6 iptables lock down
-  * ssh_hardening
-  * os_hardening
-  * Install Docker
-  * Install pip
-    
-</p>
-
-<p>
-Built-in Ansible Modules
-  
- * [dev-sec.os)hardening](https://github.com/dev-sec/ansible-collection-hardening)
- * [dev-sec.ssh_hardening](https://github.com/dev-sec/ansible-collection-hardening)
- * [geerlingguy.docker](https://github.com/geerlingguy/ansible-role-docker)
- * [geerlingguy.pip](https://github.com/geerlingguy/ansible-role-pip)
-   * docker
-   * hashcrack-jtr
-   * impacket
- * IPv4 and IPv6 iptables lockdown
-   * INPUT only allow SSH
-   * OUTUT only allow DNS, HTTP/S, DoT
-     
-</p>
-
-Custom Ansible playbook supported using `--custom` flag!
-  
 <p>
 AWS supports authentication through ENV variables, profile or API tokens in the config file.
 </p>
 
+<p>
+Custom Ansible playbook supported using `--ansible` flag.
+</p>
+  
+<p>
+Custom Packer config supported using `--packer` flag.
+</p>
+
+<p>
+Check out the examples/ folder for Ansible and Packer examples
+</p>
   
 ### :moneybag: Referrals - Get Free Credit! :moneybag:
 
@@ -132,13 +98,6 @@ providers:
       client_id:
       client_secret:
       tenant_id:
-
-config:
-  none: true
-  bare: false
-  minimal: false
-  full: false
-  custom: /path/to/playbook.yml
 ```
 
 ### :interrobang: Usage
@@ -167,11 +126,9 @@ options:
   --region region       Specify the Region to Host the Image
   --resources resource  Specify the hardware resources for the host image
   -s, --setup           Create a VPS
-  -l, --list            List Available VPS'
-  -f, --full            Full Configuration with hardening
-  -m, --minimal         Minimal Configuration (just configs)
-  --custom              Specify Ansible playbook for custom configuration (Path to main.yml file)
-  --no-config           Do not run any configuration (except custom)
+  --ansible ansible     Specify Ansible playbook for custom configuration (Path to main.yml file)
+  --packer packer       Specify Packer config for custom configuration (Path to *.pkr.hcl file)
+  --additional-info     Displays available regions, images, and resources (with --help)
 
           Regions
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━┓
