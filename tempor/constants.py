@@ -43,7 +43,7 @@ if not os.path.exists(BIN_DIR):
     os.makedirs(BIN_DIR)
 
 with open(os.path.join(os.path.dirname(__file__), "VERSION")) as fr:
-    __version__ = fr.read().strip()
+    pkg_version = fr.read().strip()
 
 TF_VER = "1.11.4"
 TF_ZIP_HASH = {

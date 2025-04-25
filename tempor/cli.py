@@ -11,11 +11,11 @@ import logging
 import json
 import sys
 
-from .exceptions import UnsupportedProviderError
-from .constants import __version__, provider_info
-from .ssh import check_sshkeys, install_ssh_keys
-from .ansible import run_playbook
-from .utils import (
+from tempor.constants import pkg_version, provider_info
+from tempor.exceptions import UnsupportedProviderError
+from tempor.ssh import check_sshkeys, install_ssh_keys
+from tempor.ansible import run_playbook
+from tempor.utils import (
     find_hostname,
     get_all_hostnames,
     get_config,
@@ -24,9 +24,9 @@ from .utils import (
     save_hosts,
     log_table
 )
-from .terraform import Terraform
-from .packer import Packer
-from .apis import * # noqa
+from tempor.terraform import Terraform
+from tempor.packer import Packer
+from tempor.apis import * # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +183,7 @@ def get_args() -> argparse.Namespace:
         ), f"File '{args.custom_playbook}' doesn't exist or isn't readable"
 
     if args.version:
-        logger.info(__version__)
+        logger.info(pkg_version)
         sys.exit(0)
 
     elif args.update:
