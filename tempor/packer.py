@@ -155,7 +155,7 @@ class Packer:
 
         Install missing plugins or upgrade plugins
         """
-        self.logger.info('Installing missing plugins...')
+        self.logger.info('[bold italic]Installing missing plugins...[/]')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' init '
@@ -175,7 +175,7 @@ class Packer:
 
         build image(s) from template
         """
-        self.logger.info('Building image...')
+        self.logger.info('[bold italic]Building image...[/]')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' build '
@@ -219,7 +219,7 @@ class Packer:
 
         check that a template is valid
         """
-        self.logger.info('Validating file...')
+        self.logger.info('[bold italic]Validating file...[/]')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' validate '
