@@ -11,11 +11,13 @@ import logging
 import hashlib
 import shlex
 import stat
+import sys
 import os
 
 from .exceptions import (
     PackerConfigurationError,
-    AuthorizationError
+    AuthorizationError,
+    UnsupportedProviderError
 )
 from .constants import (
     BIN_DIR,
@@ -30,11 +32,17 @@ from .utils import (
 class Packer:
     """Handler for Packer functionality."""
 
-    def __init__(self, packer_fpath: str, var: dict = {}):
+    def __init__(self, provider: str, packer_fpath: str,
+                 region: str, resources: str, api_token=None
+    ):
         self.logger = logging.getLogger(__name__)
         self.packer_img_id = ''
+
+        self.provider = provider
         self.packer_fpath = packer_fpath
-        self.var = var
+        self.region = region
+        self.resources = resources
+        self.api_token = api_token
 
         assert isfile(self.packer_fpath) and access(
             self.packer_fpath, R_OK
@@ -42,6 +50,53 @@ class Packer:
 
         if not self.is_installed():
             self.install_latest()
+
+        if provider == 'aws':
+            self.api_token = {} if self.api_token is None else self.api_token
+
+            # if the API tokens in the config are populated set them to env variables
+            if (
+                self.api_token.get("access_key", None) is not None
+                and self.api_token.get("secret_key", None) is not None
+            ):
+                os.environ["AWS_ACCESS_KEY_ID"] = self.api_token["access_key"]
+                os.environ["AWS_SECRET_ACCESS_KEY"] = self.api_token["secret_key"]
+
+            # Do we have env vars being passed!?,
+            # assume the use is competent and setup all the envs
+            elif os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get(
+                "AWS_SECRET_ACCESS_KEY"
+            ):
+                pass # don't need to do anything :)
+
+            # do we only have a profile specified?
+            elif profile := self.api_token.get("profile", None):
+                pass # don't have to do anything here either :)
+
+            else:
+                self.logger.error("[red]No AWS API Tokens detected.[/red]")
+                sys.exit(1)
+
+            # does the user want to run as a different profile?
+            if profile := self.api_token.get("profile", None):
+                os.environ["AWS_PROFILE"] = profile
+
+            # just make sure our region is set
+            if os.environ.get("AWS_REGION", None) is None:
+                os.environ["AWS_REGION"] = self.region
+        elif provider == 'digitalocean':
+            if self.api_token is not None:
+                os.environ['DIGITALOCEAN_ACCESS_TOKEN'] = self.api_token
+            else:
+                raise AuthorizationError('No API Token Specified')
+        elif provider == 'linode':
+            if self.api_token is not None:
+                os.environ['LINODE_TOKEN'] = self.api_token
+            else:
+                raise AuthorizationError('No API Token Specified')
+        else:
+            raise UnsupportedProviderError
+
 
     def get_packer_path(self) -> str:
         """Return the full file path of the Packer executable.
@@ -100,6 +155,7 @@ class Packer:
 
         Install missing plugins or upgrade plugins
         """
+        self.logger.info('Installing missing plugins...')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' init '
@@ -109,6 +165,7 @@ class Packer:
             self.logger.error(stderr)
 
         if 'Error' in stdout:
+            self.logger.error(stdout)
             raise PackerConfigurationError
 
         return (stdout, stderr)
@@ -118,6 +175,7 @@ class Packer:
 
         build image(s) from template
         """
+        self.logger.info('Building image...')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' build '
@@ -127,14 +185,16 @@ class Packer:
         if stderr:
             self.logger.error(stderr)
 
-        print(stdout)
         match stdout:
             case stdout if 'Error' in stdout:
+                self.logger.error(stdout)
                 raise PackerConfigurationError
             case stdout if 'status code: 401' in stdout:
                 raise AuthorizationError
+            case stdout if 'InvalidGrantException' in stdout:
+                raise AuthorizationError
             case _:
-                self.packer_img_id = stdout.split('\n')[-1].split(':')[-1].strip()
+                self.packer_img_id = stdout.split('\n')[-3].split(':')[-1].strip()
 
     def fmt(self):
         """Packer fmt.
@@ -151,6 +211,7 @@ class Packer:
             self.logger.error(stderr)
 
         if 'Error' in stdout:
+            self.logger.error(stdout)
             raise PackerConfigurationError
 
     def validate(self):
@@ -158,6 +219,7 @@ class Packer:
 
         check that a template is valid
         """
+        self.logger.info('Validating file...')
         stdout, stderr = self.run_cmd(
                     f'{self.get_packer_path()}'
                     ' validate '
@@ -168,7 +230,7 @@ class Packer:
             self.logger.error(stderr)
 
         if 'Error' in stdout:
-            print(stdout)
+            self.logger.error(stdout)
             raise PackerConfigurationError
 
         return (stdout, stderr)
@@ -182,23 +244,12 @@ class Packer:
 
     def get_variables(self) -> str:
         """Get variables being passed to the config."""
-        variables = ''
-        for k,v in self.var.items():
-            variables += f"-var '{k}={v}' "
-
+        variables = (
+            f'-var region={self.region} '
+            f'-var resources={self.resources} '
+        )
         return variables
 
     def get_image_id(self):
         """Return the image id built from Packer."""
         return self.packer_img_id
-
-if __name__ == '__main__':
-    p = Packer('/tmp/aws-ubuntu.pkr.hcl', var={
-            'region': 'us-west-2',
-            'resources': 't2.micro',
-            'profile': 'PowerUserAccess-204688694210'
-        })
-    p.init()
-    p.validate()
-    p.build()
-    print(p.get_image_id())

@@ -9,6 +9,7 @@ import logging
 import json
 import sys
 
+from .exceptions import UnsupportedProviderError
 from .constants import __version__, provider_info
 from .ssh import check_sshkeys, install_ssh_keys
 from .ansible import run_playbook
@@ -341,17 +342,16 @@ def main(args = None, override_teardown: bool = False) -> None:
 
     # need to build our image for Terraform
     if args.packer:
-        packer_vars = {
-          'region':args.region,
-          'resources': args.resources
-        }
-        # if we have a non-AWS provider this doesn't exist
-        try:
-            packer_vars['profile'] = args.profile
-        except Exception:
-            pass
+        if args.provider not in ['aws', 'digitalocean', 'linode']:
+            raise UnsupportedProviderError
 
-        p = Packer(args.packer,var=packer_vars)
+        p = Packer(
+            args.provider,
+            args.packer,
+            args.region,
+            args.resources,
+            args.api_token
+        )
         p.init()
         p.validate()
         p.build()

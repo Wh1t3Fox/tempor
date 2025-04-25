@@ -10,3 +10,7 @@ class PackerConfigurationError(Exception):
 
     pass
 
+class UnsupportedProviderError(Exception):
+    """Thrown when the provider is not supported."""
+
+    pass
