@@ -3,6 +3,8 @@
 
 from rich.prompt import Confirm
 from rich.table import Table
+from os import access, R_OK
+from os.path import isfile
 import subprocess
 import argparse
 import logging
@@ -150,14 +152,14 @@ def get_args() -> argparse.Namespace:
         prov_parser.add_argument(
             "--custom-playbook",
             metavar="custom_playbook",
-            type=argparse.FileType('r', encoding='UTF-8'),
+            type=str,
             help="Specify Ansible playbook for custom configuration "
                     "(Path to main.yml file)",
         )
         prov_parser.add_argument(
             "--packer",
             metavar="packer",
-            type=argparse.FileType('r', encoding='UTF-8'),
+            type=str,
             help="Specify Packer config for custom configuration "
                     "(Path to *.pkr.hcl file)",
         )
@@ -168,6 +170,17 @@ def get_args() -> argparse.Namespace:
         )
 
     args = parser.parse_args()
+
+    # check for files access
+    if args.__contains__('packer') and args.packer is not None:
+        assert isfile(args.packer) and access(
+            args.packer, R_OK
+        ), f"File '{args.packer}' doesn't exist or isn't readable"
+
+    if args.__contains__('custom_playbook') and args.custom_playbook is not None:
+        assert isfile(args.custom_playbook) and access(
+            args.custom_playbook, R_OK
+        ), f"File '{args.custom_playbook}' doesn't exist or isn't readable"
 
     if args.version:
         logger.info(__version__)
@@ -341,7 +354,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.hostname = args.teardown
 
     # need to build our image for Terraform
-    if args.packer:
+    if args.__contains__('packer') and args.packer is not None:
         if args.provider not in ['aws', 'digitalocean', 'linode']:
             raise UnsupportedProviderError
 
