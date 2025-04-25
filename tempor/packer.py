@@ -196,6 +196,9 @@ class Packer:
             case _:
                 self.packer_img_id = stdout.split('\n')[-3].split(':')[-1].strip()
 
+        if self.packer_img_id:
+            self.logger.info('[green]Created image {self.packer_img_id}[/]')
+
     def fmt(self):
         """Packer fmt.
 
