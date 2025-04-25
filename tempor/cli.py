@@ -369,6 +369,8 @@ def main(args = None, override_teardown: bool = False) -> None:
         p.validate()
         p.build()
         args.image = p.get_image_id()
+        if ssh_username := p.get_ssh_user():
+            args.user = ssh_username
 
     tf = Terraform(
         args.provider,

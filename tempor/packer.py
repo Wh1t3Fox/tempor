@@ -253,6 +253,16 @@ class Packer:
         )
         return variables
 
-    def get_image_id(self):
+    def get_image_id(self) -> str:
         """Return the image id built from Packer."""
         return self.packer_img_id
+
+    def get_ssh_user(self) -> str:
+        """Return the username for SSH."""
+        username = ''
+        with open(self.packer_fpath) as fr:
+            user = [line.strip() for line in fr.readlines() if 'ssh_username' in line]
+            if user and len(user) == 1:
+                # ['ssh_username = "ubuntu"']
+                username = user[0].split('=')[1].translate(str.maketrans("","",' "'))
+        return username
