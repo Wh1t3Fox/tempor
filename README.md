@@ -18,13 +18,9 @@ ideal for penetration testers and bug hunters.
 AWS supports authentication through ENV variables, profile or API tokens in the config file.
 </p>
 
-<p>
-Custom Ansible playbook supported using `--ansible` flag.
-</p>
+Custom Ansible playbook supported using ```--ansible``` flag.
   
-<p>
-Custom Packer config supported using `--packer` flag.
-</p>
+Custom Packer config supported using ```--packer``` flag.
 
 <p>
 Check out the examples/ folder for Ansible and Packer examples
