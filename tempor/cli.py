@@ -151,17 +151,6 @@ def get_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # check for files access
-    if args.__contains__('packer') and args.packer is not None:
-        assert isfile(args.packer) and access(
-            args.packer, R_OK
-        ), f"File '{args.packer}' doesn't exist or isn't readable"
-
-    if args.__contains__('ansible') and args.ansible is not None:
-        assert isfile(args.ansible) and access(
-            args.ansible, R_OK
-        ), f"File '{args.ansible}' doesn't exist or isn't readable"
-
     if args.version:
         logger.info(pkg_version)
         sys.exit(0)
@@ -236,6 +225,23 @@ def get_args() -> argparse.Namespace:
     if args.additional_info is False and args.help is True:
         print_subparser_help(parser, args.provider)
         parser.exit(0)
+
+    # check for files access
+    if args.packer is not None:
+        assert isfile(args.packer) and access(
+            args.packer, R_OK
+        ), f"File '{args.packer}' doesn't exist or isn't readable"
+
+    if args.ansible is not None:
+        assert isfile(args.ansible) and access(
+            args.ansible, R_OK
+        ), f"File '{args.ansible}' doesn't exist or isn't readable"
+
+    # check for null values in args
+    if args.region is None or \
+            args.resources is None or \
+            args.image is None:
+        raise Exception('Missing arguments. Region, Image, and Resources are required!')
 
     API = globals()[args.provider](api_token, args.region)
     # validate API creds

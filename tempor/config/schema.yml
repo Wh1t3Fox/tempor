@@ -1,3 +1,4 @@
+---
 type: object
 properties:
   providers:
@@ -9,11 +10,8 @@ definitions:
     type: object
     required:
       - name
-      - region
-      - image
-      - resources
     properties:
-      name: 
+      name:
         type: string
       region:
         type: string
