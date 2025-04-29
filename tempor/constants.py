@@ -18,7 +18,7 @@ CONFIG_DIR = user_config_dir(APP_NAME)
 DATA_DIR = user_data_dir(APP_NAME, APP_AUTHOR)
 
 HOSTS_FILE = f"{DATA_DIR}/hosts"
-ANSIBLE_HOSTS = f"{ROOT_DIR}/playbooks/inventory"
+ANSIBLE_HOSTS = f"{DATA_DIR}/inventory"
 
 # if we are in a virtualenv place it with the binaries
 if os.environ.get('VIRTUAL_ENV') is not None:
