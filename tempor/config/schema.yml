@@ -17,3 +17,7 @@ definitions:
         type: string
       resources:
         type: string
+      api_token:
+        anyOf:
+          - type: string
+          - type: object
