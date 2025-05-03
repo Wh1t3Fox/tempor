@@ -237,12 +237,6 @@ def get_args() -> argparse.Namespace:
             args.ansible, R_OK
         ), f"File '{args.ansible}' doesn't exist or isn't readable"
 
-    # check for null values in args
-    if args.region is None or \
-            args.resources is None or \
-            args.image is None:
-        raise Exception('Missing arguments. Region, Image, and Resources are required!')
-
     API = globals()[args.provider](api_token, args.region)
     # validate API creds
     if not API.is_authorized():
@@ -250,6 +244,12 @@ def get_args() -> argparse.Namespace:
                 f"[red bold] Invalid {args.provider} API Token."
         )
         sys.exit(1)
+
+    # check for null values in args
+    if args.list is False and (args.region is None or \
+            args.resources is None or \
+            args.image is None):
+        raise Exception('Missing arguments. Region, Image, and Resources are required!')
 
 
     if args.provider == "gcp":
