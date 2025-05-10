@@ -106,6 +106,12 @@ def get_args() -> argparse.Namespace:
         )
         if provider == "aws":
             prov_parser.add_argument(
+                "--cidr-block",
+                metavar="cidr_block",
+                default="10.253.0.0/16",
+                help="IPv4 CIDR block for VPC",
+            )
+            prov_parser.add_argument(
                 "-p",
                 "--profile",
                 metavar="profile",
@@ -323,7 +329,7 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.hostname = args.teardown
 
     # need to build our image for Terraform
-    if args.__contains__('packer') and args.packer is not None:
+    if hasattr(args, 'packer') and args.packer is not None:
         if args.provider not in ['aws', 'digitalocean', 'linode']:
             raise UnsupportedProviderError
 
@@ -348,8 +354,9 @@ def main(args = None, override_teardown: bool = False) -> None:
         args.resources,
         args.hostname,
         args.api_token,
+        tags = args.tags if hasattr(args, 'tags') else None,
+        cidr_block = args.cidr_block if hasattr(args, 'cidr_block') else None
     )
-
     tf_workspace_name = tf.get_workspace_name()
 
     if override_teardown:
@@ -371,7 +378,7 @@ def main(args = None, override_teardown: bool = False) -> None:
     if args.teardown:
         logger.info(f"[bold italic]Tearing down {args.teardown}...[/]")
         tf.teardown(args.teardown)
-        return
+        exit()
 
     elif args.list:
         all_hosts = get_hosts()

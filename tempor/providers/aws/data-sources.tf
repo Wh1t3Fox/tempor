@@ -5,3 +5,7 @@ data "external" "vps_name" {
 data "external" "root_pass" {
   program = ["python3", "${path.module}/external/passwd-generator.py"]
 }
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
