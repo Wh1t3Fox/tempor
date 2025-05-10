@@ -347,26 +347,16 @@ def main(args = None, override_teardown: bool = False) -> None:
         if ssh_username := p.get_ssh_user():
             args.user = ssh_username
 
-    if args.provider == 'aws':
-        tf = Terraform(
-            args.provider,
-            args.region,
-            args.image,
-            args.resources,
-            args.hostname,
-            args.api_token,
-            tags = args.tags if hasattr(args, 'tags') else None,
-            cidr_block = args.cidr_block if hasattr(args, 'cidr_block') else None
-        )
-    else:
-        tf = Terraform(
-            args.provider,
-            args.region,
-            args.image,
-            args.resources,
-            args.hostname,
-            args.api_token,
-        )
+    tf = Terraform(
+        args.provider,
+        args.region,
+        args.image,
+        args.resources,
+        args.hostname,
+        args.api_token,
+        tags = args.tags if hasattr(args, 'tags') else None,
+        cidr_block = args.cidr_block if hasattr(args, 'cidr_block') else None
+    )
     tf_workspace_name = tf.get_workspace_name()
 
     if override_teardown:
