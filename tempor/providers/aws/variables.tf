@@ -20,3 +20,6 @@ variable "tags" {
 variable "vps_name" {
   default = ""
 }
+variable "cidr_block" {
+  default = "10.253.0.0/16"
+}
