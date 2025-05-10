@@ -33,8 +33,8 @@ class Terraform:
     """Handler for all of the Terraform functionality."""
 
     def __init__(
-        self, provider, region, image, resources, vps_name=None, api_token=None, tags={}
-    ):
+        self, provider, region, image, resources,
+        vps_name=None, api_token=None, **kwargs):
         self.logger = logging.getLogger(__name__)
         self.provider = provider
         self.region = region
@@ -42,7 +42,6 @@ class Terraform:
         self.resources = resources
         self.vps_name = self.generate_vps_name() if not vps_name else vps_name
         self.api_token = api_token
-        self.tags = tags
 
         self.workspace_name = self.get_workspace_name()
 
@@ -50,11 +49,23 @@ class Terraform:
         if not self.is_installed():
             self.install_latest()
 
+        self.tf_vars = {
+            "api_token": self.api_token,
+            "image": self.image,
+            "region": self.region,
+            "resources": self.resources,
+            "vps_name": self.vps_name
+        }
+
         # pass tokens for AWS thourh ENV
         # this allows the user to also just set the ENV variables as well
         # ENV set here are only accessible to the child processes
         if self.provider == "aws":
             self.api_token = {} if self.api_token is None else self.api_token
+
+            # AWS specifics
+            self.tf_vars['api_token'] = self.api_token
+
 
             # if the API tokens in the config are populated set them to env variables
             if (
@@ -88,6 +99,7 @@ class Terraform:
             if os.environ.get("AWS_REGION", None) is None:
                 os.environ["AWS_REGION"] = self.region
 
+        self.tf_vars.update(kwargs)
 
         # Create the Object
         try:
@@ -277,15 +289,7 @@ class Terraform:
         ret, stdout, stderr = self.t.cmd(
             "plan",
             f"-out={self.get_plan_path()}",
-            var={
-                "api_token": self.api_token,
-                "image": self.image,
-                "region": self.region,
-                "resources": self.resources,
-                "num": count,
-                "vps_name": self.vps_name,
-                "tags": self.tags,
-            },
+            var = self.tf_vars
         )
         if ret != 0 and stderr:
             # Fix the color escape sequences
@@ -337,14 +341,7 @@ class Terraform:
                 "-destroy",
                 "-auto-approve",
                 f"-target={target}",
-                var={
-                    "api_token": self.api_token,
-                    "image": self.image,
-                    "region": self.region,
-                    "resources": self.resources,
-                    "vps_name": self.vps_name,
-                    "tags": self.tags,
-                },
+                var = self.tf_vars
             )
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
@@ -356,14 +353,7 @@ class Terraform:
                 "apply",
                 "-destroy",
                 "-auto-approve",
-                var={
-                    "api_token": self.api_token,
-                    "image": self.image,
-                    "region": self.region,
-                    "resources": self.resources,
-                    "vps_name": self.vps_name,
-                    "tags": self.tags,
-                },
+                var = self.tf_vars
             )
             if ret != 0 and stderr:
                 stderr = re.sub(r"(\[\d+m)", r"\033\1", stderr)
