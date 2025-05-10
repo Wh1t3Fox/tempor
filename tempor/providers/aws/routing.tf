@@ -3,7 +3,7 @@ resource "aws_internet_gateway" "tempor_igw" {
   vpc_id = aws_vpc.tempor.id
 
   tags = {
-    "Name" = "tempor-IGW"
+    "Name" = var.igw_name
   }
 }
 
@@ -22,7 +22,7 @@ resource "aws_route_table" "public_rt" {
 
 
   tags = {
-    "Name" = "tempor-route-table"
+    "Name" = var.rt_name
   }
 }
 
@@ -38,7 +38,7 @@ resource "aws_subnet" "tempor_subnet" {
 
 
   tags = {
-    Name = "tempor-${var.vps_name == "" ? data.external.vps_name.result.name : var.vps_name}"
+    Name = var.subnet_name
   }
 }
 

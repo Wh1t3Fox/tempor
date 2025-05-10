@@ -4,6 +4,6 @@ resource "aws_vpc" "tempor" {
   assign_generated_ipv6_cidr_block = true
 
   tags = {
-    Name = "tempor-vpc"
+   Name = var.vpc_name
   }
 }
